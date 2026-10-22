@@ -1,0 +1,357 @@
+== IOReport 진단: C-ane-pm ==
+측정 20.0초, 1초 간격, 실행 사용자 uid 501 (0이 아니면 관리자 권한 없이 실행)
+구독: Energy Model / (전체), CPU Stats / CPU Core Performance States, CPU Stats / CPU Complex Performance States, GPU Stats / GPU Performance States, AMC Stats / Perf Counters, SoC Stats / Events, SoC Stats / Cluster Power States, PMP / AF BW, PMP / SOC0_ANE_SYS Fl, PMP / FAB_AFNC0 Floor, PMP / AFR Floor, PMP / DCS Floor
+
+[에너지 카운터] 평균 W = 구간 총 에너지 ÷ 측정 시간, '갱신'은 값이 0이 아니었던 표본 수
+Energy Model / - / AMCC0 | mJ | 갱신 20/20 | 평균 6.519 W | 최대 111.760 W
+Energy Model / - / ANE0 | mJ | 갱신 20/20 | 평균 3.140 W | 최대 43.847 W
+Energy Model / - / AVE0 | mJ | 갱신 19/20 | 평균 0.045 W | 최대 0.811 W
+Energy Model / - / CPU Energy | mJ | 갱신 20/20 | 평균 20.032 W | 최대 358.464 W
+Energy Model / - / DCS0 | mJ | 갱신 20/20 | 평균 8.392 W | 최대 143.038 W
+Energy Model / - / DRAM0 | mJ | 갱신 20/20 | 평균 6.752 W | 최대 117.364 W
+Energy Model / - / EACC_CPM | mJ | 갱신 19/20 | 평균 0.465 W | 최대 8.159 W
+Energy Model / - / EACC_CPU | mJ | 갱신 19/20 | 평균 1.150 W | 최대 20.278 W
+Energy Model / - / EACC_CPU0 | mJ | 갱신 19/20 | 평균 0.345 W | 최대 6.103 W
+Energy Model / - / EACC_CPU1 | mJ | 갱신 19/20 | 평균 0.340 W | 최대 6.016 W
+Energy Model / - / ECPUDTL00 | mJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / ECPUDTL01 | mJ | 갱신 19/20 | 평균 0.050 W | 최대 0.849 W
+Energy Model / - / ECPUDTL02 | mJ | 갱신 19/20 | 평균 0.020 W | 최대 0.355 W
+Energy Model / - / ECPUDTL03 | mJ | 갱신 19/20 | 평균 0.042 W | 최대 0.729 W
+Energy Model / - / ECPUDTL04 | mJ | 갱신 19/20 | 평균 0.233 W | 최대 4.171 W
+Energy Model / - / ECPUDTL10 | mJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / ECPUDTL11 | mJ | 갱신 19/20 | 평균 0.048 W | 최대 0.821 W
+Energy Model / - / ECPUDTL12 | mJ | 갱신 19/20 | 평균 0.019 W | 최대 0.348 W
+Energy Model / - / ECPUDTL13 | mJ | 갱신 19/20 | 평균 0.041 W | 최대 0.717 W
+Energy Model / - / ECPUDTL14 | mJ | 갱신 19/20 | 평균 0.231 W | 최대 4.131 W
+Energy Model / - / GPU Energy | nJ | 갱신 20/20 | 평균 0.085 W | 최대 0.181 W
+Energy Model / - / GPU SRAM0 | mJ | 갱신 19/20 | 평균 0.086 W | 최대 1.617 W
+Energy Model / - / GPU0 | mJ | 갱신 19/20 | 평균 2.053 W | 최대 39.507 W
+Energy Model / - / ISP0 | mJ | 갱신 19/20 | 평균 0.026 W | 최대 0.450 W
+Energy Model / - / MSR0 | mJ | 갱신 19/20 | 평균 0.024 W | 최대 0.431 W
+Energy Model / - / PACC0_CPM | mJ | 갱신 20/20 | 평균 2.262 W | 최대 40.351 W
+Energy Model / - / PACC0_CPU | mJ | 갱신 20/20 | 평균 15.031 W | 최대 265.985 W
+Energy Model / - / PACC0_CPU0 | mJ | 갱신 20/20 | 평균 6.238 W | 최대 105.366 W
+Energy Model / - / PACC0_CPU1 | mJ | 갱신 20/20 | 평균 2.997 W | 최대 54.356 W
+Energy Model / - / PACC0_CPU2 | mJ | 갱신 20/20 | 평균 1.957 W | 최대 36.493 W
+Energy Model / - / PACC0_CPU3 | mJ | 갱신 20/20 | 평균 1.576 W | 최대 29.417 W
+Energy Model / - / PACC1_CPM | mJ | 갱신 19/20 | 평균 0.588 W | 최대 10.885 W
+Energy Model / - / PACC1_CPU | mJ | 갱신 20/20 | 평균 3.852 W | 최대 72.199 W
+Energy Model / - / PACC1_CPU0 | mJ | 갱신 20/20 | 평균 1.312 W | 최대 24.113 W
+Energy Model / - / PACC1_CPU1 | mJ | 갱신 18/20 | 평균 0.806 W | 최대 15.223 W
+Energy Model / - / PACC1_CPU2 | mJ | 갱신 17/20 | 평균 0.601 W | 최대 11.498 W
+Energy Model / - / PACC1_CPU3 | mJ | 갱신 17/20 | 평균 0.544 W | 최대 10.480 W
+Energy Model / - / PCIe Port 0 Energy | uJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / PCIe Port 1 Energy | uJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / PCPU1DTL00 | mJ | 갱신 8/20 | 평균 0.002 W | 최대 0.040 W
+Energy Model / - / PCPU1DTL01 | mJ | 갱신 2/20 | 평균 0.000 W | 최대 0.003 W
+Energy Model / - / PCPU1DTL02 | mJ | 갱신 5/20 | 평균 0.005 W | 최대 0.101 W
+Energy Model / - / PCPU1DTL03 | mJ | 갱신 3/20 | 평균 0.005 W | 최대 0.105 W
+Energy Model / - / PCPU1DTL04 | mJ | 갱신 5/20 | 평균 0.009 W | 최대 0.166 W
+Energy Model / - / PCPU1DTL05 | mJ | 갱신 6/20 | 평균 0.013 W | 최대 0.221 W
+Energy Model / - / PCPU1DTL06 | mJ | 갱신 5/20 | 평균 0.017 W | 최대 0.308 W
+Energy Model / - / PCPU1DTL07 | mJ | 갱신 9/20 | 평균 0.024 W | 최대 0.381 W
+Energy Model / - / PCPU1DTL08 | mJ | 갱신 11/20 | 평균 0.051 W | 최대 0.892 W
+Energy Model / - / PCPU1DTL09 | mJ | 갱신 8/20 | 평균 0.050 W | 최대 0.944 W
+Energy Model / - / PCPU1DTL0a | mJ | 갱신 12/20 | 평균 0.057 W | 최대 0.977 W
+Energy Model / - / PCPU1DTL0b | mJ | 갱신 9/20 | 평균 0.064 W | 최대 1.170 W
+Energy Model / - / PCPU1DTL0c | mJ | 갱신 11/20 | 평균 0.030 W | 최대 0.485 W
+Energy Model / - / PCPU1DTL0d | mJ | 갱신 10/20 | 평균 0.043 W | 최대 0.617 W
+Energy Model / - / PCPU1DTL0e | mJ | 갱신 10/20 | 평균 0.941 W | 최대 17.702 W
+Energy Model / - / PCPU1DTL10 | mJ | 갱신 2/20 | 평균 0.001 W | 최대 0.010 W
+Energy Model / - / PCPU1DTL11 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.001 W
+Energy Model / - / PCPU1DTL12 | mJ | 갱신 2/20 | 평균 0.002 W | 최대 0.041 W
+Energy Model / - / PCPU1DTL13 | mJ | 갱신 1/20 | 평균 0.002 W | 최대 0.046 W
+Energy Model / - / PCPU1DTL14 | mJ | 갱신 4/20 | 평균 0.004 W | 최대 0.068 W
+Energy Model / - / PCPU1DTL15 | mJ | 갱신 3/20 | 평균 0.005 W | 최대 0.098 W
+Energy Model / - / PCPU1DTL16 | mJ | 갱신 4/20 | 평균 0.007 W | 최대 0.135 W
+Energy Model / - / PCPU1DTL17 | mJ | 갱신 5/20 | 평균 0.007 W | 최대 0.120 W
+Energy Model / - / PCPU1DTL18 | mJ | 갱신 9/20 | 평균 0.028 W | 최대 0.518 W
+Energy Model / - / PCPU1DTL19 | mJ | 갱신 4/20 | 평균 0.027 W | 최대 0.531 W
+Energy Model / - / PCPU1DTL1a | mJ | 갱신 8/20 | 평균 0.031 W | 최대 0.511 W
+Energy Model / - / PCPU1DTL1b | mJ | 갱신 8/20 | 평균 0.036 W | 최대 0.641 W
+Energy Model / - / PCPU1DTL1c | mJ | 갱신 6/20 | 평균 0.017 W | 최대 0.263 W
+Energy Model / - / PCPU1DTL1d | mJ | 갱신 7/20 | 평균 0.018 W | 최대 0.263 W
+Energy Model / - / PCPU1DTL1e | mJ | 갱신 8/20 | 평균 0.622 W | 최대 11.981 W
+Energy Model / - / PCPU1DTL20 | mJ | 갱신 2/20 | 평균 0.000 W | 최대 0.003 W
+Energy Model / - / PCPU1DTL21 | mJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / PCPU1DTL22 | mJ | 갱신 2/20 | 평균 0.001 W | 최대 0.021 W
+Energy Model / - / PCPU1DTL23 | mJ | 갱신 1/20 | 평균 0.001 W | 최대 0.020 W
+Energy Model / - / PCPU1DTL24 | mJ | 갱신 1/20 | 평균 0.001 W | 최대 0.022 W
+Energy Model / - / PCPU1DTL25 | mJ | 갱신 2/20 | 평균 0.002 W | 최대 0.044 W
+Energy Model / - / PCPU1DTL26 | mJ | 갱신 3/20 | 평균 0.003 W | 최대 0.066 W
+Energy Model / - / PCPU1DTL27 | mJ | 갱신 3/20 | 평균 0.006 W | 최대 0.101 W
+Energy Model / - / PCPU1DTL28 | mJ | 갱신 8/20 | 평균 0.017 W | 최대 0.308 W
+Energy Model / - / PCPU1DTL29 | mJ | 갱신 3/20 | 평균 0.014 W | 최대 0.280 W
+Energy Model / - / PCPU1DTL2a | mJ | 갱신 5/20 | 평균 0.016 W | 최대 0.252 W
+Energy Model / - / PCPU1DTL2b | mJ | 갱신 4/20 | 평균 0.021 W | 최대 0.383 W
+Energy Model / - / PCPU1DTL2c | mJ | 갱신 4/20 | 평균 0.009 W | 최대 0.155 W
+Energy Model / - / PCPU1DTL2d | mJ | 갱신 4/20 | 평균 0.013 W | 최대 0.197 W
+Energy Model / - / PCPU1DTL2e | mJ | 갱신 6/20 | 평균 0.496 W | 최대 9.646 W
+Energy Model / - / PCPU1DTL30 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.001 W
+Energy Model / - / PCPU1DTL31 | mJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / PCPU1DTL32 | mJ | 갱신 2/20 | 평균 0.001 W | 최대 0.019 W
+Energy Model / - / PCPU1DTL33 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.009 W
+Energy Model / - / PCPU1DTL34 | mJ | 갱신 1/20 | 평균 0.001 W | 최대 0.013 W
+Energy Model / - / PCPU1DTL35 | mJ | 갱신 2/20 | 평균 0.001 W | 최대 0.023 W
+Energy Model / - / PCPU1DTL36 | mJ | 갱신 2/20 | 평균 0.003 W | 최대 0.061 W
+Energy Model / - / PCPU1DTL37 | mJ | 갱신 3/20 | 평균 0.004 W | 최대 0.075 W
+Energy Model / - / PCPU1DTL38 | mJ | 갱신 8/20 | 평균 0.016 W | 최대 0.298 W
+Energy Model / - / PCPU1DTL39 | mJ | 갱신 2/20 | 평균 0.011 W | 최대 0.211 W
+Energy Model / - / PCPU1DTL3a | mJ | 갱신 4/20 | 평균 0.011 W | 최대 0.195 W
+Energy Model / - / PCPU1DTL3b | mJ | 갱신 6/20 | 평균 0.019 W | 최대 0.329 W
+Energy Model / - / PCPU1DTL3c | mJ | 갱신 5/20 | 평균 0.012 W | 최대 0.214 W
+Energy Model / - / PCPU1DTL3d | mJ | 갱신 6/20 | 평균 0.010 W | 최대 0.152 W
+Energy Model / - / PCPU1DTL3e | mJ | 갱신 5/20 | 평균 0.455 W | 최대 8.879 W
+Energy Model / - / PCPUDTL00 | mJ | 갱신 1/20 | 평균 0.001 W | 최대 0.020 W
+Energy Model / - / PCPUDTL01 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.006 W
+Energy Model / - / PCPUDTL02 | mJ | 갱신 1/20 | 평균 0.048 W | 최대 0.951 W
+Energy Model / - / PCPUDTL03 | mJ | 갱신 2/20 | 평균 0.065 W | 최대 1.289 W
+Energy Model / - / PCPUDTL04 | mJ | 갱신 4/20 | 평균 0.065 W | 최대 1.263 W
+Energy Model / - / PCPUDTL05 | mJ | 갱신 4/20 | 평균 0.085 W | 최대 1.485 W
+Energy Model / - / PCPUDTL06 | mJ | 갱신 4/20 | 평균 0.115 W | 최대 1.895 W
+Energy Model / - / PCPUDTL07 | mJ | 갱신 7/20 | 평균 0.240 W | 최대 3.884 W
+Energy Model / - / PCPUDTL08 | mJ | 갱신 12/20 | 평균 0.660 W | 최대 10.707 W
+Energy Model / - / PCPUDTL09 | mJ | 갱신 14/20 | 평균 0.916 W | 최대 15.070 W
+Energy Model / - / PCPUDTL0a | mJ | 갱신 12/20 | 평균 0.623 W | 최대 9.531 W
+Energy Model / - / PCPUDTL0b | mJ | 갱신 11/20 | 평균 0.370 W | 최대 5.470 W
+Energy Model / - / PCPUDTL0c | mJ | 갱신 11/20 | 평균 0.215 W | 최대 3.029 W
+Energy Model / - / PCPUDTL0d | mJ | 갱신 11/20 | 평균 0.237 W | 최대 3.147 W
+Energy Model / - / PCPUDTL0e | mJ | 갱신 10/20 | 평균 2.598 W | 최대 47.618 W
+Energy Model / - / PCPUDTL10 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.006 W
+Energy Model / - / PCPUDTL11 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.003 W
+Energy Model / - / PCPUDTL12 | mJ | 갱신 1/20 | 평균 0.019 W | 최대 0.385 W
+Energy Model / - / PCPUDTL13 | mJ | 갱신 1/20 | 평균 0.032 W | 최대 0.632 W
+Energy Model / - / PCPUDTL14 | mJ | 갱신 5/20 | 평균 0.036 W | 최대 0.695 W
+Energy Model / - / PCPUDTL15 | mJ | 갱신 4/20 | 평균 0.044 W | 최대 0.823 W
+Energy Model / - / PCPUDTL16 | mJ | 갱신 4/20 | 평균 0.058 W | 최대 1.066 W
+Energy Model / - / PCPUDTL17 | mJ | 갱신 7/20 | 평균 0.099 W | 최대 1.684 W
+Energy Model / - / PCPUDTL18 | mJ | 갱신 13/20 | 평균 0.206 W | 최대 3.572 W
+Energy Model / - / PCPUDTL19 | mJ | 갱신 13/20 | 평균 0.292 W | 최대 5.167 W
+Energy Model / - / PCPUDTL1a | mJ | 갱신 12/20 | 평균 0.237 W | 최대 3.982 W
+Energy Model / - / PCPUDTL1b | mJ | 갱신 11/20 | 평균 0.152 W | 최대 2.614 W
+Energy Model / - / PCPUDTL1c | mJ | 갱신 11/20 | 평균 0.085 W | 최대 1.392 W
+Energy Model / - / PCPUDTL1d | mJ | 갱신 11/20 | 평균 0.097 W | 최대 1.416 W
+Energy Model / - / PCPUDTL1e | mJ | 갱신 10/20 | 평균 1.641 W | 최대 30.922 W
+Energy Model / - / PCPUDTL20 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.002 W
+Energy Model / - / PCPUDTL21 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.001 W
+Energy Model / - / PCPUDTL22 | mJ | 갱신 1/20 | 평균 0.010 W | 최대 0.203 W
+Energy Model / - / PCPUDTL23 | mJ | 갱신 1/20 | 평균 0.014 W | 최대 0.284 W
+Energy Model / - / PCPUDTL24 | mJ | 갱신 4/20 | 평균 0.019 W | 최대 0.369 W
+Energy Model / - / PCPUDTL25 | mJ | 갱신 4/20 | 평균 0.021 W | 최대 0.403 W
+Energy Model / - / PCPUDTL26 | mJ | 갱신 4/20 | 평균 0.026 W | 최대 0.474 W
+Energy Model / - / PCPUDTL27 | mJ | 갱신 7/20 | 평균 0.038 W | 최대 0.686 W
+Energy Model / - / PCPUDTL28 | mJ | 갱신 12/20 | 평균 0.091 W | 최대 1.603 W
+Energy Model / - / PCPUDTL29 | mJ | 갱신 11/20 | 평균 0.114 W | 최대 2.109 W
+Energy Model / - / PCPUDTL2a | mJ | 갱신 12/20 | 평균 0.110 W | 최대 1.913 W
+Energy Model / - / PCPUDTL2b | mJ | 갱신 11/20 | 평균 0.096 W | 최대 1.684 W
+Energy Model / - / PCPUDTL2c | mJ | 갱신 10/20 | 평균 0.048 W | 최대 0.832 W
+Energy Model / - / PCPUDTL2d | mJ | 갱신 11/20 | 평균 0.057 W | 최대 0.857 W
+Energy Model / - / PCPUDTL2e | mJ | 갱신 10/20 | 평균 1.313 W | 최대 25.075 W
+Energy Model / - / PCPUDTL30 | mJ | 갱신 1/20 | 평균 0.000 W | 최대 0.002 W
+Energy Model / - / PCPUDTL31 | mJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / PCPUDTL32 | mJ | 갱신 1/20 | 평균 0.004 W | 최대 0.088 W
+Energy Model / - / PCPUDTL33 | mJ | 갱신 1/20 | 평균 0.007 W | 최대 0.144 W
+Energy Model / - / PCPUDTL34 | mJ | 갱신 4/20 | 평균 0.011 W | 최대 0.217 W
+Energy Model / - / PCPUDTL35 | mJ | 갱신 4/20 | 평균 0.014 W | 최대 0.258 W
+Energy Model / - / PCPUDTL36 | mJ | 갱신 4/20 | 평균 0.017 W | 최대 0.319 W
+Energy Model / - / PCPUDTL37 | mJ | 갱신 7/20 | 평균 0.029 W | 최대 0.514 W
+Energy Model / - / PCPUDTL38 | mJ | 갱신 12/20 | 평균 0.066 W | 최대 1.226 W
+Energy Model / - / PCPUDTL39 | mJ | 갱신 11/20 | 평균 0.085 W | 최대 1.580 W
+Energy Model / - / PCPUDTL3a | mJ | 갱신 11/20 | 평균 0.085 W | 최대 1.502 W
+Energy Model / - / PCPUDTL3b | mJ | 갱신 11/20 | 평균 0.101 W | 최대 1.704 W
+Energy Model / - / PCPUDTL3c | mJ | 갱신 11/20 | 평균 0.039 W | 최대 0.644 W
+Energy Model / - / PCPUDTL3d | mJ | 갱신 11/20 | 평균 0.049 W | 최대 0.754 W
+Energy Model / - / PCPUDTL3e | mJ | 갱신 10/20 | 평균 1.068 W | 최대 20.461 W
+Energy Model / - / apciec0 Energy | uJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / apciec1 Energy | uJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+Energy Model / - / apciec2 Energy | uJ | 갱신 0/20 | 평균 0.000 W | 최대 0.000 W
+
+[상태 채널] 활성 % = IDLE·DOWN·OFF를 뺀 시간 비율 (구간 전체 기준, 괄호는 표본별 최소~최대)
+CPU Stats / CPU Complex Performance States / ECPM | 활성 100.0% (100.0~100.0) | 상태 6개: IDLE,V0P4,V1P3,V2P2,V3P1,V4P0
+CPU Stats / CPU Complex Performance States / ECPU | 활성 59.0% (41.2~100.0) | 상태 6개: IDLE,V0P4,V1P3,V2P2,V3P1,V4P0
+CPU Stats / CPU Complex Performance States / PCPM | 활성 100.0% (100.0~100.0) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Complex Performance States / PCPM1 | 활성 100.0% (100.0~100.0) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Complex Performance States / PCPU | 활성 58.3% (51.4~70.6) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Complex Performance States / PCPU1 | 활성 8.0% (0.6~23.8) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / ECPU000 | 활성 46.0% (29.8~77.9) | 상태 6개: IDLE,V0P4,V1P3,V2P2,V3P1,V4P0
+CPU Stats / CPU Core Performance States / ECPU010 | 활성 44.2% (27.7~77.7) | 상태 6개: IDLE,V0P4,V1P3,V2P2,V3P1,V4P0
+CPU Stats / CPU Core Performance States / PCPU000 | 활성 47.5% (44.3~55.4) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU010 | 활성 17.1% (8.5~31.2) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU020 | 활성 8.4% (2.4~23.3) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU030 | 활성 6.3% (1.4~17.9) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU100 | 활성 6.5% (0.6~19.4) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU110 | 활성 2.7% (0.1~10.8) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU120 | 활성 1.4% (0.0~7.8) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+CPU Stats / CPU Core Performance States / PCPU130 | 활성 1.2% (0.0~6.9) | 상태 16개: IDLE,V0P14,V1P13,V2P12,V3P11,V4P10,V5P9,V6P8,V7P7,V8P6,V9P5,V10P4,V11P3,V12P2,V13P1,V14P0
+GPU Stats / GPU Performance States / GPUPH | 활성 39.7% (27.4~62.3) | 상태 16개: OFF,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,P14,P15
+PMP / AF BW / ANE0 RD+WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA0 RD | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA0 RD+WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA0 WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA1 RD | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA1 RD+WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA1 WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA2 RD | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA2 RD+WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA2 WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA3 RD | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA3 RD+WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AF BW / IOA3 WR | 활성 100.0% (100.0~100.0) | 상태 32개:    2GB/s,   4GB/s,   6GB/s,   8GB/s,  10GB/s,  12GB/s,  14GB/s,  16GB/s,  18GB/s,  20GB/s,  22GB/s,  24GB/s,  26GB/s,  28GB/s,  30GB/s,  32GB/s,…
+PMP / AFR Floor / AFR-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / AGX | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / AGX-FAST-AFR-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / AGX-SLOW-AFR-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / ANE0 | 활성 0.0% (-) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / ANE0-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / AVD0 | 활성 0.0% (-) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / AVE0 | 활성 0.0% (-) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / IOA0-AFR-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / IOA3-AFR-BW | 활성 100.0% (100.0~100.0) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / JPEG0 | 활성 0.0% (-) | 상태 3개: VMIN,VNOM,VMAX
+PMP / AFR Floor / MSR0 | 활성 0.0% (-) | 상태 3개: VMIN,VNOM,VMAX
+PMP / DCS Floor / #DISPEXT | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / AGX | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / AGX-FAST-DCS-BW | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / AGX-SLOW-DCS-BW | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / ANE0 | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / AVD0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / AVE0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / DCS-BW | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / DCS-BWR | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / DISP0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / DISPEXT0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / DISPEXT1 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / EACC0 | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / ISP0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / JPEG0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / LTR | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / MSR0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / PACC0 | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / PACC1 | 활성 100.0% (100.0~100.0) | 상태 4개: F1,F2,F3,F5
+PMP / DCS Floor / SCODEC0 | 활성 0.0% (-) | 상태 4개: F1,F2,F3,F5
+PMP / FAB_AFNC0 Floor / ANE0 | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / ANE0-BW | 활성 100.0% (100.0~100.0) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / AVD0 | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / DISPEXT0 | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / DISPEXT0-RD-BWR | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / DISPEXT1 | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / DISPEXT1-RD-BWR | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / IOA0-AFNC-BW | 활성 100.0% (100.0~100.0) | 상태 3개: FMIN,FNOM,FMAX
+PMP / FAB_AFNC0 Floor / IOA0-AFNC-RD-BW | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / SOC0_ANE_SYS Fl / ANE0 | 활성 0.0% (-) | 상태 3개: FMIN,FNOM,FMAX
+PMP / SOC0_ANE_SYS Fl / ANE0-BW | 활성 100.0% (100.0~100.0) | 상태 3개: FMIN,FNOM,FMAX
+SoC Stats / Cluster Power States / AFR | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / ANE0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / AVEMSR | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / DISPLAY | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / EACC | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / PACC0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Cluster Power States / PACC1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AFR_VMAX | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AFR_VMIN | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AFR_VNOM | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE0_ADCLK_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE0_DITHR_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE0_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE0_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE0_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE1_ADCLK_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE1_DITHR_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE1_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE1_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ANE1_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_F1_F0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_F2_F0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_F2_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_V1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_V2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_VMAX | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AVEMSR0_VMIN | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / AWAKE | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DCS_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DCS_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DCS_F3 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DCS_F4 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DCS_F5 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DEEP_WAIT | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DISP0_VMAX | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DISP0_VMIN | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / DISP0_VNOM | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ECPU_ADCLK_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ECPU_DITHR_TRIG | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ECPU_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ECPU_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / ECPU_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_A04_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_A0_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_A4_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_F1_P_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_A04_F2_A2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_A2_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_AX_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_P_F2_A2_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_VMAX | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_VMIN | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / FAB_VNOM | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU0_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU0_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU0_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU0_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU0_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU1_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU1_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU1_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU1_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU1_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU2_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU2_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU2_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU2_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU2_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU3_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU3_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU3_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU3_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / MGPU3_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU0_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU0_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU0_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU0_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU0_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU1_ADCLK_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU1_DITHR_TRI | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU1_EXT_TRIG0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU1_EXT_TRIG1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / PCPU1_EXT_TRIG2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SLP_DDR | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SLP_S2R | 활성 0.0% (-) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_ANE_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_ANE_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_AVD_F1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_AVD_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_F1_ANE_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_F1_AVD_F2 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_VMAX | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_VMIN | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOC0_VNOM | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOCHOT0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SOCHOT1 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SYS_AWAKE | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+SoC Stats / Events / SYS_S2R_AOP | 활성 0.0% (-) | 상태 2개: INACT,ACT
+SoC Stats / Events / SYS_SLP_DDR | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+
+[OS CPU 시간] host_processor_info의 (user+system+nice) ÷ 전체 (구간 전체 기준)
+CPU 0: 42.0%
+CPU 1: 40.7%
+CPU 2: 45.8%
+CPU 3: 14.8%
+CPU 4: 6.8%
+CPU 5: 4.8%
+CPU 6: 5.0%
+CPU 7: 2.1%
+CPU 8: 1.1%
+CPU 9: 0.8%
+
+[IORegistry GPU] Device Utilization %: 평균 4.5 (최소 0~최대 32, 20회)

@@ -93,6 +93,72 @@ bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/PowerProbe/measure2.sh
 
 판정: 관리자 권한이 있으면 CPU·GPU·ANE 전력과 E/P·GPU 활성 비율을 얻을 수 있다. ANE 사용률은 기본 출력으로는 얻을 수 없다. 숨긴 정보 옵션과, 관리자 권한 없이 읽는 경로(IOReport)는 2차에서 확인한다.
 
-### 2차: 숨긴 정보와 관리자 권한 없는 읽기
+### 2차 (2026-10-22): 숨긴 정보와 관리자 권한 없는 읽기
 
-- 결과: (측정 후 작성)
+`measure2.sh`로 기록했어요. 단계별 요약은 `results-2/ioreport-*.txt`와 `pm-*.txt`에 있어요. 표본별 원본은 압축 파일(`*.tsv.gz`)로 저장했어요. IOReport는 모두 일반 사용자(uid 501)로 읽었고, 관리자 권한 없이 조회되는 채널은 9,359개였어요(`channels.tsv.gz`).
+
+**1) 관리자 권한 없이 읽은 에너지 카운터** (Energy Model 162개 채널, 칸의 숫자는 값이 바뀐 표본 수 / 전체 표본 수)
+
+| 단계 | powermetrics | 값이 바뀐 채널 | CPU Energy | ANE0 | GPU Energy |
+|---|---|---|---|---|---|
+| A 가만히 | 안 돌림 | 1/162 | 0/20 | 0/20 | 20/20 |
+| B ANE 부하 | 안 돌림 | 1/162 | 0/30 | 0/30 | 30/30 |
+| C ANE 부하 | 함께 돌림 | 152/162 | 20/20 | 20/20 | 20/20 |
+| D CPU 부하 | 함께 돌림 | 97/162 | 20/20 | 1/20 | 20/20 |
+| E GPU 부하 | 함께 돌림 | 133/162 | 20/20 | 0/20 | 20/20 |
+| F 가만히, 끝난 뒤 | 안 돌림 | 1/162 | 0/20 | 0/20 | 20/20 |
+
+- 이 Mac(macOS 27.0.1)에서도 보고와 같았어요. **CPU·ANE·DRAM 에너지 카운터는 관리자 권한 샘플러(powermetrics)가 도는 동안에만 갱신**되고, 끝나면 바로 다시 멈춰요. 멈춘 동안 쌓인 에너지는 다음 갱신 때 한꺼번에 들어와요. C의 첫 표본에서는 CPU 에너지가 1초 만에 360 J 늘어서 계산상 358 W가 나왔어요.
+- 갱신되는 동안의 값은 powermetrics와 맞아요. 첫 두 표본을 뺀 평균은 C의 CPU 2.05 W(powermetrics 2.25 W)·ANE 0.98 W(1.02 W), D의 CPU 7.65 W(7.74 W)였어요.
+- **GPU Energy(nJ) 채널만 관리자 권한 없이 계속 갱신**돼요. E의 GPU 7.73 W는 powermetrics의 7.58 W와 맞아요.
+
+**2) ANE 관련 채널** (관리자 권한 없이)
+
+| 단계 | ANE0 전원 상태 ACT 비율 | ANE0 메모리 읽기 | ANE0 메모리 쓰기 |
+|---|---|---|---|
+| A 가만히 | 0% | 0 | 0 |
+| B ANE 부하 | 100% | 7.2 GB/s | 3.4 GB/s |
+| C ANE 부하 + powermetrics | 100% | 7.4 GB/s | 3.4 GB/s |
+| D CPU 부하 | 0% | 0 | 0 |
+| E GPU 부하 | 0% | 0 | 0 |
+| F 가만히, 끝난 뒤 | 0.13% | 1회만 0이 아님 | 1회만 0이 아님 |
+
+- `SoC Stats / Cluster Power States / ANE0`는 상태가 `INACT`·`ACT` 두 개인 채널이에요. ACT 시간 비율이 ANE 부하에서만 100%가 되고 CPU·GPU 부하에서는 0%예요. **powermetrics 없이도 갱신돼요.** 지금까지 찾은 값 중 ANE의 '활성 시간 비율'에 가장 가까워요.
+- `AMC Stats / Perf Counters / ANE0 RD·WR`(바이트)는 ANE의 메모리 트래픽이에요. 이것도 ANE 부하에만 반응해요.
+- 다만 이번 부하는 ANE를 쉬지 않고 돌렸어요. ACT 비율이 실제로 일한 시간에 비례하는지, 잠깐만 일해도 켜진 채로 머무는지는 아직 몰라요. 부하를 띄엄띄엄 주는 부분 부하 실험이 필요해요.
+
+**3) E/P 사용률 후보** (D 단계 CPU 부하 동안 동시에 기록, 단위 %)
+
+| 구분 | powermetrics 클러스터 활성 | IOReport 클러스터 활성 | IOReport 코어 활성 평균 | OS CPU 시간 평균 |
+|---|---|---|---|---|
+| E (CPU 0·1) | 54.3 | 50.1 | 38.0 | 35.4 |
+| P0 (CPU 2~5) | 80.0 | 79.7 | 27.6 | 26.1 |
+| P1 (CPU 6~9) | 49.7 | 48.7 | 14.8 | 13.8 |
+
+- IOReport의 클러스터 활성 비율(`CPU Complex Performance States`)은 powermetrics의 클러스터 HW 활성 비율과 같은 값이고, 관리자 권한 없이 읽혀요.
+- 클러스터 활성 비율은 '코어가 하나라도 일한 시간'이라서 코어 평균보다 훨씬 높게 나와요(P0: 80% 대 26~28%).
+- 코어별 활성 비율(IOReport `CPU Core Performance States`)과 OS가 집계한 CPU 시간(`host_processor_info`)은 코어마다 차이가 4%p 이내로 비슷해요. IOReport 쪽이 조금 높아요. IOReport 코어 채널 이름(`ECPU000`, `PCPU000`…)의 순서는 CPU 번호 순서와 맞았어요.
+
+**4) GPU 사용률 후보** (단위 %)
+
+| 단계 | powermetrics GPU HW 활성 | IOReport GPUPH 활성 | IORegistry Device Utilization |
+|---|---|---|---|
+| A 가만히 | (안 돌림) | 24.2 | 15.0 |
+| C ANE 부하 | 40.0 | 39.9 | 4.5 |
+| D CPU 부하 | 28.5 | 28.6 | 8.3 |
+| E GPU 부하 | 98.5 | 98.5 | 69.6 |
+
+- IOReport의 GPU 활성 비율은 powermetrics와 같은 값이고, 관리자 권한 없이 읽혀요. GPU가 조금씩만 일해도 깨어 있는 시간이 길면 올라가요.
+- IORegistry `Device Utilization %`는 다른 지표예요. GPU 부하에서 70%, ANE 부하처럼 GPU가 잠깐씩만 쓰이는 상황에서는 5% 안팎이에요.
+
+**5) powermetrics 숨긴 정보**
+
+- `--unhide-info`는 샘플러 이름을 받지 않았어요(`unrecognized unhide option: cpu_power`). 받는 값은 찾지 못했어요.
+- `--show-all`에서도 ANE는 `ANE Power` 줄뿐이었어요.
+- 도움말의 `--show-extra-power-info`("unsupported power info")는 이번에 시험하지 않았어요.
+
+판정:
+
+- 관리자 권한 없이 읽을 수 있는 것: GPU 전력, E/P 클러스터·코어 활성 비율, OS CPU 시간, GPU 활성 비율과 Device Utilization, ANE 전원 상태(ACT) 비율, ANE 메모리 트래픽.
+- CPU·ANE 전력은 이 Mac의 macOS 27.0.1에서 관리자 권한 샘플러가 돌 때만 갱신된다. 실시간으로 보여주려면 관리자 권한이 필요하다.
+- ANE 사용률의 후보는 IOReport ANE0 전원 상태의 ACT 비율이다. 부분 부하에서 일한 시간에 비례하는지 3차에서 확인한다.

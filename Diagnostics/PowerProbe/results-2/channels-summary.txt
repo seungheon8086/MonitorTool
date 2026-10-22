@@ -1,0 +1,1187 @@
+== IOReport 채널 목록 ==
+전체 9359개, 실행 사용자 uid 501 (0이 아니면 관리자 권한 없이 실행)
+
+[그룹 / 하위 그룹별 채널 수]
+ACIO0 / IOP State: 1
+ACIO1 / IOP State: 1
+ACIO2 / IOP State: 1
+AFKEPDCPEXT0Endpoint1 / queue-util: 4
+AFKEPDCPEXT0Endpoint10 / queue-util: 4
+AFKEPDCPEXT0Endpoint11 / queue-util: 4
+AFKEPDCPEXT0Endpoint12 / queue-util: 4
+AFKEPDCPEXT0Endpoint18 / queue-util: 4
+AFKEPDCPEXT0Endpoint2 / queue-util: 4
+AFKEPDCPEXT0Endpoint3 / queue-util: 4
+AFKEPDCPEXT0Endpoint4 / queue-util: 4
+AFKEPDCPEXT0Endpoint5 / queue-util: 4
+AFKEPDCPEXT0Endpoint6 / queue-util: 4
+AFKEPDCPEXT0Endpoint7 / queue-util: 4
+AFKEPDCPEXT0Endpoint8 / queue-util: 4
+AFKEPDCPEXT0Endpoint9 / queue-util: 4
+AFKEPDCPEXT1Endpoint1 / queue-util: 4
+AFKEPDCPEXT1Endpoint10 / queue-util: 4
+AFKEPDCPEXT1Endpoint11 / queue-util: 4
+AFKEPDCPEXT1Endpoint12 / queue-util: 4
+AFKEPDCPEXT1Endpoint18 / queue-util: 4
+AFKEPDCPEXT1Endpoint2 / queue-util: 4
+AFKEPDCPEXT1Endpoint3 / queue-util: 4
+AFKEPDCPEXT1Endpoint4 / queue-util: 4
+AFKEPDCPEXT1Endpoint5 / queue-util: 4
+AFKEPDCPEXT1Endpoint6 / queue-util: 4
+AFKEPDCPEXT1Endpoint7 / queue-util: 4
+AFKEPDCPEXT1Endpoint8 / queue-util: 4
+AFKEPDCPEXT1Endpoint9 / queue-util: 4
+AFKEPDCPEndpoint1 / queue-util: 4
+AFKEPDCPEndpoint10 / queue-util: 4
+AFKEPDCPEndpoint11 / queue-util: 4
+AFKEPDCPEndpoint12 / queue-util: 4
+AFKEPDCPEndpoint18 / queue-util: 4
+AFKEPDCPEndpoint2 / queue-util: 4
+AFKEPDCPEndpoint3 / queue-util: 4
+AFKEPDCPEndpoint4 / queue-util: 4
+AFKEPDCPEndpoint5 / queue-util: 4
+AFKEPDCPEndpoint6 / queue-util: 4
+AFKEPDCPEndpoint7 / queue-util: 4
+AFKEPDCPEndpoint8 / queue-util: 4
+AFKEPDCPEndpoint9 / queue-util: 4
+AMC Stats / DSID Group Stats: 36
+AMC Stats / Perf Counters: 103
+AMPDU / Rx MPDU in OFDMA AMPDU Usage: 32
+AMPDU / Rx MPDU in SU AMPDU Usage: 32
+AMPDU / Tx MPDU in AMPDU Usage: 64
+ANS2 / BW Monitor: 10
+ANS2 / IO Reporting statistics: 2
+ANS2 / IOP State: 1
+ANS2 / PCIE0: 164
+ANS2 / PCIE1: 164
+ANS2 / Performance: 1
+ANS2 / Power: 8
+ANS2 / Power State: 1
+ANS2 / Total stack: 32
+ANS2 / Used stack: 32
+AOP / AOP Sensors: 3
+AOP / AOP_BOOT_STATS: 13
+AOP / Graphite_BMI262: 2
+AOP / IO Reporting statistics: 2
+AOP / IOP State: 1
+AOP / Performance: 2
+AOP / Power: 8
+AOP / SPU-CLI-LIST: 3
+AOP / SPUApp: received: 15
+AOP / SPU_rng: 5
+AOP / Total stack: 32
+AOP / Used stack: 32
+AOP / WKP-STATS-D: 25
+AOP / accel: received: 15
+AOP / als-temp: received: 15
+AOP / als: received: 15
+AOP / aop-audio: received: 15
+AOP / aop-voicetrigger: received: 15
+AOP / cma: received: 15
+AOP / devmotion6: received: 15
+AOP / gyro: received: 15
+AOP / las: received: 15
+AOP / wakehint: received: 15
+AOP endpoint 32 / stats: 6
+AOP endpoint 32 / wake reasons: 49
+AOP endpoint 33 / stats: 6
+AOP endpoint 33 / wake reasons: 49
+AOP endpoint 34 / stats: 6
+AOP endpoint 34 / wake reasons: 49
+AOP endpoint 35 / stats: 6
+AOP endpoint 35 / wake reasons: 49
+AOP endpoint 36 / stats: 6
+AOP endpoint 36 / wake reasons: 49
+AOP endpoint 37 / stats: 6
+AOP endpoint 37 / wake reasons: 49
+AOP endpoint 38 / stats: 6
+AOP endpoint 38 / wake reasons: 49
+AOP endpoint 39 / stats: 6
+AOP endpoint 39 / wake reasons: 49
+AOP endpoint 40 / stats: 6
+AOP endpoint 40 / wake reasons: 49
+AOP endpoint 41 / stats: 6
+AOP endpoint 41 / wake reasons: 49
+AOP endpoint 42 / stats: 6
+AOP endpoint 42 / wake reasons: 49
+AOP endpoint 43 / stats: 6
+AOP endpoint 43 / wake reasons: 49
+AVMR Offset / AVMR Offset Histogram for perf state 0: 1
+AVMR Offset / AVMR Offset Histogram for perf state 1: 1
+AVMR Offset / AVMR Offset Histogram for perf state 10: 1
+AVMR Offset / AVMR Offset Histogram for perf state 11: 1
+AVMR Offset / AVMR Offset Histogram for perf state 12: 1
+AVMR Offset / AVMR Offset Histogram for perf state 13: 1
+AVMR Offset / AVMR Offset Histogram for perf state 14: 1
+AVMR Offset / AVMR Offset Histogram for perf state 15: 1
+AVMR Offset / AVMR Offset Histogram for perf state 2: 1
+AVMR Offset / AVMR Offset Histogram for perf state 3: 1
+AVMR Offset / AVMR Offset Histogram for perf state 4: 1
+AVMR Offset / AVMR Offset Histogram for perf state 5: 1
+AVMR Offset / AVMR Offset Histogram for perf state 6: 1
+AVMR Offset / AVMR Offset Histogram for perf state 7: 1
+AVMR Offset / AVMR Offset Histogram for perf state 8: 1
+AVMR Offset / AVMR Offset Histogram for perf state 9: 1
+AWDL Metrics / AWDL Snapshot: 4
+AppleAOPAudio Status / aop-audio-clientmanager:hpai: 1
+AppleAOPAudio Status / aop-audio-lp-mic-in:lpai: 352
+AppleBCMWLANBusInterfacePCIe / Bus Events: 9
+AppleBCMWLANBusInterfacePCIe / DS Exit Delay: 1
+AppleBCMWLANBusInterfacePCIe / Power States: 1
+AppleBCMWLANBusInterfacePCIe / Queue Fill: 1
+AppleBCMWLANBusInterfacePCIe / Tx Complete Status: 56
+AppleEmbeddedPCIE / Link States: 5
+AppleHIDTransport / DeviceReset: 2
+AppleHIDTransport / DeviceSPIFailureCounts: 8
+AppleHIDTransport / ipd: 16
+AppleMCA2Cluster_T600x / MCA: 32
+BCN OFFLOAD / Beacon Offload Stats: 6
+BT Coex / Antenna Ownership: 1
+BT Coex / Antenna Request Reason: 14
+BT Coex / Coex Snapshot: 3
+BT Coex / Counters: 5
+BT Coex / Enabled State: 1
+BT Coex / Extra Counters: 30
+BT Coex / Hybrid State: 1
+BT Coex / TDM State: 1
+Bandwidth / -: 10
+Battery / -: 1
+CPU Stats / CPU Complex DVD States: 3
+CPU Stats / CPU Complex Performance States: 6
+CPU Stats / CPU Complex Voltage States: 3
+CPU Stats / CPU Core Performance States: 10
+Channel / CCA Last Reported: 38
+Channel / CCA State: 38
+Channel / Noise Last Reported: 1
+Channel / Noise State: 1
+Channel Switch: Slice 0 / Channel Switch Reasons: 5
+Channel Switch: Slice 0 / Channels Visited: 27
+Channel Switch: Slice 0 / Dwell Time: 1
+Channel Switch: Slice 0 / Phy Switch Time: 1
+Channel Switch: Slice 1 / Channel Switch Reasons: 5
+Channel Switch: Slice 1 / Channels Visited: 14
+Channel Switch: Slice 1 / Dwell Time: 1
+Channel Switch: Slice 1 / Phy Switch Time: 1
+Chip / AMPDU Counters: 27
+Chip / Bytes Transferred: 2
+Chip / OMI Counters: 16
+Chip / Rx Counters: 19
+Chip / Rx Error Counters: 9
+Chip / Rx MAC Counters: 14
+Chip / Rx OFDMA RU Counters: 6
+Chip / Rx Phy Error Counters: 4
+Chip / Tx Counters: 8
+Chip / Tx OFDMA RU Counters: 6
+Chip / WPA2 Counters: 11
+Chip / WPA2 Multicast Counters: 11
+Chip / dot11 MIB Counters: 15
+Chip Frames / Rx Control Frame Counters: 19
+Chip Frames / Rx Data Frame Counters: 5
+Chip Frames / Rx Management Frame Counters: 11
+Chip Frames / Tx Control Frame Counters: 8
+Chip Frames / Tx Data Frame Counters: 10
+Chip Frames / Tx Management Frame Counters: 11
+Codec Input / Approximate samplerate: 2
+Codec Input / IOAudio2: 6
+Codec Input / Input DMA Margin: 1
+Codec Input / MCA Run Counts: 4
+Codec Input / MCA Run Times: 4
+Codec Input / Misc. Debug Status: 3
+Codec Input / Negative Input DMA Margin: 1
+Codec Input / Output DMA Margin: 2
+Codec Input / Power State: 1
+Codec Input / Timestamp Propagation: 3
+Codec Output / Approximate samplerate: 2
+Codec Output / DCIDModes: 4
+Codec Output / IOAudio2: 6
+Codec Output / Input DMA Margin: 1
+Codec Output / MCA Run Counts: 4
+Codec Output / MCA Run Times: 4
+Codec Output / Misc. Debug Status: 3
+Codec Output / Negative Input DMA Margin: 1
+Codec Output / Output DMA Margin: 2
+Codec Output / Power State: 1
+Codec Output / Timestamp Propagation: 3
+Commander / Counters: 11
+Commander Response Time / Active Queue: 1
+Commander Response Time / Async Command Pending Queue: 1
+Commander Response Time / Outbound Queue: 1
+Commander Response Time / Sync Command Pending Queue: 1
+Controller / AP Rx PHY issue: 5
+Controller / AP Tx data stall issue: 5
+Controller / AP Tx low PHY rate issue: 5
+Controller / DUT Rx AMPDU TxBA mismatch issue: 5
+Controller / DUT Rx AMPDU duplicate issue: 5
+Controller / DUT Rx BCMC decrypt issue: 5
+Controller / DUT Rx PHY issue: 5
+Controller / DUT Rx PN replay issue: 5
+Controller / DUT Rx decrypt issue: 5
+Controller / DUT Rx overflow issue: 5
+Controller / DUT Tx Aggr issue: 5
+Controller / DUT Tx PHY issue: 5
+Controller / DUT Tx PHY rate issue: 5
+Controller / DUT Tx latency issue: 5
+Controller / Driver Availability: 2
+Controller / Driver Available State: 1
+Controller / IP timed out: 5
+Controller / IP timed out (NoCTL): 5
+Controller / IP timed out (PrivMac): 5
+Controller / Link metric upload only: 5
+Controller / Link recovery reason: 22
+Controller / Link recovery with PHY calibration: 5
+Controller / Link recovery with PHY reset: 5
+Controller / Link recovery with reassoc due to AP Tx data stall: 5
+Controller / Link recovery with reassoc due to Rx AMPDU DUP Errors: 5
+Controller / Link recovery with reassoc due to Rx AMPDU TxBA mismatch: 5
+Controller / Link recovery with reassoc due to decrypt errors: 5
+Controller / Link recovery with reassoc due to other errors: 5
+Controller / Link recovery with watchdog reset: 5
+Controller / Symptoms trigger: 5
+Controller / TVPM active: 5
+Controller / Unit test: 5
+Controller / Unusable WiFi issue: 5
+Controller / WLAN Duration too low: 5
+Core Dump / -: 3
+Core Performance Level / -: 3
+CoreCapture / Pipe ControlPath: 3
+CoreCapture / Pipe CrashTracerLogs: 3
+CoreCapture / Pipe DatapathEvents: 3
+CoreCapture / Pipe DriverLogs: 6
+CoreCapture / Pipe FirmwareBusLogs: 3
+CoreCapture / Pipe FirmwareEcounterLogs: 3
+CoreCapture / Pipe IO80211P2PPeerManager: 6
+CoreCapture / Pipe Interface_AirLink_0: 3
+CoreCapture / Pipe Interface_Infrastructure_0: 3
+CoreCapture / Pipe Interface_LowLatency_0: 3
+CoreCapture / Pipe Interface_SoftAP_0: 3
+CoreCapture / Pipe Interface_WiFi-Aware Discovery+Data_0: 3
+CoreCapture / Pipe LQMLogging: 3
+CoreCapture / Pipe StateDump: 3
+CoreCapture / Pipe StateSnapshots: 3
+CoreCapture / Pipe uartFirmwareLogs: 3
+CoreCapture / Stream StateDump: 11
+CoreCapture / Stream UARTStream: 11
+CoreCapture / Stream olyhalStream: 11
+Cursor / Graphics: 1
+Cursor / Total: 1
+DCP / IO Reporting statistics: 2
+DCP / IOP State: 1
+DCP / Performance: 1
+DCP / Power: 8
+DCP / Total stack: 32
+DCP / Used stack: 32
+DCP / aod stats: 25
+DCP / bright stats: 3
+DCP / display stats: 14
+DCP / fcam alss stats: 4
+DCP / scanout: 11
+DCP / scanout stats: 8
+DCP / swap: 11
+DCP / vmaod stats: 1
+DCPEXT0 / IO Reporting statistics: 2
+DCPEXT0 / IOP State: 1
+DCPEXT0 / Performance: 1
+DCPEXT0 / Power: 8
+DCPEXT0 / Total stack: 32
+DCPEXT0 / Used stack: 32
+DCPEXT0 / aod stats: 25
+DCPEXT0 / bright stats: 3
+DCPEXT0 / display stats: 14
+DCPEXT0 / fcam alss stats: 4
+DCPEXT0 / scanout: 11
+DCPEXT0 / scanout stats: 8
+DCPEXT0 / swap: 11
+DCPEXT0 / vmaod stats: 1
+DCPEXT1 / IO Reporting statistics: 2
+DCPEXT1 / IOP State: 1
+DCPEXT1 / Performance: 1
+DCPEXT1 / Power: 8
+DCPEXT1 / Total stack: 32
+DCPEXT1 / Used stack: 32
+DCPEXT1 / aod stats: 25
+DCPEXT1 / bright stats: 3
+DCPEXT1 / display stats: 14
+DCPEXT1 / fcam alss stats: 4
+DCPEXT1 / scanout: 11
+DCPEXT1 / scanout stats: 8
+DCPEXT1 / swap: 11
+DCPEXT1 / vmaod stats: 1
+DSA Slice 0 / DSA Power Boost (dB): 1
+DSA Slice 0 / DSA Status: 1
+DSA Slice 0 / DSA TxDC Ant 0 (%): 1
+DSA Slice 0 / DSA TxDC Ant 1 (%): 1
+DSA Slice 0 / DSA TxDC Ant 2 (%): 1
+DSA Slice 0 / DSA TxDC Ant 3 (%): 1
+DSA Slice 0 / DSA Util Ant 0 (%): 1
+DSA Slice 0 / DSA Util Ant 1 (%): 1
+DSA Slice 0 / DSA Util Ant 2 (%): 1
+DSA Slice 0 / DSA Util Ant 3 (%): 1
+DSA Slice 0 / Dynamic SAR Averaging: 18
+DSA Slice 1 / DSA Power Boost (dB): 1
+DSA Slice 1 / DSA Status: 1
+DSA Slice 1 / DSA TxDC Ant 0 (%): 1
+DSA Slice 1 / DSA TxDC Ant 1 (%): 1
+DSA Slice 1 / DSA TxDC Ant 2 (%): 1
+DSA Slice 1 / DSA TxDC Ant 3 (%): 1
+DSA Slice 1 / DSA Util Ant 0 (%): 1
+DSA Slice 1 / DSA Util Ant 1 (%): 1
+DSA Slice 1 / DSA Util Ant 2 (%): 1
+DSA Slice 1 / DSA Util Ant 3 (%): 1
+DSA Slice 1 / Dynamic SAR Averaging: 18
+Digital Mic / Approximate samplerate: 2
+Digital Mic / IOAudio2: 6
+Digital Mic / Input DMA Margin: 1
+Digital Mic / MCA Run Counts: 1
+Digital Mic / MCA Run Times: 1
+Digital Mic / Misc. Debug Status: 3
+Digital Mic / Negative Input DMA Margin: 1
+Digital Mic / Output DMA Margin: 2
+Digital Mic / Power State: 1
+Digital Mic / Timestamp Propagation: 3
+Energy Model / -: 162
+Event Log / Set Received Bytes: 12
+Event Log / Set counters: 20
+Event Log / Tag Received Bytes: 44
+Event Log / Tag counters: 44
+GFX / IOP State: 1
+GFX / Power State: 1
+GPU Discrete Power Zone Engaged / -: 1
+GPU Off Abort Counter / -: 1
+GPU Stats / AFR Performance States: 1
+GPU Stats / AFR Power Controller States: 1
+GPU Stats / Active Time Histogram: 1
+GPU Stats / CDM vChannel Usage: 5
+GPU Stats / CLTM-induced GPU Performance States: 1
+GPU Stats / Context Switch Latencies: 36
+GPU Stats / DVD Request States: 1
+GPU Stats / FRG vChannel Usage: 5
+GPU Stats / Fender Active Time Histogram: 1
+GPU Stats / Fender Idle Time Histogram: 1
+GPU Stats / Fender State: 1
+GPU Stats / GPU Boost Controller Performance States: 1
+GPU Stats / GPU Discrete Power Zone Residency: 1
+GPU Stats / GPU Performance States: 1
+GPU Stats / GPU Power Controller States: 1
+GPU Stats / GPU Throttler Counters: 10
+GPU Stats / GTP vChannel Usage: 5
+GPU Stats / Idle Time Histogram: 1
+GPU Stats / Issue Counts: 11
+GPU Stats / PMU Loop Lost Performance Reason Code States: 1
+GPU Stats / PPM Target as % of Max GPU Power: 1
+GPU Stats / Power Zone Filters: 6
+GPU Stats / Spill Buffer Metadata Unused Blocks Per Task Histogram: 1
+GPU Stats / Spill Buffer Metadata Usage Histogram: 1
+GPU Stats / Spill Buffer Usage Histogram: 1
+GPU Stats / THM Counters: 2
+GPU Stats / Temperature: 24
+GPU Stats / UT Engagement centi-% Histogram: 1
+GPU Stats / UV Warn State: 2
+GPU Stats / vChannel Selection: 15
+GPU UT AggD Stats / Count: 16
+GPU UT AggD Stats / Max: 16
+GPU UT AggD Stats / Min: 16
+GPU UT AggD Stats / Not_Engaged_Count: 16
+GPU UT AggD Stats / Sum: 16
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 0: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 1: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 10: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 11: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 12: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 13: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 14: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 15: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 2: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 3: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 4: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 5: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 6: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 7: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 8: 1
+GPU UT Engagement / UT Engagement centi-% Histogram for perf state 9: 1
+Hub Stats / EventName API Rate Exceeded: 1
+Hub Stats / EventName Failed: 1
+Hub Stats / EventName Received: 38
+Hub Stats / EventName SharedDataQueueFull: 1
+Hub Stats / User Client IO: 14
+INACTIVITY-SLEEP / Inactivity/Sleep Stats: 3
+IOHIDDevice Input Report Errors / Input Report IDs: 28
+IOReporter API / ConfigureReport Calls: 3
+IOReporter API / UpdateReport Calls: 3
+IPC Logs / -: 2
+ISP / ISP Events: 26
+ISP / ISP Power State: 4
+Interface  / Events: 3
+Interface ap1 / Activity: 1
+Interface ap1 / Change Reasons: 3
+Interface ap1 / Change Subreasons: 1
+Interface ap1 / Data Bytes: 6
+Interface ap1 / Data Packets: 7
+Interface ap1 / Data Path Stuck: 2
+Interface ap1 / Link Latency: 1
+Interface ap1 / Link Latency State: 1
+Interface ap1 / Link Open: 1
+Interface ap1 / Link Open State: 1
+Interface ap1 / Manager Config: 7
+Interface awdl0 / AWDL Schedule: 1
+Interface awdl0 / AWDL Statistics: 40
+Interface awdl0 / Action Frame Processing Latency: 1
+Interface awdl0 / Action Frame Queue Fill State: 1
+Interface awdl0 / Action Frame Queued Duration: 1
+Interface awdl0 / Action Frames: 14
+Interface awdl0 / Activity: 1
+Interface awdl0 / Average CCA: 1
+Interface awdl0 / Average CCA State: 1
+Interface awdl0 / Change Reasons: 3
+Interface awdl0 / Change Subreasons: 1
+Interface awdl0 / Data Bytes: 6
+Interface awdl0 / Data Packets: 7
+Interface awdl0 / Data Path Stuck: 2
+Interface awdl0 / IBSS CCA: 1
+Interface awdl0 / IBSS CCA State: 1
+Interface awdl0 / Interference CCA: 1
+Interface awdl0 / Interference CCA State: 1
+Interface awdl0 / Link Latency: 1
+Interface awdl0 / Link Latency State: 1
+Interface awdl0 / Link Open: 1
+Interface awdl0 / Link Open State: 1
+Interface awdl0 / Manager Config: 9
+Interface awdl0 / OBSS CCA: 1
+Interface awdl0 / OBSS CCA State: 1
+Interface awdl0 / Services: 1
+Interface awdl0 / TxCompletion Latency: 3
+Interface awdl0 / UMI Statistics: 3
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / Completions: 18
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / Control VO: 4
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / DataPath BE: 31
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / DataPath BK: 31
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / DataPath VI: 31
+Interface awdl0 Peer FF:FF:FF:FF:FF:FF / DataPath VO: 31
+Interface en0 / Activity: 1
+Interface en0 / Association Join Counters: 41
+Interface en0 / Average CCA: 1
+Interface en0 / Average CCA State: 1
+Interface en0 / Band: 1
+Interface en0 / Change Reasons: 3
+Interface en0 / Change Subreasons: 1
+Interface en0 / Data Bytes: 6
+Interface en0 / Data Packets: 7
+Interface en0 / Data Path Stuck: 2
+Interface en0 / Data Transfer Bins: 1
+Interface en0 / Events: 3
+Interface en0 / IBSS CCA: 1
+Interface en0 / IBSS CCA State: 1
+Interface en0 / Interference CCA: 1
+Interface en0 / Interference CCA State: 1
+Interface en0 / LQM RSSI: 1
+Interface en0 / LQM RSSI State: 1
+Interface en0 / LQM SNR: 1
+Interface en0 / LQM SNR State: 1
+Interface en0 / Link Latency: 1
+Interface en0 / Link Latency State: 1
+Interface en0 / Link Open: 1
+Interface en0 / Link Open State: 1
+Interface en0 / Link Quality Metric: 1
+Interface en0 / Link Quality Metric State: 1
+Interface en0 / Link Rate: 4
+Interface en0 / Link Rate Bins: 1
+Interface en0 / Manager Config: 7
+Interface en0 / NSS: 1
+Interface en0 / Noise Floor: 1
+Interface en0 / Noise Floor State: 1
+Interface en0 / OBSS CCA: 1
+Interface en0 / OBSS CCA State: 1
+Interface en0 / OFDM Desense: 1
+Interface en0 / OFDM Desense State: 1
+Interface en0 / Phy Mode: 1
+Interface en0 / QBSS Channel Utilitzation: 1
+Interface en0 / QBSS Station Count: 1
+Interface en0 / QBSS Values: 3
+Interface en0 / TxCompletion Latency: 4
+Interface en0 Chip / Chip Interface Bytes Transferred: 8
+Interface en0 Chip / Chip Interface Tx Error Counters: 1
+Interface en0 Chip / Chip Interface dot11 MIB Counters: 10
+Interface en0 Chip / Per Interface Rx Counters: 5
+Interface en0 Chip / Phy Activity: 7
+Interface en0 Chip / Rx Control Frame Counters: 1
+Interface en0 Chip / Rx Data Byte Counters: 3
+Interface en0 Chip / Rx Data Frame Counters: 5
+Interface en0 Chip / Rx Management Frame Counters: 11
+Interface en0 Chip / Tx Control Frame Counters: 1
+Interface en0 Chip / Tx Data Byte Counters: 2
+Interface en0 Chip / Tx Data Frame Counters: 4
+Interface en0 Chip / Tx Management Frame Counters: 10
+Interface en0 Peer 00:00:00:00:00:00 / Completions: 18
+Interface en0 Peer 00:00:00:00:00:00 / Control VO: 4
+Interface en0 Peer 00:00:00:00:00:00 / DataPath BE: 31
+Interface en0 Peer 00:00:00:00:00:00 / DataPath BK: 31
+Interface en0 Peer 00:00:00:00:00:00 / DataPath VI: 31
+Interface en0 Peer 00:00:00:00:00:00 / DataPath VO: 31
+Interface en0 Peer 00:00:00:00:00:00 / Link metric upload only: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link quality monitor measurements: 60
+Interface en0 Peer 00:00:00:00:00:00 / Link quality monitor states (aggressive limits): 31
+Interface en0 Peer 00:00:00:00:00:00 / Link quality monitor states (non-aggressive limits): 31
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery reason: 22
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with PHY calibration: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with PHY reset: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with reassoc due to AP Tx data stall: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with reassoc due to Rx AMPDU DUP Errors: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with reassoc due to Rx AMPDU TxBA mismatch: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with reassoc due to decrypt errors: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with reassoc due to other errors: 5
+Interface en0 Peer 00:00:00:00:00:00 / Link recovery with watchdog reset: 5
+Interface en0 Peer 00:00:00:00:00:00 / Queue Fill Level: 1
+Interface en0 Peer 00:00:00:00:00:00 / RSSI: 3
+Interface en0 Peer 00:00:00:00:00:00 / RSSI State: 1
+Interface en0 Peer 00:00:00:00:00:00 / TxCompletion Latency: 4
+Interface en0 Peer 00:00:00:00:00:00 / TxCompletion Snapshot BE: 12
+Interface en0 Peer 00:00:00:00:00:00 / TxCompletion Snapshot BK: 12
+Interface en0 Peer 00:00:00:00:00:00 / TxCompletion Snapshot VI: 12
+Interface en0 Peer 00:00:00:00:00:00 / TxCompletion Snapshot VO: 12
+Interface en0 Peer FF:FF:FF:FF:FF:FF / Completions: 18
+Interface en0 Peer FF:FF:FF:FF:FF:FF / Control VO: 4
+Interface en0 Peer FF:FF:FF:FF:FF:FF / DataPath BE: 31
+Interface en0 Peer FF:FF:FF:FF:FF:FF / DataPath BK: 31
+Interface en0 Peer FF:FF:FF:FF:FF:FF / DataPath VI: 31
+Interface en0 Peer FF:FF:FF:FF:FF:FF / DataPath VO: 31
+Interface en0 Peer FF:FF:FF:FF:FF:FF / Queue Fill Level: 1
+Interface en0 Peer FF:FF:FF:FF:FF:FF / TxCompletion Latency: 2
+Interface en0 Peer FF:FF:FF:FF:FF:FF / TxCompletion Snapshot BE: 12
+Interface en0 Peer FF:FF:FF:FF:FF:FF / TxCompletion Snapshot BK: 12
+Interface en0 Peer FF:FF:FF:FF:FF:FF / TxCompletion Snapshot VI: 12
+Interface en0 Peer FF:FF:FF:FF:FF:FF / TxCompletion Snapshot VO: 12
+Internal Statistics / -: 5
+Interrupt Statistics (by index) / acio-cpu0 1: 5
+Interrupt Statistics (by index) / acio-cpu0 2: 5
+Interrupt Statistics (by index) / acio-cpu1 1: 5
+Interrupt Statistics (by index) / acio-cpu1 2: 5
+Interrupt Statistics (by index) / acio-cpu2 1: 5
+Interrupt Statistics (by index) / acio-cpu2 2: 5
+Interrupt Statistics (by index) / admac-aop-audio 0: 5
+Interrupt Statistics (by index) / admac-sio 0: 5
+Interrupt Statistics (by index) / aes 0: 5
+Interrupt Statistics (by index) / ane0 0: 5
+Interrupt Statistics (by index) / ans 1: 5
+Interrupt Statistics (by index) / ans 2: 5
+Interrupt Statistics (by index) / ans 4: 5
+Interrupt Statistics (by index) / aop 1: 5
+Interrupt Statistics (by index) / aop 2: 5
+Interrupt Statistics (by index) / aop-spmi0 0: 5
+Interrupt Statistics (by index) / aop-spmi1 0: 5
+Interrupt Statistics (by index) / apcie 0: 5
+Interrupt Statistics (by index) / apcie 1: 5
+Interrupt Statistics (by index) / apciec0 0: 5
+Interrupt Statistics (by index) / apciec0-piodma 0: 5
+Interrupt Statistics (by index) / apciec1 0: 5
+Interrupt Statistics (by index) / apciec1-piodma 0: 5
+Interrupt Statistics (by index) / apciec2 0: 5
+Interrupt Statistics (by index) / apciec2-piodma 0: 5
+Interrupt Statistics (by index) / apr0 0: 5
+Interrupt Statistics (by index) / atc0-dpin0 0: 5
+Interrupt Statistics (by index) / atc0-dpin1 0: 5
+Interrupt Statistics (by index) / atc1-dpin0 0: 5
+Interrupt Statistics (by index) / atc1-dpin1 0: 5
+Interrupt Statistics (by index) / atc2-dpin0 0: 5
+Interrupt Statistics (by index) / atc2-dpin1 0: 5
+Interrupt Statistics (by index) / audio-codec-output 0: 5
+Interrupt Statistics (by index) / avd0 0: 5
+Interrupt Statistics (by index) / avd0 1: 5
+Interrupt Statistics (by index) / ave0 0: 5
+Interrupt Statistics (by index) / bluetooth 0: 5
+Interrupt Statistics (by index) / bluetooth-pcie 0: 5
+Interrupt Statistics (by index) / btm 0: 5
+Interrupt Statistics (by index) / clpc 0: 5
+Interrupt Statistics (by index) / clvr-spmi0 0: 5
+Interrupt Statistics (by index) / clvr-spmi1 0: 5
+Interrupt Statistics (by index) / clvr-spmi2 0: 5
+Interrupt Statistics (by index) / dart-acio0 0: 5
+Interrupt Statistics (by index) / dart-acio1 0: 5
+Interrupt Statistics (by index) / dart-acio2 0: 5
+Interrupt Statistics (by index) / dart-ane0 0: 5
+Interrupt Statistics (by index) / dart-aop 0: 5
+Interrupt Statistics (by index) / dart-apcie0 0: 5
+Interrupt Statistics (by index) / dart-apcie1 0: 5
+Interrupt Statistics (by index) / dart-apciec0 0: 5
+Interrupt Statistics (by index) / dart-apciec1 0: 5
+Interrupt Statistics (by index) / dart-apciec2 0: 5
+Interrupt Statistics (by index) / dart-apr0 0: 5
+Interrupt Statistics (by index) / dart-avd0 0: 5
+Interrupt Statistics (by index) / dart-ave0 0: 5
+Interrupt Statistics (by index) / dart-dcp 0: 5
+Interrupt Statistics (by index) / dart-dcpext0 0: 5
+Interrupt Statistics (by index) / dart-dcpext1 0: 5
+Interrupt Statistics (by index) / dart-disp0 0: 5
+Interrupt Statistics (by index) / dart-dispext0 0: 5
+Interrupt Statistics (by index) / dart-dispext1 0: 5
+Interrupt Statistics (by index) / dart-isp0 0: 5
+Interrupt Statistics (by index) / dart-jpeg0 0: 5
+Interrupt Statistics (by index) / dart-jpeg1 0: 5
+Interrupt Statistics (by index) / dart-pmp 0: 5
+Interrupt Statistics (by index) / dart-scaler0 0: 5
+Interrupt Statistics (by index) / dart-sep 0: 5
+Interrupt Statistics (by index) / dart-sio 0: 5
+Interrupt Statistics (by index) / dart-usb0 0: 5
+Interrupt Statistics (by index) / dart-usb1 0: 5
+Interrupt Statistics (by index) / dart-usb2 0: 5
+Interrupt Statistics (by index) / dcp 1: 5
+Interrupt Statistics (by index) / dcp 2: 5
+Interrupt Statistics (by index) / dcpext0 1: 5
+Interrupt Statistics (by index) / dcpext0 2: 5
+Interrupt Statistics (by index) / dcpext1 1: 5
+Interrupt Statistics (by index) / dcpext1 2: 5
+Interrupt Statistics (by index) / dockchannel-uart 0: 5
+Interrupt Statistics (by index) / dp2hdmi-gpio 0: 5
+Interrupt Statistics (by index) / event-log-handler 0: 5
+Interrupt Statistics (by index) / event-log-handler 1: 5
+Interrupt Statistics (by index) / event-log-handler 10: 5
+Interrupt Statistics (by index) / event-log-handler 11: 5
+Interrupt Statistics (by index) / event-log-handler 12: 5
+Interrupt Statistics (by index) / event-log-handler 13: 5
+Interrupt Statistics (by index) / event-log-handler 14: 5
+Interrupt Statistics (by index) / event-log-handler 15: 5
+Interrupt Statistics (by index) / event-log-handler 16: 5
+Interrupt Statistics (by index) / event-log-handler 17: 5
+Interrupt Statistics (by index) / event-log-handler 18: 5
+Interrupt Statistics (by index) / event-log-handler 19: 5
+Interrupt Statistics (by index) / event-log-handler 2: 5
+Interrupt Statistics (by index) / event-log-handler 20: 5
+Interrupt Statistics (by index) / event-log-handler 21: 5
+Interrupt Statistics (by index) / event-log-handler 22: 5
+Interrupt Statistics (by index) / event-log-handler 23: 5
+Interrupt Statistics (by index) / event-log-handler 24: 5
+Interrupt Statistics (by index) / event-log-handler 25: 5
+Interrupt Statistics (by index) / event-log-handler 26: 5
+Interrupt Statistics (by index) / event-log-handler 27: 5
+Interrupt Statistics (by index) / event-log-handler 3: 5
+Interrupt Statistics (by index) / event-log-handler 4: 5
+Interrupt Statistics (by index) / event-log-handler 5: 5
+Interrupt Statistics (by index) / event-log-handler 6: 5
+Interrupt Statistics (by index) / event-log-handler 7: 5
+Interrupt Statistics (by index) / event-log-handler 8: 5
+Interrupt Statistics (by index) / event-log-handler 9: 5
+Interrupt Statistics (by index) / gfx-asc 1: 5
+Interrupt Statistics (by index) / gfx-asc 2: 5
+Interrupt Statistics (by index) / hpmBusManager 0: 5
+Interrupt Statistics (by index) / i2c0 0: 5
+Interrupt Statistics (by index) / i2c1 0: 5
+Interrupt Statistics (by index) / i2c2 0: 5
+Interrupt Statistics (by index) / i2c3 0: 5
+Interrupt Statistics (by index) / i2c4 0: 5
+Interrupt Statistics (by index) / i2c5 0: 5
+Interrupt Statistics (by index) / ipd 0: 5
+Interrupt Statistics (by index) / isp0 0: 5
+Interrupt Statistics (by index) / jpeg0 0: 5
+Interrupt Statistics (by index) / jpeg1 0: 5
+Interrupt Statistics (by index) / mca0 0: 5
+Interrupt Statistics (by index) / mca1 0: 5
+Interrupt Statistics (by index) / mca2 0: 5
+Interrupt Statistics (by index) / mesa 0: 5
+Interrupt Statistics (by index) / nub-spmi0 0: 5
+Interrupt Statistics (by index) / nub-spmi1 0: 5
+Interrupt Statistics (by index) / pci-bridge0 0: 5
+Interrupt Statistics (by index) / pci-bridge1 0: 5
+Interrupt Statistics (by index) / pcic0-bridge 0: 5
+Interrupt Statistics (by index) / pcic1-bridge 0: 5
+Interrupt Statistics (by index) / pcic2-bridge 0: 5
+Interrupt Statistics (by index) / pcie-sdreader 0: 5
+Interrupt Statistics (by index) / pcie-sdreader 1: 5
+Interrupt Statistics (by index) / pmgr 0: 5
+Interrupt Statistics (by index) / pmgr 1: 5
+Interrupt Statistics (by index) / pmgr 2: 5
+Interrupt Statistics (by index) / pmgr 3: 5
+Interrupt Statistics (by index) / pmgr 4: 5
+Interrupt Statistics (by index) / pmp 1: 5
+Interrupt Statistics (by index) / pmp 2: 5
+Interrupt Statistics (by index) / ppm 0: 5
+Interrupt Statistics (by index) / scaler0 0: 5
+Interrupt Statistics (by index) / sep 1: 5
+Interrupt Statistics (by index) / sep 2: 5
+Interrupt Statistics (by index) / sgx 4: 5
+Interrupt Statistics (by index) / sio 1: 5
+Interrupt Statistics (by index) / sio 2: 5
+Interrupt Statistics (by index) / smc 1: 5
+Interrupt Statistics (by index) / smc 2: 5
+Interrupt Statistics (by index) / spi1 0: 5
+Interrupt Statistics (by index) / spi2 0: 5
+Interrupt Statistics (by index) / spi3 0: 5
+Interrupt Statistics (by index) / spi4 0: 5
+Interrupt Statistics (by index) / spmi-mpmu 0: 5
+Interrupt Statistics (by index) / stockholm-spmi 3: 5
+Interrupt Statistics (by index) / stockholm-spmi 5: 5
+Interrupt Statistics (by index) / stockholm-spmi 6: 5
+Interrupt Statistics (by index) / uart0 0: 5
+Interrupt Statistics (by index) / usb-drd0 0: 5
+Interrupt Statistics (by index) / usb-drd0 1: 5
+Interrupt Statistics (by index) / usb-drd0 2: 5
+Interrupt Statistics (by index) / usb-drd0 3: 5
+Interrupt Statistics (by index) / usb-drd0 4: 5
+Interrupt Statistics (by index) / usb-drd1 0: 5
+Interrupt Statistics (by index) / usb-drd1 1: 5
+Interrupt Statistics (by index) / usb-drd1 2: 5
+Interrupt Statistics (by index) / usb-drd1 3: 5
+Interrupt Statistics (by index) / usb-drd1 4: 5
+Interrupt Statistics (by index) / usb-drd2 0: 5
+Interrupt Statistics (by index) / usb-drd2 1: 5
+Interrupt Statistics (by index) / usb-drd2 2: 5
+Interrupt Statistics (by index) / usb-drd2 3: 5
+Interrupt Statistics (by index) / usb-drd2 4: 5
+LPRX / FW counters: 6
+LPSC Tx Blanking / Scan Core Tx Blanking Stats: 17
+Link Events / -: 310
+Logging Global / -: 4
+Loopback / Approximate samplerate: 2
+Loopback / Bidirectional Device: 2
+Loopback / IOAudio2: 6
+Loopback / Input DMA Margin: 1
+Loopback / MCA Run Counts: 1
+Loopback / MCA Run Times: 1
+Loopback / Misc. Debug Status: 3
+Loopback / Negative Input DMA Margin: 1
+Loopback / Output DMA Margin: 2
+Loopback / Power State: 1
+Loopback / Timestamp Propagation: 3
+MPDUs per RU / Rx MPDU in AMPDU in 20 Mhz BW: 1
+Mesa / Mesa Events: 6
+Mesa / Mesa Power State: 1
+Multitouch / Drop packets: 2
+NVMe / -: 1
+NVMe / BW Limits: 4
+NVMe / Time weighted throttle statistics: 5
+PMP / AF BW: 13
+PMP / AFC BW: 3
+PMP / AFI BW: 7
+PMP / AFNC BW: 4
+PMP / AFR BW: 5
+PMP / AFR Floor: 12
+PMP / AVEMSR0_AVE Flo: 1
+PMP / AVEMSR0_MSR Flo: 2
+PMP / BWR: 18
+PMP / DCS BW: 1
+PMP / DCS Floor: 20
+PMP / DISP0 Floor: 3
+PMP / EACC0: 3
+PMP / FAB_AFNC0 Floor: 9
+PMP / FAB_AFNC2 Floor: 5
+PMP / FAB_AFNCX Floor: 7
+PMP / FAB_PLL Floor: 18
+PMP / Fast-Die CE: 4
+PMP / Fast-Die Delay: 1
+PMP / IO Reporting statistics: 2
+PMP / IOP State: 1
+PMP / PACC0: 3
+PMP / PACC1: 3
+PMP / PWC Window 0: 4
+PMP / Power: 8
+PMP / SOC0 Floor: 4
+PMP / SOC0_ANE_SYS Fl: 2
+PMP / SOC0_AVD Floor: 1
+PMP / Total stack: 32
+PMP / Used stack: 32
+PMP / Volt-Temp HM: 4
+PPM Stats / CPMS Ferocity: 3
+PPM Stats / CPMS Lanes engagement: 1
+PPM Stats / CPMS Power Reduction: 3
+PPM Stats / Client2: 2
+PPM Stats / Client5: 2
+PPM Stats / Client6: 2
+PPM Stats / Droop Controller: 2
+PPM Stats / Policy CPMS: 2
+Packet Buffer Pool / AppleBCMWLANSkywalkPool: 60
+Packet Buffer Pool / AppleConvergedIPC: 36
+RX Completion Queue / I/F AppleConvergedIPCSkywalkInterface, Queue ID 0: 36
+RX Submission Queue / I/F AppleConvergedIPCSkywalkInterface, Queue ID 0: 57
+Rate / Rx HE Success: 24
+Rate / Rx OFDMA MCS Usage: 22
+Rate / Rx SGI VHT Usage: 22
+Rate / Rx VHT Success: 22
+Rate / Rx VHT Usage x1: 12
+Rate / Rx VHT Usage x2: 12
+Rate / Tx HE Attempts: 24
+Rate / Tx HE Success: 24
+Rate / Tx SGI VHT Usage: 22
+Rate / Tx VHT Attempts: 22
+Rate / Tx VHT Success: 22
+Rate / Tx VHT Usage x1: 12
+Rate / Tx VHT Usage x2: 12
+RealTime Logs / -: 2
+Rx / CSM: 4
+Rx / DMACMPLHistogram: 4
+Rx / Exceptions: 32
+Rx / MaxMemAxsLatHistogram: 4
+Rx / TSJitterHistogram: 4
+Rx MPDU Lost Slice 0 / Counters: 16
+Rx MPDU Lost Slice 1 / Counters: 16
+Rx MPDU WME Slice 0 / Counters: 8
+Rx MPDU WME Slice 1 / Counters: 8
+RxET / FW Counters: 2
+SCAN-ROAM / Scan/Roam Stats: 25
+SDXC Controller / -: 3
+SIO / IO Reporting statistics: 2
+SIO / IOP State: 1
+SIO / Interrupts: 6
+SIO / Performance: 2
+SIO / Power: 8
+SIO / Timebase Offset: 4
+SIO / Total stack: 32
+SIO / Used stack: 32
+SMC / IO Reporting statistics: 2
+SMC / IOP State: 1
+SMC / Performance: 2
+SMC / Power: 8
+SMC / Total stack: 32
+SMC / Used stack: 32
+Scans / Scans Issued Per Channel: 1
+Scans / Scans Types Issued: 27
+Slice 0 / Bytes Transferred: 2
+Slice 0 / Count Per Scan Mode: 3
+Slice 0 / Count Per Scan Type: 6
+Slice 0 / Count Per Scan Type - since LinkUp: 6
+Slice 0 / Dur   Per Scan Type: 10
+Slice 0 / Dur   Per Scan Type - since LinkUp: 10
+Slice 0 / OMI Counters: 16
+Slice 0 / Rx Counters: 17
+Slice 0 / Rx Error Counters: 10
+Slice 0 / Rx OFDMA RU Counters: 7
+Slice 0 / Rx Phy Error Counters: 2
+Slice 0 / Tx Counters: 12
+Slice 0 / Tx Error Counters: 9
+Slice 0 / Tx OFDMA RU Counters: 7
+Slice 0 / WPA2 Counters: 11
+Slice 0 / WPA2 Multicast Counters: 11
+Slice 0 / dot11 MIB Counters: 14
+Slice 1 / Bytes Transferred: 2
+Slice 1 / Count Per Scan Mode: 3
+Slice 1 / Count Per Scan Type: 6
+Slice 1 / Count Per Scan Type - since LinkUp: 6
+Slice 1 / Dur   Per Scan Type: 10
+Slice 1 / Dur   Per Scan Type - since LinkUp: 10
+Slice 1 / OMI Counters: 16
+Slice 1 / Rx Counters: 17
+Slice 1 / Rx Error Counters: 10
+Slice 1 / Rx OFDMA RU Counters: 7
+Slice 1 / Rx Phy Error Counters: 2
+Slice 1 / Tx Counters: 12
+Slice 1 / Tx Error Counters: 9
+Slice 1 / Tx OFDMA RU Counters: 7
+Slice 1 / WPA2 Counters: 11
+Slice 1 / WPA2 Multicast Counters: 11
+Slice 1 / dot11 MIB Counters: 14
+Slice 2 / Count Per Scan Mode: 3
+Slice 2 / Count Per Scan Type: 6
+Slice 2 / Count Per Scan Type - since LinkUp: 6
+Slice 2 / Dur   Per Scan Type: 10
+Slice 2 / Dur   Per Scan Type - since LinkUp: 10
+Slice Frames: slice  0 / Rx Control Frame Counters: 14
+Slice Frames: slice  0 / Rx Data Frame Counters: 5
+Slice Frames: slice  0 / Rx Management Frame Counters: 12
+Slice Frames: slice  0 / Tx Control Frame Counters: 6
+Slice Frames: slice  0 / Tx Data Frame Counters: 9
+Slice Frames: slice  0 / Tx Management Frame Counters: 11
+Slice Frames: slice  1 / Rx Control Frame Counters: 14
+Slice Frames: slice  1 / Rx Data Frame Counters: 5
+Slice Frames: slice  1 / Rx Management Frame Counters: 12
+Slice Frames: slice  1 / Tx Control Frame Counters: 6
+Slice Frames: slice  1 / Tx Data Frame Counters: 9
+Slice Frames: slice  1 / Tx Management Frame Counters: 11
+SoC Stats / Cluster Power States: 7
+SoC Stats / Events: 94
+SoC Stats / PMGR Counters: 269
+SoC Stats / oprtp: 102
+Speaker / Approximate samplerate: 2
+Speaker / Audio Input Traffic: 1
+Speaker / Audio Output Traffic: 1
+Speaker / Bidirectional Device: 2
+Speaker / IOAudio2: 6
+Speaker / Input DMA Margin: 1
+Speaker / MCA Run Counts: 1
+Speaker / MCA Run Times: 1
+Speaker / Misc. Debug Status: 3
+Speaker / Negative Input DMA Margin: 1
+Speaker / Output DMA Margin: 2
+Speaker / Power State: 1
+Speaker / Timestamp Propagation: 3
+TDM Slice 0 / TDM Counters: 14
+TDM Slice 1 / TDM Counters: 14
+TVPM Slice 0 / Active Chains: 1
+TVPM Slice 0 / Battery Voltage: 1
+TVPM Slice 0 / CTLM Index: 1
+TVPM Slice 0 / PPM: 1
+TVPM Slice 0 / Temperature: 1
+TVPM Slice 0 / Temperature Voltage Power Management: 8
+TVPM Slice 0 / Tx Duty Cycle: 1
+TVPM Slice 0 / Tx Power Backoff: 1
+TVPM Slice 1 / Active Chains: 1
+TVPM Slice 1 / Battery Voltage: 1
+TVPM Slice 1 / CTLM Index: 1
+TVPM Slice 1 / PPM: 1
+TVPM Slice 1 / Temperature: 1
+TVPM Slice 1 / Temperature Voltage Power Management: 8
+TVPM Slice 1 / Tx Duty Cycle: 1
+TVPM Slice 1 / Tx Power Backoff: 1
+TX Completion Queue / I/F AppleConvergedIPCSkywalkInterface, Queue ID 0: 33
+TX Submission Queue / I/F AppleConvergedIPCSkywalkInterface, Queue ID 0: 69
+Trace Logs / -: 2
+Trackpad Power Stats / Trackpad Power State Time (ms): 16
+Tx / CSM: 3
+Tx / DMACMPLHistogram: 3
+Tx / Exceptions: 24
+Tx / MaxMemAxsLatHistogram: 3
+Tx / TSJitterHistogram: 3
+Tx MPDU WME Slice 0 / Counters: 8
+Tx MPDU WME Slice 1 / Counters: 8
+TxDC / Tx Duty Cycle Stats: 8
+TxDC Slice1 Ant0 / Tx Duty Cycle Stats Slice1 Ant0: 10
+User RX Completion Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 5: 5
+User RX Completion Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 5: 5
+User RX Completion Queue / I/F en0, QSet ID 0x633c0000, Queue ID 5: 5
+User RX Completion Queue / I/F llw0, QSet ID 0x0, Queue ID 2: 5
+User RX Completion Queue / I/F nan0, QSet ID 0x0, Queue ID 5: 5
+User RX Submission Queue / I/F en0, QSet ID 0x633c0000, Queue ID 0: 13
+User TX Completion Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 4: 5
+User TX Completion Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 4: 5
+User TX Completion Queue / I/F en0, QSet ID 0x633c0000, Queue ID 4: 5
+User TX Completion Queue / I/F llw0, QSet ID 0x0, Queue ID 1: 5
+User TX Completion Queue / I/F nan0, QSet ID 0x0, Queue ID 4: 5
+User TX Completion Queue / Queue ID 4: 5
+User TX Submission Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 0 Service class 0x0: 15
+User TX Submission Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 1 Service class 0x100080: 15
+User TX Submission Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 2 Service class 0x380100: 15
+User TX Submission Queue / I/F ap1, QSet ID 0xbeda0000, Queue ID 3 Service class 0x400180: 15
+User TX Submission Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 0 Service class 0x0: 15
+User TX Submission Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 1 Service class 0x100080: 15
+User TX Submission Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 2 Service class 0x380100: 15
+User TX Submission Queue / I/F awdl0, QSet ID 0xfc170000, Queue ID 3 Service class 0x400180: 15
+User TX Submission Queue / I/F en0, QSet ID 0x633c0000, Queue ID 0 Service class 0x0: 15
+User TX Submission Queue / I/F en0, QSet ID 0x633c0000, Queue ID 1 Service class 0x100080: 15
+User TX Submission Queue / I/F en0, QSet ID 0x633c0000, Queue ID 2 Service class 0x380100: 15
+User TX Submission Queue / I/F en0, QSet ID 0x633c0000, Queue ID 3 Service class 0x400180: 15
+User TX Submission Queue / I/F llw0, QSet ID 0x0, Queue ID 0 Service class 0x400180: 15
+User TX Submission Queue / I/F nan0, QSet ID 0x0, Queue ID 0 Service class 0x0: 15
+User TX Submission Queue / I/F nan0, QSet ID 0x0, Queue ID 1 Service class 0x100080: 15
+User TX Submission Queue / I/F nan0, QSet ID 0x0, Queue ID 2 Service class 0x380100: 15
+User TX Submission Queue / I/F nan0, QSet ID 0x0, Queue ID 3 Service class 0x400180: 15
+WIO / IPC Counters: 8
+WLAN Power / Connections: 6
+WLAN Power / FRTS: 2
+WLAN Power / PCIe Bus: 23
+WLAN Power / PM Awake: 2
+WLAN Power / Phy Activity: 7
+WLAN Power / Phy Scan: 72
+WiFi Wake / Reasons: 3
+aop-spmi0 / SPMI Fault Interrupts: 17
+aop-spmi1 / SPMI Fault Interrupts: 17
+backlight report / brightness report: 5
+backlight report / playback backlight factors report: 2
+clvr-spmi0 / SPMI Fault Interrupts: 17
+clvr-spmi1 / SPMI Fault Interrupts: 17
+clvr-spmi2 / SPMI Fault Interrupts: 17
+nub-spmi0 / SPMI Fault Interrupts: 17
+nub-spmi1 / SPMI Fault Interrupts: 17
+
+[이름에 ANE가 들어간 채널]
+AMC Stats / Perf Counters / ANE0 RD | 단위 B | 단순값
+AMC Stats / Perf Counters / ANE0 WR | 단위 B | 단순값
+AMC Stats / Perf Counters / ANE0 DCS RD | 단위 B | 단순값
+AMC Stats / Perf Counters / ANE0 DCS WR | 단위 B | 단순값
+SoC Stats / Events / SOC0_ANE_F1 | 단위 24Mticks | 상태
+SoC Stats / Events / SOC0_ANE_F2 | 단위 24Mticks | 상태
+SoC Stats / Events / SOC0_F1_ANE_F2 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE0_ADCLK_TRIG | 단위 24Mticks | 상태
+SoC Stats / Events / ANE0_DITHR_TRIG | 단위 24Mticks | 상태
+SoC Stats / Events / ANE0_EXT_TRIG0 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE0_EXT_TRIG1 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE0_EXT_TRIG2 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE1_ADCLK_TRIG | 단위 24Mticks | 상태
+SoC Stats / Events / ANE1_DITHR_TRIG | 단위 24Mticks | 상태
+SoC Stats / Events / ANE1_EXT_TRIG0 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE1_EXT_TRIG1 | 단위 24Mticks | 상태
+SoC Stats / Events / ANE1_EXT_TRIG2 | 단위 24Mticks | 상태
+SoC Stats / Cluster Power States / ANE0 | 단위 24Mticks | 상태
+Energy Model / - / ANE0 | 단위 mJ | 단순값
+PMP / AF BW / ANE0 RD+WR | 단위 events | 상태
+PMP / SOC0_ANE_SYS Fl / ANE0 | 단위 events | 상태
+PMP / FAB_AFNC0 Floor / ANE0 | 단위 events | 상태
+PMP / AFR Floor / ANE0 | 단위 events | 상태
+PMP / DCS Floor / ANE0 | 단위 events | 상태
+PMP / Fast-Die CE / ANE0 | 단위 events | 상태
+PMP / SOC0_ANE_SYS Fl / ANE0-BW | 단위 events | 상태
+PMP / FAB_PLL Floor / ANE0-BW | 단위 events | 상태
+PMP / FAB_AFNC0 Floor / ANE0-BW | 단위 events | 상태
+PMP / AFR Floor / ANE0-BW | 단위 events | 상태
+
+[Energy Model 채널]
+EACC_CPU0 | 단위 mJ | 단순값
+EACC_CPU1 | 단위 mJ | 단순값
+PACC0_CPU0 | 단위 mJ | 단순값
+PACC0_CPU1 | 단위 mJ | 단순값
+PACC0_CPU2 | 단위 mJ | 단순값
+PACC0_CPU3 | 단위 mJ | 단순값
+PACC1_CPU0 | 단위 mJ | 단순값
+PACC1_CPU1 | 단위 mJ | 단순값
+PACC1_CPU2 | 단위 mJ | 단순값
+PACC1_CPU3 | 단위 mJ | 단순값
+EACC_CPM | 단위 mJ | 단순값
+PACC0_CPM | 단위 mJ | 단순값
+PACC1_CPM | 단위 mJ | 단순값
+EACC_CPU | 단위 mJ | 단순값
+PACC0_CPU | 단위 mJ | 단순값
+PACC1_CPU | 단위 mJ | 단순값
+CPU Energy | 단위 mJ | 단순값
+ECPUDTL00 | 단위 mJ | 단순값
+ECPUDTL01 | 단위 mJ | 단순값
+ECPUDTL02 | 단위 mJ | 단순값
+ECPUDTL03 | 단위 mJ | 단순값
+ECPUDTL04 | 단위 mJ | 단순값
+ECPUDTL10 | 단위 mJ | 단순값
+ECPUDTL11 | 단위 mJ | 단순값
+ECPUDTL12 | 단위 mJ | 단순값
+ECPUDTL13 | 단위 mJ | 단순값
+ECPUDTL14 | 단위 mJ | 단순값
+PCPUDTL00 | 단위 mJ | 단순값
+PCPUDTL01 | 단위 mJ | 단순값
+PCPUDTL02 | 단위 mJ | 단순값
+PCPUDTL03 | 단위 mJ | 단순값
+PCPUDTL04 | 단위 mJ | 단순값
+PCPUDTL05 | 단위 mJ | 단순값
+PCPUDTL06 | 단위 mJ | 단순값
+PCPUDTL07 | 단위 mJ | 단순값
+PCPUDTL08 | 단위 mJ | 단순값
+PCPUDTL09 | 단위 mJ | 단순값
+PCPUDTL0a | 단위 mJ | 단순값
+PCPUDTL0b | 단위 mJ | 단순값
+PCPUDTL0c | 단위 mJ | 단순값
+PCPUDTL0d | 단위 mJ | 단순값
+PCPUDTL0e | 단위 mJ | 단순값
+PCPUDTL10 | 단위 mJ | 단순값
+PCPUDTL11 | 단위 mJ | 단순값
+PCPUDTL12 | 단위 mJ | 단순값
+PCPUDTL13 | 단위 mJ | 단순값
+PCPUDTL14 | 단위 mJ | 단순값
+PCPUDTL15 | 단위 mJ | 단순값
+PCPUDTL16 | 단위 mJ | 단순값
+PCPUDTL17 | 단위 mJ | 단순값
+PCPUDTL18 | 단위 mJ | 단순값
+PCPUDTL19 | 단위 mJ | 단순값
+PCPUDTL1a | 단위 mJ | 단순값
+PCPUDTL1b | 단위 mJ | 단순값
+PCPUDTL1c | 단위 mJ | 단순값
+PCPUDTL1d | 단위 mJ | 단순값
+PCPUDTL1e | 단위 mJ | 단순값
+PCPUDTL20 | 단위 mJ | 단순값
+PCPUDTL21 | 단위 mJ | 단순값
+PCPUDTL22 | 단위 mJ | 단순값
+PCPUDTL23 | 단위 mJ | 단순값
+PCPUDTL24 | 단위 mJ | 단순값
+PCPUDTL25 | 단위 mJ | 단순값
+PCPUDTL26 | 단위 mJ | 단순값
+PCPUDTL27 | 단위 mJ | 단순값
+PCPUDTL28 | 단위 mJ | 단순값
+PCPUDTL29 | 단위 mJ | 단순값
+PCPUDTL2a | 단위 mJ | 단순값
+PCPUDTL2b | 단위 mJ | 단순값
+PCPUDTL2c | 단위 mJ | 단순값
+PCPUDTL2d | 단위 mJ | 단순값
+PCPUDTL2e | 단위 mJ | 단순값
+PCPUDTL30 | 단위 mJ | 단순값
+PCPUDTL31 | 단위 mJ | 단순값
+PCPUDTL32 | 단위 mJ | 단순값
+PCPUDTL33 | 단위 mJ | 단순값
+PCPUDTL34 | 단위 mJ | 단순값
+PCPUDTL35 | 단위 mJ | 단순값
+PCPUDTL36 | 단위 mJ | 단순값
+PCPUDTL37 | 단위 mJ | 단순값
+PCPUDTL38 | 단위 mJ | 단순값
+PCPUDTL39 | 단위 mJ | 단순값
+PCPUDTL3a | 단위 mJ | 단순값
+PCPUDTL3b | 단위 mJ | 단순값
+PCPUDTL3c | 단위 mJ | 단순값
+PCPUDTL3d | 단위 mJ | 단순값
+PCPUDTL3e | 단위 mJ | 단순값
+PCPU1DTL00 | 단위 mJ | 단순값
+PCPU1DTL01 | 단위 mJ | 단순값
+PCPU1DTL02 | 단위 mJ | 단순값
+PCPU1DTL03 | 단위 mJ | 단순값
+PCPU1DTL04 | 단위 mJ | 단순값
+PCPU1DTL05 | 단위 mJ | 단순값
+PCPU1DTL06 | 단위 mJ | 단순값
+PCPU1DTL07 | 단위 mJ | 단순값
+PCPU1DTL08 | 단위 mJ | 단순값
+PCPU1DTL09 | 단위 mJ | 단순값
+PCPU1DTL0a | 단위 mJ | 단순값
+PCPU1DTL0b | 단위 mJ | 단순값
+PCPU1DTL0c | 단위 mJ | 단순값
+PCPU1DTL0d | 단위 mJ | 단순값
+PCPU1DTL0e | 단위 mJ | 단순값
+PCPU1DTL10 | 단위 mJ | 단순값
+PCPU1DTL11 | 단위 mJ | 단순값
+PCPU1DTL12 | 단위 mJ | 단순값
+PCPU1DTL13 | 단위 mJ | 단순값
+PCPU1DTL14 | 단위 mJ | 단순값
+PCPU1DTL15 | 단위 mJ | 단순값
+PCPU1DTL16 | 단위 mJ | 단순값
+PCPU1DTL17 | 단위 mJ | 단순값
+PCPU1DTL18 | 단위 mJ | 단순값
+PCPU1DTL19 | 단위 mJ | 단순값
+PCPU1DTL1a | 단위 mJ | 단순값
+PCPU1DTL1b | 단위 mJ | 단순값
+PCPU1DTL1c | 단위 mJ | 단순값
+PCPU1DTL1d | 단위 mJ | 단순값
+PCPU1DTL1e | 단위 mJ | 단순값
+PCPU1DTL20 | 단위 mJ | 단순값
+PCPU1DTL21 | 단위 mJ | 단순값
+PCPU1DTL22 | 단위 mJ | 단순값
+PCPU1DTL23 | 단위 mJ | 단순값
+PCPU1DTL24 | 단위 mJ | 단순값
+PCPU1DTL25 | 단위 mJ | 단순값
+PCPU1DTL26 | 단위 mJ | 단순값
+PCPU1DTL27 | 단위 mJ | 단순값
+PCPU1DTL28 | 단위 mJ | 단순값
+PCPU1DTL29 | 단위 mJ | 단순값
+PCPU1DTL2a | 단위 mJ | 단순값
+PCPU1DTL2b | 단위 mJ | 단순값
+PCPU1DTL2c | 단위 mJ | 단순값
+PCPU1DTL2d | 단위 mJ | 단순값
+PCPU1DTL2e | 단위 mJ | 단순값
+PCPU1DTL30 | 단위 mJ | 단순값
+PCPU1DTL31 | 단위 mJ | 단순값
+PCPU1DTL32 | 단위 mJ | 단순값
+PCPU1DTL33 | 단위 mJ | 단순값
+PCPU1DTL34 | 단위 mJ | 단순값
+PCPU1DTL35 | 단위 mJ | 단순값
+PCPU1DTL36 | 단위 mJ | 단순값
+PCPU1DTL37 | 단위 mJ | 단순값
+PCPU1DTL38 | 단위 mJ | 단순값
+PCPU1DTL39 | 단위 mJ | 단순값
+PCPU1DTL3a | 단위 mJ | 단순값
+PCPU1DTL3b | 단위 mJ | 단순값
+PCPU1DTL3c | 단위 mJ | 단순값
+PCPU1DTL3d | 단위 mJ | 단순값
+PCPU1DTL3e | 단위 mJ | 단순값
+GPU0 | 단위 mJ | 단순값
+GPU SRAM0 | 단위 mJ | 단순값
+ANE0 | 단위 mJ | 단순값
+ISP0 | 단위 mJ | 단순값
+AVE0 | 단위 mJ | 단순값
+MSR0 | 단위 mJ | 단순값
+DCS0 | 단위 mJ | 단순값
+DRAM0 | 단위 mJ | 단순값
+AMCC0 | 단위 mJ | 단순값
+PCIe Port 0 Energy | 단위 uJ | 단순값
+PCIe Port 1 Energy | 단위 uJ | 단순값
+apciec0 Energy | 단위 uJ | 단순값
+apciec1 Energy | 단위 uJ | 단순값
+apciec2 Energy | 단위 uJ | 단순값
+GPU Energy | 단위 nJ | 단순값
+
+[sample에서 구독할 대상]
+Energy Model / (전체)
+CPU Stats / CPU Core Performance States
+CPU Stats / CPU Complex Performance States
+GPU Stats / GPU Performance States
+AMC Stats / Perf Counters
+SoC Stats / Events
+SoC Stats / Cluster Power States
+PMP / AF BW
+PMP / SOC0_ANE_SYS Fl
+PMP / FAB_AFNC0 Floor
+PMP / AFR Floor
+PMP / DCS Floor
