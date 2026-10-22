@@ -1,0 +1,12 @@
+== IODeviceTree:/cpus ==
+이름 | cluster-type | logical-cpu-id | cpu-id | cluster-id
+cpu0 | E | 0 | 0 | 0
+cpu1 | E | 1 | 1 | 0
+cpu2 | P | 2 | 2 | 1
+cpu3 | P | 3 | 3 | 1
+cpu4 | P | 4 | 4 | 1
+cpu5 | P | 5 | 5 | 1
+cpu6 | P | 6 | 6 | 2
+cpu7 | P | 7 | 7 | 2
+cpu8 | P | 8 | 8 | 2
+cpu9 | P | 9 | 9 | 2
