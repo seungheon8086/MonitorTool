@@ -8,7 +8,7 @@ final class PanelController {
     private(set) var isShown = false
     private var lastHiddenAt = Date.distantPast
 
-    private let panelWidth: CGFloat = 360
+    private let panelWidth: CGFloat = 380
     /// 화면 가장자리와 패널 사이 간격
     private let edgeInset: CGFloat = 10
     /// 열고 닫을 때 옆으로 움직이는 거리

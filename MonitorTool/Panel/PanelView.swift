@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 사이드 패널 안에 보이는 화면이에요.
-/// 1단계에서는 앞으로 채울 항목의 자리만 보여줘요.
+/// 아직 기술 검증 전이라, 항목의 자리와 접힌 상태에서 보여줄 내용만 표시해요.
 struct PanelView: View {
     var body: some View {
         ScrollView {
@@ -17,59 +17,65 @@ struct PanelView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text("MonitorTool")
-                .font(.title2.weight(.semibold))
-            Spacer()
-            Text("⌃⌥M")
-                .font(.callout.monospaced())
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("MonitorTool")
+                    .font(.title2.weight(.semibold))
+                Spacer()
+                Text("⌃⌥M")
+                    .font(.callout.monospaced())
+                    .foregroundStyle(.secondary)
+                    .help("이 단축키로 패널을 열고 닫아요")
+            }
+            Text("수치는 기술 검증을 마친 뒤 채워요")
+                .font(.caption)
                 .foregroundStyle(.secondary)
-                .help("이 단축키로 패널을 열고 닫아요")
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
     }
 }
 
-/// 패널에 들어갈 항목들이에요. 선언한 순서대로 화면에 보여요.
+/// 패널에 들어갈 항목이에요. 선언한 순서대로 보여요. (docs/PROJECT_DESIGN.md 2·3장)
 enum MonitorSection: CaseIterable, Identifiable {
-    case cpu, memory, gpu, battery, network, sensors, processes
+    case cpu, ane, gpu, memory, thermal, battery, network
 
     var id: Self { self }
 
     var title: String {
         switch self {
         case .cpu: "CPU"
-        case .memory: "메모리"
+        case .ane: "ANE"
         case .gpu: "GPU"
+        case .memory: "RAM"
+        case .thermal: "온도·팬"
         case .battery: "배터리"
         case .network: "네트워크"
-        case .sensors: "온도·팬"
-        case .processes: "상위 프로세스"
         }
     }
 
     var symbolName: String {
         switch self {
         case .cpu: "cpu"
-        case .memory: "memorychip"
+        case .ane: "brain"
         case .gpu: "cube.transparent"
+        case .memory: "memorychip"
+        case .thermal: "fan"
         case .battery: "battery.100"
         case .network: "network"
-        case .sensors: "thermometer"
-        case .processes: "list.bullet"
         }
     }
 
-    /// 이 항목을 실제 수치로 채우는 단계
-    var plannedStep: Int {
+    /// 접힌 상태에서 보여줄 수치 (설계 문서 3장 표의 '접힌 상태')
+    var summary: String {
         switch self {
-        case .cpu, .memory: 2
-        case .network: 3
-        case .battery: 4
-        case .gpu: 5
-        case .processes: 6
-        case .sensors: 7
+        case .cpu: "E·P 코어 사용률 · CPU 전력"
+        case .ane: "사용률 % · 전력 W"
+        case .gpu: "사용률 · 전력 W"
+        case .memory: "사용량 · 사용률"
+        case .thermal: "CPU·GPU 최고 온도 · 팬별 RPM"
+        case .battery: "잔량 · 상태 · 순전력 W · 예상 시간"
+        case .network: "업·다운 속도 · 오늘 누적"
         }
     }
 }
@@ -88,7 +94,7 @@ private struct PlaceholderCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(section.title)
                     .font(.headline)
-                Text("\(section.plannedStep)단계에서 채워요")
+                Text(section.summary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -103,5 +109,5 @@ private struct PlaceholderCard: View {
 
 #Preview {
     PanelView()
-        .frame(width: 360, height: 640)
+        .frame(width: 380, height: 640)
 }
