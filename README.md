@@ -37,7 +37,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 - [ ] 기술 검증
   - [x] 알림 센터 구형 Today 확장의 표시·높이 변경 → macOS 27 미지원 확인 ([진단 앱](Diagnostics/TodayWidgetProbe))
   - [x] WidgetKit 위젯: 위젯 안 화면 전환, 앱과의 데이터 공유, 앱이 뒤에 있을 때의 갱신 ([진단 앱](Diagnostics/WidgetKitProbe))
-  - [ ] CPU/GPU/ANE 전력과 ANE 사용률
+  - [ ] CPU/GPU/ANE 전력과 ANE 사용률 ([진단 도구](Diagnostics/PowerProbe))
   - [ ] E/P 코어 사용률의 정의
   - [ ] 온도 센서·팬 RPM 읽기
 - [ ] 화면 구현: 패널과 위젯의 접기/펼치기, 상태 표시, 최근 그래프
