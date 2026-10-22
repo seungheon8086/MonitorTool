@@ -1,0 +1,42 @@
+== H11ANE (H11ANEIn)
+CFBundleIdentifier = com.apple.driver.AppleH11ANEInterface
+CFBundleIdentifierKernel = com.apple.driver.AppleH11ANEInterface
+DeviceProperties.ANEDevicePropertyANECPUSubType = 4
+DeviceProperties.ANEDevicePropertyANEHWBoardSubType = 0
+DeviceProperties.ANEDevicePropertyANEHWBoardType = 96
+DeviceProperties.ANEDevicePropertyANEMinorVersion = 33
+DeviceProperties.ANEDevicePropertyANEVersion = 96
+DeviceProperties.ANEDevicePropertyBondedModeSupported = 0
+DeviceProperties.ANEDevicePropertyIsInternalBuild = 0
+DeviceProperties.ANEDevicePropertyNumANECores = 16
+DeviceProperties.ANEDevicePropertyTypeANEArchitectureTypeStr = h13g
+FirmwareLoaded = 1
+IOClass = H11ANEIn
+IOFunctionParent0000012A = <0 bytes >
+IOGeneralInterest = IOCommand is not serializable
+IOMatchCategory = IODefaultMatchCategory
+IOMatchedAtBoot = 1
+IONameMatch = ane,t8020
+IONameMatched = ane,t8020
+IOPersonalityPublisher = com.apple.driver.AppleH11ANEInterface
+IOPowerManagement.CapabilityFlags = 0
+IOPowerManagement.CurrentPowerState = 0
+IOPowerManagement.DevicePowerState = 0
+IOPowerManagement.MaxPowerState = 1
+IOProbeScore = 0
+IOProviderClass = AppleARMIODevice
+SharedEventAgentSignalEnabled = 0
+SurfaceSharedEventAgentMask = 128
+== ANEDriverRoot (H1xANELoadBalancer)
+CFBundleIdentifier = com.apple.driver.AppleH11ANEInterface
+CFBundleIdentifierKernel = com.apple.driver.AppleH11ANEInterface
+DeviceProperties.ANEDevicePropertyNumANEs = 1
+IOClass = H1xANELoadBalancer
+IOGeneralInterest = IOCommand is not serializable
+IOMatchCategory = H1xANELoadBalancer
+IOMatchedAtBoot = 1
+IOPersonalityPublisher = com.apple.driver.AppleH11ANEInterface
+IOProbeScore = 0
+IOProviderClass = IOResources
+IOResourceMatch = IOKit
+== ANEClientHints (ANEClientHints)
