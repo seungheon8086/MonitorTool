@@ -10,6 +10,9 @@ struct ProbeSnapshot: Codable {
     var reloadRequests: Int
     /// 그래프 확인용 더미 값 (최근 60개)
     var series: [Double]
+    /// 앱이 이 스냅샷을 쓸 때 맨 앞(활성) 상태였는지.
+    /// 위젯의 앱이 맨 앞에 있으면 갱신 횟수 제한이 적용되지 않아서, 간격을 해석할 때 필요해요.
+    var hostWasActive: Bool?
 }
 
 /// 앱과 위젯이 함께 쓰는 공유 폴더(App Group) 정보예요.

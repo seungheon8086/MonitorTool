@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import WidgetKit
@@ -11,6 +12,8 @@ final class SnapshotWriter {
     private(set) var reloadRequests = 0
     private(set) var lastWrite: Date?
     private(set) var lastError: String?
+    /// 마지막으로 쓸 때 이 앱이 맨 앞(활성)이었는지
+    private(set) var hostIsActive = false
 
     @ObservationIgnored private var series: [Double] = []
     @ObservationIgnored private var timer: Timer?
@@ -29,6 +32,7 @@ final class SnapshotWriter {
 
     private func writeAndRequestReload() {
         sequence += 1
+        hostIsActive = NSApp.isActive
         series.append(Double.random(in: 10...90))
         if series.count > 60 {
             series.removeFirst(series.count - 60)
@@ -37,7 +41,8 @@ final class SnapshotWriter {
         let snapshot = ProbeSnapshot(sequence: sequence,
                                      writtenAt: .now,
                                      reloadRequests: reloadRequests + 1,
-                                     series: series)
+                                     series: series,
+                                     hostWasActive: hostIsActive)
         do {
             try ProbeShared.save(snapshot)
             lastWrite = snapshot.writtenAt
