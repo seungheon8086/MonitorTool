@@ -3,7 +3,8 @@
 //
 // 빌드와 실행:
 //   swiftc -O ane_load.swift -o ane_load
-//   ./ane_load 30 ane     # 30초 동안 ANE에서 실행 (gpu, cpu도 가능)
+//   ./ane_load 30 ane     # 30초 동안 ANE에서 최대한 빠르게 실행 (gpu, cpu도 가능)
+//   ./ane_load 30 ane 16  # 초당 16회로 속도를 제한해서 실행 (0이면 제한 없음)
 
 import CoreGraphics
 import CoreML
@@ -81,8 +82,11 @@ func makeRequest(for target: Target) throws -> (request: VNRequest, name: String
 let arguments = CommandLine.arguments
 let seconds = arguments.count > 1 ? (Double(arguments[1]) ?? 30) : 30
 let target = arguments.count > 2 ? (Target(rawValue: arguments[2]) ?? .ane) : .ane
+/// 초당 요청 수 제한. nil이면 제한 없이 최대한 빠르게 돌려요.
+let rate: Double? = arguments.count > 3 ? Double(arguments[3]).flatMap { $0 > 0 ? $0 : nil } : nil
 
-log("목표 장치: \(target.rawValue), 실행 시간: \(Int(seconds))초")
+let rateText = rate.map { String(format: "초당 %.0f회로 제한", $0) } ?? "제한 없음"
+log("목표 장치: \(target.rawValue), 실행 시간: \(Int(seconds))초, 속도: \(rateText)")
 guard let picked = try makeRequest(for: target) else {
     log("⚠️ \(target.rawValue)에서 돌릴 수 있는 Vision 요청을 찾지 못했어요.")
     exit(2)
@@ -100,6 +104,13 @@ while true {
     let handler = VNImageRequestHandler(cgImage: images[count % images.count], options: [:])
     try handler.perform([picked.request])
     count += 1
+    if let rate {
+        // 정해진 속도보다 빠르면 다음 요청 시각까지 쉬어요.
+        let wait = start.addingTimeInterval(Double(count) / rate).timeIntervalSinceNow
+        if wait > 0 {
+            Thread.sleep(forTimeInterval: wait)
+        }
+    }
     if elapsed >= nextReport {
         log(String(format: "%.0f초: %d회", elapsed, count))
         nextReport += 5

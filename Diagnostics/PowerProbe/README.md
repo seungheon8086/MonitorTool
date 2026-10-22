@@ -19,14 +19,21 @@
 8. E/P 사용률 후보 비교: powermetrics 클러스터 활성 비율, IOReport 코어·클러스터 활성 비율, OS CPU 시간(`host_processor_info`)
 9. GPU 사용률 후보 비교: powermetrics GPU 활성 비율, IOReport GPU 활성 비율, IORegistry `Device Utilization %`
 
+**3차: ANE 부분 부하와 남은 확인**
+
+10. ANE에 일을 띄엄띄엄 줄 때(초당 요청 수 제한) ANE 전원 상태 ACT 비율이 일한 양(ANE 메모리 트래픽)에 비례하는지
+11. CPU 번호와 E/P 묶음의 대응을 IODeviceTree(`cluster-type`)에서 읽을 수 있는지
+12. powermetrics `--show-extra-power-info`에 ANE 활성 비율이 있는지
+
 ## 구성
 
-- `ane_load.swift`: Vision 이미지 분류 요청을 지정한 장치(ANE·GPU·CPU)로 고정해서 반복 실행하는 부하 생성기. Core ML의 `MLComputeDevice`와 `VNRequest.setComputeDevice(_:for:)`로 장치를 지정하고, 실제로 그 장치가 쓰였는지는 powermetrics 수치로 확인
+- `ane_load.swift`: Vision 이미지 분류 요청을 지정한 장치(ANE·GPU·CPU)로 고정해서 반복 실행하는 부하 생성기. Core ML의 `MLComputeDevice`와 `VNRequest.setComputeDevice(_:for:)`로 장치를 지정하고, 실제로 그 장치가 쓰였는지는 powermetrics 수치로 확인. 세 번째 인자로 초당 요청 수를 제한할 수 있음(3차)
 - `measure.sh`: 1차. 부하 생성기를 빌드한 뒤 가만히 있을 때 → ANE 부하 → GPU 부하 → CPU 부하 순서로 powermetrics를 10초씩 기록 (텍스트와 plist 형식)
 - `ioreport_probe.swift`: 2차. 관리자 권한 없이 IOReport(비공개 라이브러리)와 OS 통계를 1초마다 읽어 기록하는 진단 도구. 앱에 넣을 코드가 아니라 확인용
 - `measure2.sh`: 2차. 아래 순서로 기록
+- `measure3.sh`: 3차. CPU 묶음 대응 출력 → 가만히 → ANE 부하를 초당 최대·48·24·12·4회로 바꿔 가며 IOReport 기록 → ANE 부하 중 `--show-extra-power-info`
 - `results/`: 1차 결과 원본
-- `results-2/`: 2차 결과 원본
+- `results-2/`, `results-3/`: 2차·3차 결과 원본
 
 `measure2.sh`의 측정 순서:
 
@@ -54,6 +61,12 @@ bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/PowerProbe/measure.sh
 
 ```sh
 bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/PowerProbe/measure2.sh
+```
+
+3차 (3분쯤):
+
+```sh
+bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/PowerProbe/measure3.sh
 ```
 
 ## 결과 기록
@@ -162,3 +175,7 @@ bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/PowerProbe/measure2.sh
 - 관리자 권한 없이 읽을 수 있는 것: GPU 전력, E/P 클러스터·코어 활성 비율, OS CPU 시간, GPU 활성 비율과 Device Utilization, ANE 전원 상태(ACT) 비율, ANE 메모리 트래픽.
 - CPU·ANE 전력은 이 Mac의 macOS 27.0.1에서 관리자 권한 샘플러가 돌 때만 갱신된다. 실시간으로 보여주려면 관리자 권한이 필요하다.
 - ANE 사용률의 후보는 IOReport ANE0 전원 상태의 ACT 비율이다. 부분 부하에서 일한 시간에 비례하는지 3차에서 확인한다.
+
+### 3차: ANE 부분 부하와 남은 확인
+
+- 결과: (측정 후 작성)

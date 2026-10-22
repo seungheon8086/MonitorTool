@@ -14,6 +14,7 @@
 //   swiftc -O ioreport_probe.swift -o ioreport_probe
 //   ./ioreport_probe list <결과 폴더>                   # 채널 목록 저장
 //   ./ioreport_probe sample <초> <결과 폴더> <이름표>    # 1초마다 기록
+//   ./ioreport_probe cpus                               # CPU 번호와 E/P 묶음(IODeviceTree) 출력
 
 import Darwin
 import Foundation
@@ -403,6 +404,14 @@ struct EnergyStats {
     var maxWatts = 0.0
 }
 
+/// 구간 동안 ANE 관련 바이트 카운터 하나의 값을 모아요.
+struct ByteStats {
+    let info: ChannelInfo
+    var samples = 0
+    var updated = 0
+    var bytes = 0.0
+}
+
 /// 구간 동안 상태 채널 하나의 활성 비율을 모아요.
 struct StateStats {
     let info: ChannelInfo
@@ -414,8 +423,8 @@ struct StateStats {
     var maxRatio = -Double.infinity
 }
 
-/// 활성 시간에서 뺄 상태 이름
-let idleStateNames: Set<String> = ["IDLE", "DOWN", "OFF"]
+/// 활성 시간에서 뺄 상태 이름 (INACT는 SoC Stats의 INACT/ACT 채널에서 쓰여요)
+let idleStateNames: Set<String> = ["IDLE", "DOWN", "OFF", "INACT"]
 
 enum ChannelKind {
     case simple, state, other
@@ -454,6 +463,7 @@ func runSampling(report: IOReport, seconds: Int, directory: String, label: Strin
 
     var energy: [String: EnergyStats] = [:]
     var states: [String: StateStats] = [:]
+    var byteCounters: [String: ByteStats] = [:]
     var unparsed: [String: ChannelInfo] = [:]
     var previousTicks = readCPUTicks()
     var cpuBusy = Array(repeating: 0.0, count: previousTicks.count)
@@ -483,6 +493,13 @@ func runSampling(report: IOReport, seconds: Int, directory: String, label: Strin
                 case .simple:
                     let value = report.simpleValue(channel, 0)
                     guard let scale = info.joulesPerUnit else {
+                        if info.unit == "B" && info.mentionsANE {
+                            var stats = byteCounters[info.key] ?? ByteStats(info: info)
+                            stats.samples += 1
+                            if value != 0 { stats.updated += 1 }
+                            stats.bytes += Double(value)
+                            byteCounters[info.key] = stats
+                        }
                         raw.write([elapsed, info.group, info.subgroup, info.name, info.unit, "1", String(value), ""])
                         continue
                     }
@@ -578,7 +595,7 @@ func runSampling(report: IOReport, seconds: Int, directory: String, label: Strin
     }
 
     print()
-    print("[상태 채널] 활성 % = IDLE·DOWN·OFF를 뺀 시간 비율 (구간 전체 기준, 괄호는 표본별 최소~최대)")
+    print("[상태 채널] 활성 % = IDLE·DOWN·OFF·INACT를 뺀 시간 비율 (구간 전체 기준, 괄호는 표본별 최소~최대)")
     if states.isEmpty { print("없음") }
     for stats in states.values.sorted(by: { $0.info.key < $1.info.key }) {
         let ratio = stats.totalTicks > 0 ? stats.activeTicks / stats.totalTicks * 100 : 0
@@ -588,6 +605,14 @@ func runSampling(report: IOReport, seconds: Int, directory: String, label: Strin
         let shown = stats.stateNames.prefix(16).joined(separator: ",")
         let more = stats.stateNames.count > 16 ? ",…" : ""
         print("\(stats.info.key) | 활성 \(fmt(ratio, 1))% (\(range)) | 상태 \(stats.stateNames.count)개: \(shown)\(more)")
+    }
+
+    print()
+    print("[ANE 바이트 카운터] 평균 MB/s = 구간 총 바이트 ÷ 측정 시간")
+    if byteCounters.isEmpty { print("없음") }
+    for stats in byteCounters.values.sorted(by: { $0.info.key < $1.info.key }) {
+        let average = measured > 0 ? stats.bytes / measured / 1e6 : 0
+        print("\(stats.info.key) | 갱신 \(stats.updated)/\(stats.samples) | 평균 \(fmt(average, 1)) MB/s")
     }
 
     if !unparsed.isEmpty {
@@ -615,10 +640,61 @@ func runSampling(report: IOReport, seconds: Int, directory: String, label: Strin
     }
 }
 
+// MARK: - CPU 번호와 E/P 묶음 (cpus)
+
+/// IODeviceTree의 cpus 아래 항목에서 CPU 번호와 묶음 종류(E/P)를 읽어요.
+func listCPUNodes() {
+    let cpus = IORegistryEntryFromPath(kIOMainPortDefault, "IODeviceTree:/cpus")
+    guard cpus != 0 else {
+        print("IODeviceTree:/cpus를 찾지 못했어요.")
+        return
+    }
+    defer { IOObjectRelease(cpus) }
+
+    var iterator: io_iterator_t = 0
+    guard IORegistryEntryGetChildIterator(cpus, "IODeviceTree", &iterator) == KERN_SUCCESS else {
+        print("cpus 아래 항목을 읽지 못했어요.")
+        return
+    }
+    defer { IOObjectRelease(iterator) }
+
+    print("== IODeviceTree:/cpus ==")
+    print("이름 | cluster-type | logical-cpu-id | cpu-id | cluster-id")
+    var entry = IOIteratorNext(iterator)
+    while entry != 0 {
+        var name = [CChar](repeating: 0, count: 128)
+        IORegistryEntryGetName(entry, &name)
+        let nameText = String(decoding: name.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+        let fields = ["cluster-type", "logical-cpu-id", "cpu-id", "cluster-id"].map { deviceTreeValue(entry, $0) }
+        print(([nameText] + fields).joined(separator: " | "))
+        IOObjectRelease(entry)
+        entry = IOIteratorNext(iterator)
+    }
+}
+
+/// 디바이스 트리 속성(Data)을 보기 좋게 바꿔요. cluster-type은 글자, 나머지는 리틀 엔디언 정수예요.
+func deviceTreeValue(_ entry: io_registry_entry_t, _ key: String) -> String {
+    guard let value = IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() else {
+        return "-"
+    }
+    guard let data = value as? Data else {
+        return "\(value)"
+    }
+    let bytes = [UInt8](data)
+    if key == "cluster-type" {
+        return String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
+    }
+    if bytes.count == 4 || bytes.count == 8 {
+        let number = bytes.enumerated().reduce(UInt64(0)) { total, item in total | (UInt64(item.element) << (8 * UInt64(item.offset))) }
+        return String(number)
+    }
+    return bytes.map { String(format: "%02x", $0) }.joined()
+}
+
 // MARK: - 시작
 
 let arguments = CommandLine.arguments
-let usage = "사용법: ioreport_probe list <결과 폴더> | ioreport_probe sample <초> <결과 폴더> <이름표>"
+let usage = "사용법: ioreport_probe list <결과 폴더> | ioreport_probe sample <초> <결과 폴더> <이름표> | ioreport_probe cpus"
 
 guard let report = IOReport() else {
     log("IOReport를 불러오지 못했어요.")
@@ -628,6 +704,8 @@ guard let report = IOReport() else {
 switch arguments.count > 1 ? arguments[1] : "" {
 case "list" where arguments.count >= 3:
     writeChannelList(report: report, directory: arguments[2])
+case "cpus":
+    listCPUNodes()
 case "sample" where arguments.count >= 5:
     guard let seconds = Int(arguments[2]) else {
         log(usage)
