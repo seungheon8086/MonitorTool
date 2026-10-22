@@ -1,0 +1,9 @@
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+hw.model: MacBookPro18,1
+machdep.cpu.brand_string: Apple M1 Pro
+hw.perflevel0.name: Performance
+hw.perflevel0.logicalcpu: 8
+hw.perflevel1.name: Efficiency
+hw.perflevel1.logicalcpu: 2
