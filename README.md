@@ -40,7 +40,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
   - [x] CPU/GPU/ANE 전력: 관리자 권한으로 측정 확인. 권한 없이는 GPU 전력만 갱신돼서 보조 프로그램으로 수집 ([진단 도구](Diagnostics/PowerProbe))
   - [x] E/P·GPU 사용률의 정의: E/P는 OS CPU 시간의 묶음별 평균, GPU는 Device Utilization
   - [x] ANE 사용률: 직접 재는 값이 없음을 확인 → 사용 중 여부와 전력 W를 보여주고 %는 '측정 불가'로 표시
-  - [ ] 관리자 권한 보조 프로그램 등록 (개인 팀 서명)
+  - [ ] 관리자 권한 보조 프로그램 등록 (개인 팀 서명) ([진단 앱](Diagnostics/HelperProbe))
   - [x] 온도 센서·팬 RPM 읽기: 관리자 권한 없이 SMC로 읽음, CPU 최고·GPU 최고 센서 확정 ([진단 도구](Diagnostics/SensorProbe))
   - [x] 메모리 트래픽: 관리자 권한 없이 1초마다, 기기별로 읽힘 ([분석](Diagnostics/PowerProbe))
 - [ ] 화면 구현: 패널과 위젯의 접기/펼치기, 상태 표시, 최근 그래프
