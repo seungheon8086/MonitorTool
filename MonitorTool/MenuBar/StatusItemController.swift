@@ -6,14 +6,26 @@ final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private let menu: NSMenu
     private let panelController: PanelController
+    private let openSettings: () -> Void
+    /// '패널 열기/닫기' 메뉴 항목이에요. 옆에 지금 단축키를 보여줘요.
+    private let toggleItem: NSMenuItem
 
-    init(panelController: PanelController) {
+    init(panelController: PanelController, openSettings: @escaping () -> Void) {
         self.panelController = panelController
+        self.openSettings = openSettings
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         menu = NSMenu()
+        toggleItem = NSMenuItem(title: "패널 열기/닫기", action: nil, keyEquivalent: "")
         super.init()
         configureButton()
         configureMenu()
+    }
+
+    /// 메뉴의 '패널 열기/닫기' 옆에 지금 단축키를 보여줘요.
+    /// (메뉴는 보여주기만 하고, 실제 단축키는 GlobalHotKey가 받아요)
+    func showShortcut(_ combo: HotKeyCombo) {
+        toggleItem.keyEquivalent = combo.menuKeyEquivalent
+        toggleItem.keyEquivalentModifierMask = GlobalHotKey.modifierFlags(fromCarbon: combo.carbonModifiers)
     }
 
     private func configureButton() {
@@ -33,12 +45,15 @@ final class StatusItemController: NSObject {
     }
 
     private func configureMenu() {
-        let toggleItem = NSMenuItem(title: "패널 열기/닫기",
-                                    action: #selector(togglePanel),
-                                    keyEquivalent: "m")
-        toggleItem.keyEquivalentModifierMask = [.control, .option]
+        toggleItem.action = #selector(togglePanel)
         toggleItem.target = self
         menu.addItem(toggleItem)
+
+        let settingsItem = NSMenuItem(title: "설정…",
+                                      action: #selector(showSettings),
+                                      keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
 
         menu.addItem(.separator())
 
@@ -65,5 +80,9 @@ final class StatusItemController: NSObject {
 
     @objc private func togglePanel() {
         panelController.toggle()
+    }
+
+    @objc private func showSettings() {
+        openSettings()
     }
 }

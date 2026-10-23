@@ -10,9 +10,9 @@ final class GlobalHotKey {
     /// 단축키를 등록해요. 다른 앱이 이미 쓰는 조합이라 등록에 실패하면 nil이에요.
     /// - Parameters:
     ///   - keyCode: 키 코드 (예: `kVK_ANSI_M`)
-    ///   - modifiers: 함께 누를 보조 키 (⌘ ⌥ ⌃ ⇧)
+    ///   - carbonModifiers: 함께 누를 보조 키의 Carbon 값 (`controlKey`·`optionKey`·`shiftKey`·`cmdKey`를 합친 값)
     ///   - action: 단축키를 눌렀을 때 할 일
-    init?(keyCode: UInt32, modifiers: NSEvent.ModifierFlags, action: @escaping () -> Void) {
+    init?(keyCode: UInt32, carbonModifiers: UInt32, action: @escaping () -> Void) {
         guard Self.installEventHandlerIfNeeded() else { return nil }
 
         id = Self.nextID
@@ -20,7 +20,7 @@ final class GlobalHotKey {
 
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(keyCode,
-                                         Self.carbonModifiers(from: modifiers),
+                                         carbonModifiers,
                                          EventHotKeyID(signature: Self.signature, id: id),
                                          GetEventDispatcherTarget(),
                                          0,
@@ -31,13 +31,35 @@ final class GlobalHotKey {
         Self.actions[id] = action
     }
 
-    /// 단축키 등록을 해제해요. (8단계에서 단축키를 바꿀 때 쓸 예정)
+    /// 단축키 등록을 해제해요. 단축키를 바꿀 때 이전 단축키를 먼저 풀어 줘요.
     func unregister() {
         if let hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
         }
         hotKeyRef = nil
         Self.actions[id] = nil
+    }
+
+    // MARK: - 보조 키 변환
+
+    /// NSEvent의 보조 키 → Carbon 값 (키 입력을 받아 새 단축키를 만들 때 써요)
+    static func carbonModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
+        var result: UInt32 = 0
+        if flags.contains(.command) { result |= UInt32(cmdKey) }
+        if flags.contains(.option) { result |= UInt32(optionKey) }
+        if flags.contains(.control) { result |= UInt32(controlKey) }
+        if flags.contains(.shift) { result |= UInt32(shiftKey) }
+        return result
+    }
+
+    /// Carbon 값 → NSEvent의 보조 키 (메뉴에 단축키를 보여줄 때 써요)
+    static func modifierFlags(fromCarbon modifiers: UInt32) -> NSEvent.ModifierFlags {
+        var flags: NSEvent.ModifierFlags = []
+        if modifiers & UInt32(cmdKey) != 0 { flags.insert(.command) }
+        if modifiers & UInt32(optionKey) != 0 { flags.insert(.option) }
+        if modifiers & UInt32(controlKey) != 0 { flags.insert(.control) }
+        if modifiers & UInt32(shiftKey) != 0 { flags.insert(.shift) }
+        return flags
     }
 
     // MARK: - Carbon 이벤트 처리
@@ -91,14 +113,5 @@ final class GlobalHotKey {
 
     private static func performAction(for id: UInt32) {
         actions[id]?()
-    }
-
-    private static func carbonModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
-        var result: UInt32 = 0
-        if flags.contains(.command) { result |= UInt32(cmdKey) }
-        if flags.contains(.option) { result |= UInt32(optionKey) }
-        if flags.contains(.control) { result |= UInt32(controlKey) }
-        if flags.contains(.shift) { result |= UInt32(shiftKey) }
-        return result
     }
 }

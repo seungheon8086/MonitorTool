@@ -17,16 +17,20 @@ final class PanelController {
     /// - Parameters:
     ///   - store: 패널이 보여줄 값
     ///   - appearance: 항목별 색 설정
-    init(store: MonitorStore, appearance: AppearanceSettings) {
+    ///   - shortcut: 패널 단축키 (머리글에 지금 단축키를 보여줘요)
+    ///   - openSettings: 패널 아래 톱니 단추를 눌렀을 때 할 일
+    init(store: MonitorStore, appearance: AppearanceSettings, shortcut: PanelShortcut,
+         openSettings: @escaping () -> Void) {
         panel = SidePanel.make()
 
         // Liquid Glass 위에 SwiftUI 화면(PanelView)을 올려요.
         let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
         glassView.cornerRadius = 24
 
-        let rootView = PanelView()
+        let rootView = PanelView(openSettings: openSettings)
             .environment(store)
             .environment(appearance)
+            .environment(shortcut)
         let hostingView = NSHostingView(rootView: rootView)
         hostingView.sizingOptions = []  // SwiftUI 내용 크기가 패널 크기를 바꾸지 않게 해요.
         hostingView.frame = glassView.bounds

@@ -5,18 +5,22 @@ import SwiftUI
 /// 카드를 누르면 바로 아래에 상세가 펼쳐지고, 여러 항목을 함께 펼칠 수 있어요.
 struct PanelView: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(PanelShortcut.self) private var shortcut
     /// 펼친 항목이에요. 패널을 닫았다 열어도 앱이 켜져 있는 동안은 그대로예요.
     @State private var expanded: Set<MonitorItem>
+    /// 아래 톱니 단추를 눌렀을 때 할 일 (설정 창 열기)
+    private let openSettings: () -> Void
 
-    init(initiallyExpanded: Set<MonitorItem> = []) {
+    init(initiallyExpanded: Set<MonitorItem> = [], openSettings: @escaping () -> Void = {}) {
         _expanded = State(initialValue: initiallyExpanded)
+        self.openSettings = openSettings
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    PanelHeader(takenAt: store.snapshot.takenAt)
+                    PanelHeader(takenAt: store.snapshot.takenAt, shortcutText: shortcut.combo.displayText)
                     processorSection
                     memorySection
                     thermalSection
@@ -27,7 +31,7 @@ struct PanelView: View {
             }
             .scrollIndicators(.hidden)
 
-            PanelFooter(helper: store.snapshot.helper)
+            PanelFooter(helper: store.snapshot.helper, openSettings: openSettings)
         }
     }
 
@@ -81,6 +85,8 @@ struct PanelView: View {
 /// 패널 맨 위: 앱 이름, 단축키, 마지막 측정 시각
 private struct PanelHeader: View {
     let takenAt: Date?
+    /// 지금 단축키 (예: ⌃⌥M)
+    let shortcutText: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -88,10 +94,10 @@ private struct PanelHeader: View {
                 Text("MonitorTool")
                     .font(.title2.weight(.semibold))
                 Spacer()
-                Text("⌃⌥M")
+                Text(shortcutText)
                     .font(.callout.monospaced())
                     .foregroundStyle(.secondary)
-                    .help("이 단축키로 패널을 열고 닫아요")
+                    .help("이 단축키로 패널을 열고 닫아요. 설정 창 '일반'에서 바꿀 수 있어요.")
             }
             if let takenAt {
                 Text("\(ValueFormat.clock(takenAt)) 측정 · 1초마다 갱신")
@@ -108,15 +114,16 @@ private struct PanelHeader: View {
     }
 }
 
-/// 패널 맨 아래: 보조 프로그램을 허용해야 할 때만 버튼을 보여줘요. (2026-10-23 합의)
+/// 패널 맨 아래: 보조 프로그램 허용 버튼(필요할 때만, 2026-10-23 합의)과 설정 톱니 단추
 private struct PanelFooter: View {
     let helper: HelperStatus
+    let openSettings: () -> Void
 
     var body: some View {
-        if helper.needsUserAction {
-            HStack {
+        HStack(spacing: 8) {
+            if helper.needsUserAction {
                 Button {
-                    // 보조 프로그램 등록과 시스템 설정 열기는 5단계(통합)에서 연결해요.
+                    // 보조 프로그램 등록과 시스템 설정 열기는 보조 프로그램을 붙일 때 연결해요.
                 } label: {
                     Text("CPU·ANE 전력: 보조 프로그램 허용하기")
                         .font(.system(size: 12, weight: .semibold))
@@ -127,12 +134,22 @@ private struct PanelFooter: View {
                                     in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
-            .padding(.bottom, 14)
+            Spacer(minLength: 0)
+            Button(action: openSettings) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("설정")
+            .accessibilityLabel(Text("설정"))
         }
+        .padding(.horizontal, 12)
+        .padding(.top, 4)
+        .padding(.bottom, 10)
     }
 }
 
@@ -143,6 +160,7 @@ private struct PanelFooter: View {
     PanelView()
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }
@@ -151,6 +169,7 @@ private struct PanelFooter: View {
     PanelView(initiallyExpanded: [.cpu, .gpu, .ane, .memory, .thermal])
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
         .frame(width: 380, height: 2700)
         .background(.regularMaterial)
 }
@@ -159,6 +178,7 @@ private struct PanelFooter: View {
     PanelView(initiallyExpanded: [.battery, .network])
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
         .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
@@ -167,6 +187,7 @@ private struct PanelFooter: View {
     PanelView(initiallyExpanded: [.cpu, .ane])
         .environment(MonitorStore.exampleNeedsHelper)
         .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
         .frame(width: 380, height: 1500)
         .background(.regularMaterial)
 }
@@ -175,6 +196,7 @@ private struct PanelFooter: View {
     PanelView()
         .environment(MonitorStore())
         .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }
