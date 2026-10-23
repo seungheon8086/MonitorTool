@@ -14,14 +14,20 @@ final class PanelController {
     /// 열고 닫을 때 옆으로 움직이는 거리
     private let slideDistance: CGFloat = 120
 
-    init() {
+    /// - Parameters:
+    ///   - store: 패널이 보여줄 값
+    ///   - appearance: 항목별 색 설정
+    init(store: MonitorStore, appearance: AppearanceSettings) {
         panel = SidePanel.make()
 
         // Liquid Glass 위에 SwiftUI 화면(PanelView)을 올려요.
         let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
         glassView.cornerRadius = 24
 
-        let hostingView = NSHostingView(rootView: PanelView())
+        let rootView = PanelView()
+            .environment(store)
+            .environment(appearance)
+        let hostingView = NSHostingView(rootView: rootView)
         hostingView.sizingOptions = []  // SwiftUI 내용 크기가 패널 크기를 바꾸지 않게 해요.
         hostingView.frame = glassView.bounds
         hostingView.autoresizingMask = [.width, .height]

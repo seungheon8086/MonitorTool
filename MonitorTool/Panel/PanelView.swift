@@ -1,22 +1,88 @@
 import SwiftUI
 
-/// 사이드 패널 안에 보이는 화면이에요.
-/// 아직 기술 검증 전이라, 항목의 자리와 접힌 상태에서 보여줄 내용만 표시해요.
+/// 사이드 패널 안에 보이는 화면이에요. (화면 시안 '패널 · 기본 (확정)', docs/PROJECT_DESIGN.md 1·2·3장)
+/// 맨 위 카드에 CPU·ANE·GPU를 3열로 두고, 그 아래로 메모리 → 온도·팬 → 배터리 → 네트워크 순서로 보여줘요.
+/// 카드를 누르면 바로 아래에 상세가 펼쳐지고, 여러 항목을 함께 펼칠 수 있어요.
 struct PanelView: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                header
-                ForEach(MonitorSection.allCases) { section in
-                    PlaceholderCard(section: section)
-                }
-            }
-            .padding(16)
-        }
-        .scrollIndicators(.hidden)
+    @Environment(MonitorStore.self) private var store
+    /// 펼친 항목이에요. 패널을 닫았다 열어도 앱이 켜져 있는 동안은 그대로예요.
+    @State private var expanded: Set<MonitorItem>
+
+    init(initiallyExpanded: Set<MonitorItem> = []) {
+        _expanded = State(initialValue: initiallyExpanded)
     }
 
-    private var header: some View {
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    PanelHeader(takenAt: store.snapshot.takenAt)
+                    processorSection
+                    memorySection
+                    thermalSection
+                    batterySection
+                    networkSection
+                }
+                .padding(16)
+            }
+            .scrollIndicators(.hidden)
+
+            PanelFooter(helper: store.snapshot.helper)
+        }
+    }
+
+    @ViewBuilder
+    private var processorSection: some View {
+        ProcessorCard(expanded: $expanded)
+        if expanded.contains(.cpu) {
+            CPUDetail()
+        }
+        if expanded.contains(.ane) {
+            ANEDetail()
+        }
+        if expanded.contains(.gpu) {
+            GPUDetail()
+        }
+    }
+
+    @ViewBuilder
+    private var memorySection: some View {
+        MemoryCard(expanded: $expanded)
+        if expanded.contains(.memory) {
+            MemoryDetail()
+        }
+    }
+
+    @ViewBuilder
+    private var thermalSection: some View {
+        ThermalCard(expanded: $expanded)
+        if expanded.contains(.thermal) {
+            ThermalDetail()
+        }
+    }
+
+    @ViewBuilder
+    private var batterySection: some View {
+        BatteryCard(expanded: $expanded)
+        if expanded.contains(.battery) {
+            BatteryDetail()
+        }
+    }
+
+    @ViewBuilder
+    private var networkSection: some View {
+        NetworkCard(expanded: $expanded)
+        if expanded.contains(.network) {
+            NetworkDetail()
+        }
+    }
+}
+
+/// 패널 맨 위: 앱 이름, 단축키, 마지막 측정 시각
+private struct PanelHeader: View {
+    let takenAt: Date?
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline) {
                 Text("MonitorTool")
@@ -27,87 +93,81 @@ struct PanelView: View {
                     .foregroundStyle(.secondary)
                     .help("이 단축키로 패널을 열고 닫아요")
             }
-            Text("수치는 기술 검증을 마친 뒤 채워요")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if let takenAt {
+                Text("\(ValueFormat.clock(takenAt)) 측정 · 1초마다 갱신")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("측정 준비 중")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
     }
 }
 
-/// 패널에 들어갈 항목이에요. 선언한 순서대로 보여요. (docs/PROJECT_DESIGN.md 2·3장)
-enum MonitorSection: CaseIterable, Identifiable {
-    case cpu, ane, gpu, memory, thermal, battery, network
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .cpu: "CPU"
-        case .ane: "ANE"
-        case .gpu: "GPU"
-        case .memory: "RAM"
-        case .thermal: "온도·팬"
-        case .battery: "배터리"
-        case .network: "네트워크"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .cpu: "cpu"
-        case .ane: "brain"
-        case .gpu: "cube.transparent"
-        case .memory: "memorychip"
-        case .thermal: "fan"
-        case .battery: "battery.100"
-        case .network: "network"
-        }
-    }
-
-    /// 접힌 상태에서 보여줄 수치 (설계 문서 3장 표의 '접힌 상태')
-    var summary: String {
-        switch self {
-        case .cpu: "E·P 코어 사용률 · CPU 전력"
-        case .ane: "사용률 % · 전력 W"
-        case .gpu: "사용률 · 전력 W"
-        case .memory: "사용량 · 사용률"
-        case .thermal: "CPU·GPU 최고 온도 · 팬별 RPM"
-        case .battery: "잔량 · 상태 · 순전력 W · 예상 시간"
-        case .network: "업·다운 속도 · 오늘 누적"
-        }
-    }
-}
-
-/// 아직 수치가 없는 항목을 보여주는 카드
-private struct PlaceholderCard: View {
-    let section: MonitorSection
+/// 패널 맨 아래: 보조 프로그램을 허용해야 할 때만 버튼을 보여줘요. (2026-10-23 합의)
+private struct PanelFooter: View {
+    let helper: HelperStatus
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: section.symbolName)
-                .font(.title3)
-                .frame(width: 28)
-                .foregroundStyle(.secondary)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(section.title)
-                    .font(.headline)
-                Text(section.summary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        if helper.needsUserAction {
+            HStack {
+                Button {
+                    // 보조 프로그램 등록과 시스템 설정 열기는 5단계(통합)에서 연결해요.
+                } label: {
+                    Text("CPU·ANE 전력: 보조 프로그램 허용하기")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(StatusColor.warningText)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(StatusColor.warningBackground,
+                                    in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                Spacer(minLength: 0)
             }
-
-            Spacer(minLength: 0)
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 14)
         }
-        .padding(12)
-        .background(Color.primary.opacity(0.06),
-                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
-#Preview {
+#if DEBUG
+// Xcode 미리보기 (예시 값은 여기서만 써요. 실제 앱에는 나오지 않아요.)
+
+#Preview("예시 값") {
     PanelView()
-        .frame(width: 380, height: 640)
+        .environment(MonitorStore.example)
+        .environment(AppearanceSettings())
+        .frame(width: 380, height: 900)
+        .background(.regularMaterial)
 }
+
+#Preview("펼친 상태") {
+    PanelView(initiallyExpanded: [.cpu, .ane, .memory, .thermal])
+        .environment(MonitorStore.example)
+        .environment(AppearanceSettings())
+        .frame(width: 380, height: 1600)
+        .background(.regularMaterial)
+}
+
+#Preview("보조 프로그램 허용 전") {
+    PanelView()
+        .environment(MonitorStore.exampleNeedsHelper)
+        .environment(AppearanceSettings())
+        .frame(width: 380, height: 900)
+        .background(.regularMaterial)
+}
+
+#Preview("수집 전 (지금 앱 실행 화면)") {
+    PanelView()
+        .environment(MonitorStore())
+        .environment(AppearanceSettings())
+        .frame(width: 380, height: 900)
+        .background(.regularMaterial)
+}
+#endif
