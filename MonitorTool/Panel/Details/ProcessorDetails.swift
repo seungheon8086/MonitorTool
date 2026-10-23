@@ -1,6 +1,6 @@
 import SwiftUI
 
-// CPU·ANE·GPU 열을 눌렀을 때 카드 아래로 펼쳐지는 상세예요.
+// CPU·GPU·ANE 열을 눌렀을 때 카드 아래로 펼쳐지는 상세예요. (화면과 같은 순서로 놓았어요)
 // 그래프(1분·5분·30분)는 다음 작업(3-2)에서 붙여요.
 
 struct CPUDetail: View {
@@ -61,6 +61,21 @@ struct CoreBars: View {
     }
 }
 
+struct GPUDetail: View {
+    @Environment(MonitorStore.self) private var store
+
+    var body: some View {
+        let gpu = store.snapshot.gpu
+        DetailCard(title: "GPU 자세히") {
+            HStack(alignment: .top, spacing: 8) {
+                LabeledValue(label: "사용률", reading: gpu.usage, format: ValueFormat.percent)
+                LabeledValue(label: "전력", reading: gpu.power, format: ValueFormat.watts)
+            }
+            SourceNote(text: "사용률은 GPU 드라이버가 알려 주는 값(Device Utilization)이에요. 전력은 권한 없이 읽는 GPU 에너지 카운터로 계산해요.")
+        }
+    }
+}
+
 struct ANEDetail: View {
     @Environment(MonitorStore.self) private var store
 
@@ -95,20 +110,5 @@ struct ANEDetail: View {
     private func activeSinceText(_ ane: ANESnapshot) -> String? {
         guard ane.isActive.okValue == true, let since = ane.activeSince else { return nil }
         return "\(ValueFormat.clock(since))부터 사용 중"
-    }
-}
-
-struct GPUDetail: View {
-    @Environment(MonitorStore.self) private var store
-
-    var body: some View {
-        let gpu = store.snapshot.gpu
-        DetailCard(title: "GPU 자세히") {
-            HStack(alignment: .top, spacing: 8) {
-                LabeledValue(label: "사용률", reading: gpu.usage, format: ValueFormat.percent)
-                LabeledValue(label: "전력", reading: gpu.power, format: ValueFormat.watts)
-            }
-            SourceNote(text: "사용률은 GPU 드라이버가 알려 주는 값(Device Utilization)이에요. 전력은 권한 없이 읽는 GPU 에너지 카운터로 계산해요.")
-        }
     }
 }

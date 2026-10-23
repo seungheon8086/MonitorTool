@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 패널 맨 위 카드예요. CPU·ANE·GPU를 한 칸에 왼쪽부터 3열로 보여줘요. (화면 시안 '패널 · 기본 (확정)')
+/// 패널 맨 위 카드예요. CPU·GPU·ANE를 한 칸에 왼쪽부터 3열로 보여줘요.
+/// (화면 시안 '패널 · 기본 (확정)'에서 순서만 CPU·GPU·ANE로 바꿨어요. 2026-10-24 사용자 결정)
 /// 열을 누르면 카드 아래로 그 항목의 상세가 펼쳐져요.
 struct ProcessorCard: View {
     @Environment(MonitorStore.self) private var store
@@ -15,13 +16,13 @@ struct ProcessorCard: View {
                 CPUColumn(cpu: snapshot.cpu, color: appearance.color(for: .cpu))
             }
             ColumnDivider()
-            column(.ane, shape: Rectangle()) {
-                ANEColumn(ane: snapshot.ane)
+            column(.gpu, shape: Rectangle()) {
+                GPUColumn(gpu: snapshot.gpu, color: appearance.color(for: .gpu))
             }
             ColumnDivider()
-            column(.gpu, shape: UnevenRoundedRectangle(bottomTrailingRadius: 14, topTrailingRadius: 14,
+            column(.ane, shape: UnevenRoundedRectangle(bottomTrailingRadius: 14, topTrailingRadius: 14,
                                                        style: .continuous)) {
-                GPUColumn(gpu: snapshot.gpu, color: appearance.color(for: .gpu))
+                ANEColumn(ane: snapshot.ane)
             }
         }
         // 세 열의 높이를 맞춰서 맨 아래 '전력' 줄이 같은 높이에 오게 해요.
@@ -97,6 +98,20 @@ private struct CPUColumn: View {
     }
 }
 
+/// GPU 열: 사용률과 전력
+private struct GPUColumn: View {
+    let gpu: GPUSnapshot
+    let color: ItemColor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            UsageLine(label: "사용률", reading: gpu.usage, color: color.color)
+            Spacer(minLength: 0)
+            PowerLine(reading: gpu.power)
+        }
+    }
+}
+
 /// ANE 열: 사용 중 여부와 전력. 사용률은 잴 수 없어서 이유를 적어 둬요.
 private struct ANEColumn: View {
     let ane: ANESnapshot
@@ -110,20 +125,6 @@ private struct ANEColumn: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             PowerLine(reading: ane.power)
-        }
-    }
-}
-
-/// GPU 열: 사용률과 전력
-private struct GPUColumn: View {
-    let gpu: GPUSnapshot
-    let color: ItemColor
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            UsageLine(label: "사용률", reading: gpu.usage, color: color.color)
-            Spacer(minLength: 0)
-            PowerLine(reading: gpu.power)
         }
     }
 }

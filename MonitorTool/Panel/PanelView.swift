@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 사이드 패널 안에 보이는 화면이에요. (화면 시안 '패널 · 기본 (확정)', docs/PROJECT_DESIGN.md 1·2·3장)
-/// 맨 위 카드에 CPU·ANE·GPU를 3열로 두고, 그 아래로 메모리 → 온도·팬 → 배터리 → 네트워크 순서로 보여줘요.
+/// 맨 위 카드에 CPU·GPU·ANE를 3열로 두고, 그 아래로 메모리 → 온도·팬 → 배터리 → 네트워크 순서로 보여줘요.
 /// 카드를 누르면 바로 아래에 상세가 펼쳐지고, 여러 항목을 함께 펼칠 수 있어요.
 struct PanelView: View {
     @Environment(MonitorStore.self) private var store
@@ -37,11 +37,11 @@ struct PanelView: View {
         if expanded.contains(.cpu) {
             CPUDetail()
         }
-        if expanded.contains(.ane) {
-            ANEDetail()
-        }
         if expanded.contains(.gpu) {
             GPUDetail()
+        }
+        if expanded.contains(.ane) {
+            ANEDetail()
         }
     }
 
@@ -148,10 +148,10 @@ private struct PanelFooter: View {
 }
 
 #Preview("펼친 상태") {
-    PanelView(initiallyExpanded: [.cpu, .ane, .memory, .thermal])
+    PanelView(initiallyExpanded: [.cpu, .gpu, .ane, .memory, .thermal])
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
-        .frame(width: 380, height: 1600)
+        .frame(width: 380, height: 1800)
         .background(.regularMaterial)
 }
 
