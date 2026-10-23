@@ -147,19 +147,27 @@ private struct PanelFooter: View {
         .background(.regularMaterial)
 }
 
-#Preview("펼친 상태") {
+#Preview("펼친 상태 (CPU·GPU·ANE·메모리·온도)") {
     PanelView(initiallyExpanded: [.cpu, .gpu, .ane, .memory, .thermal])
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
-        .frame(width: 380, height: 1800)
+        .frame(width: 380, height: 2700)
+        .background(.regularMaterial)
+}
+
+#Preview("펼친 상태 (배터리·네트워크)") {
+    PanelView(initiallyExpanded: [.battery, .network])
+        .environment(MonitorStore.example)
+        .environment(AppearanceSettings())
+        .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
 
 #Preview("보조 프로그램 허용 전") {
-    PanelView()
+    PanelView(initiallyExpanded: [.cpu, .ane])
         .environment(MonitorStore.exampleNeedsHelper)
         .environment(AppearanceSettings())
-        .frame(width: 380, height: 900)
+        .frame(width: 380, height: 1500)
         .background(.regularMaterial)
 }
 

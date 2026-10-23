@@ -1,31 +1,68 @@
 import SwiftUI
 
 // CPU·GPU·ANE 열을 눌렀을 때 카드 아래로 펼쳐지는 상세예요. (화면과 같은 순서로 놓았어요)
-// 그래프(1분·5분·30분)는 다음 작업(3-2)에서 붙여요.
+// 그래프 기간(1분·5분·30분)은 카드마다 따로 고르고, 고른 기간은 앱을 다시 켜도 남아요.
 
 struct CPUDetail: View {
     @Environment(MonitorStore.self) private var store
     @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.cpu") private var period: ChartPeriod = .oneMinute
+
+    private var cpu: CPUSnapshot { store.snapshot.cpu }
+    private var color: ItemColor { appearance.color(for: .cpu) }
 
     var body: some View {
-        let cpu = store.snapshot.cpu
         DetailCard(title: "CPU 자세히") {
-            HStack(alignment: .top, spacing: 8) {
-                LabeledValue(label: "E 코어", reading: cpu.efficiencyUsage, format: ValueFormat.percent)
-                LabeledValue(label: "P 코어", reading: cpu.performanceUsage, format: ValueFormat.percent)
-                LabeledValue(label: "전력", reading: cpu.power, format: ValueFormat.watts)
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                Text("코어별 사용률")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                if cpu.cores.isEmpty {
-                    StateText(state: .preparing)
-                } else {
-                    CoreBars(groups: cpu.coreGroups, color: appearance.color(for: .cpu))
-                }
-            }
+            PeriodPicker(period: $period)
+        } content: {
+            usageChart
+            powerChart
+            coreSection
             SourceNote(text: "사용률은 OS가 집계한 CPU 시간이에요. 전력은 보조 프로그램이 powermetrics로 잰 CPU 전체 값(1초 구간 평균)이에요.")
+        }
+    }
+
+    /// E·P 코어 사용률 그래프 (E는 연한 색)
+    private var usageChart: some View {
+        HistoryChart(title: "사용률",
+                     lines: [ChartLine(metric: .cpuEfficiency, label: "E", color: color.secondaryColor),
+                             ChartLine(metric: .cpuPerformance, label: "P", color: color.color)],
+                     period: period,
+                     scale: .percent,
+                     height: 90,
+                     emptyState: cpu.performanceUsage.state,
+                     scaleText: ValueFormat.percent) {
+            HStack(spacing: 10) {
+                LegendValue(color: color.secondaryColor, label: "E",
+                            reading: cpu.efficiencyUsage, format: ValueFormat.percent)
+                LegendValue(color: color.color, label: "P",
+                            reading: cpu.performanceUsage, format: ValueFormat.percent)
+            }
+        }
+    }
+
+    /// CPU 전력 그래프 ('2.3 W · 1분 평균 2.1 W')
+    private var powerChart: some View {
+        HistoryChart(title: "전력",
+                     lines: [ChartLine(metric: .cpuPower, label: "전력", color: color.color)],
+                     period: period,
+                     scale: .automatic(minimum: 1),
+                     emptyState: cpu.power.state,
+                     scaleText: ValueFormat.wattsScale) {
+            ValueWithAverage(reading: cpu.power, metric: .cpuPower, period: period, format: ValueFormat.watts)
+        }
+    }
+
+    private var coreSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("코어별 사용률")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+            if cpu.cores.isEmpty {
+                StateText(state: .preparing)
+            } else {
+                CoreBars(groups: cpu.coreGroups, color: color)
+            }
         }
     }
 }
@@ -63,52 +100,113 @@ struct CoreBars: View {
 
 struct GPUDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.gpu") private var period: ChartPeriod = .oneMinute
+
+    private var gpu: GPUSnapshot { store.snapshot.gpu }
+    private var color: ItemColor { appearance.color(for: .gpu) }
 
     var body: some View {
-        let gpu = store.snapshot.gpu
         DetailCard(title: "GPU 자세히") {
-            HStack(alignment: .top, spacing: 8) {
-                LabeledValue(label: "사용률", reading: gpu.usage, format: ValueFormat.percent)
-                LabeledValue(label: "전력", reading: gpu.power, format: ValueFormat.watts)
-            }
+            PeriodPicker(period: $period)
+        } content: {
+            usageChart
+            powerChart
             SourceNote(text: "사용률은 GPU 드라이버가 알려 주는 값(Device Utilization)이에요. 전력은 권한 없이 읽는 GPU 에너지 카운터로 계산해요.")
+        }
+    }
+
+    private var usageChart: some View {
+        HistoryChart(title: "사용률",
+                     lines: [ChartLine(metric: .gpuUsage, label: "사용률", color: color.color)],
+                     period: period,
+                     scale: .percent,
+                     height: 72,
+                     emptyState: gpu.usage.state,
+                     scaleText: ValueFormat.percent) {
+            ValueText(reading: gpu.usage, format: ValueFormat.percent, font: .system(size: 12))
+        }
+    }
+
+    /// GPU 전력 그래프 ('0.4 W · 1분 평균 0.5 W')
+    private var powerChart: some View {
+        HistoryChart(title: "전력",
+                     lines: [ChartLine(metric: .gpuPower, label: "전력", color: color.color)],
+                     period: period,
+                     scale: .automatic(minimum: 1),
+                     emptyState: gpu.power.state,
+                     scaleText: ValueFormat.wattsScale) {
+            ValueWithAverage(reading: gpu.power, metric: .gpuPower, period: period, format: ValueFormat.watts)
         }
     }
 }
 
 struct ANEDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.ane") private var period: ChartPeriod = .oneMinute
+
+    private var ane: ANESnapshot { store.snapshot.ane }
+    private var color: ItemColor { appearance.color(for: .ane) }
 
     var body: some View {
-        let ane = store.snapshot.ane
-        DetailCard(title: "ANE (Neural Engine) 자세히", trailing: activeSinceText(ane)) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("상태")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                    ANEActivityLabel(reading: ane.isActive)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                LabeledValue(label: "전력", reading: ane.power, format: ValueFormat.watts)
-                LabeledValue(label: "ANE 온도", reading: ane.temperature, format: ValueFormat.celsius)
-            }
-            HStack(alignment: .firstTextBaseline) {
-                Text("ANE의 DRAM 트래픽")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 8)
-                ValueText(reading: ane.dramTraffic, format: ValueFormat.gigabytesPerSecond,
-                          font: .system(size: 13, weight: .semibold))
-            }
-            InfoBox(text: "사용률(%)은 보여 드리지 않아요. macOS가 ANE가 일한 시간의 비율을 알려 주지 않기 때문이에요. '사용 중'은 ANE 전원이 켜져 있는지로 판단해요. 일한 양은 트래픽으로 가늠할 수 있어요.")
+        DetailCard(title: "ANE (Neural Engine) 자세히") {
+            PeriodPicker(period: $period)
+        } content: {
+            summaryRow
+            powerChart
+            trafficChart
+            InfoBox(text: "사용률(%)은 보여 드리지 않아요. macOS가 ANE가 일한 시간의 비율을 알려 주지 않기 때문이에요. '사용 중'은 ANE 전원이 켜져 있는지로 판단해요. 일한 양은 트래픽 그래프로 가늠할 수 있어요.")
             SourceNote(text: "전력: 보조 프로그램(powermetrics) · 트래픽: 메모리 컨트롤러의 ANE0 DRAM 값 · 온도: ANE 센서 중 최고값(켜져 있을 때만)")
         }
     }
 
-    /// '18:45:48부터 사용 중'
-    private func activeSinceText(_ ane: ANESnapshot) -> String? {
+    /// 상태 · 전력 · ANE 온도 (사용 중이면 상태 아래에 켜진 시각)
+    private var summaryRow: some View {
+        HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("상태")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                ANEActivityLabel(reading: ane.isActive)
+                if let since = activeSinceText {
+                    Text(since)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            LabeledValue(label: "전력", reading: ane.power, format: ValueFormat.watts)
+            LabeledValue(label: "ANE 온도", reading: ane.temperature, format: ValueFormat.celsius)
+        }
+    }
+
+    private var powerChart: some View {
+        HistoryChart(title: "전력",
+                     lines: [ChartLine(metric: .anePower, label: "전력", color: color.color)],
+                     period: period,
+                     scale: .automatic(minimum: 1),
+                     emptyState: ane.power.state,
+                     scaleText: ValueFormat.wattsScale) {
+            ValueText(reading: ane.power, format: ValueFormat.watts, font: .system(size: 12))
+        }
+    }
+
+    private var trafficChart: some View {
+        HistoryChart(title: "ANE의 DRAM 트래픽",
+                     lines: [ChartLine(metric: .aneTraffic, label: "트래픽", color: color.color)],
+                     period: period,
+                     scale: .automatic(minimum: 1_000_000_000),
+                     emptyState: ane.dramTraffic.state,
+                     scaleText: ValueFormat.gigabytesPerSecondScale) {
+            ValueText(reading: ane.dramTraffic, format: ValueFormat.gigabytesPerSecond, font: .system(size: 12))
+        }
+    }
+
+    /// '18:45:48부터' (사용 중일 때만)
+    private var activeSinceText: String? {
         guard ane.isActive.okValue == true, let since = ane.activeSince else { return nil }
-        return "\(ValueFormat.clock(since))부터 사용 중"
+        return "\(ValueFormat.clock(since))부터"
     }
 }

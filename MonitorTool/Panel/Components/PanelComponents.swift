@@ -119,12 +119,14 @@ struct PermissionBadge: View {
     }
 }
 
-/// 상태를 알리는 색이에요. 항목 색 설정과 상관없이 늘 같아요.
+/// 상태를 알리는 색과 회색 표시예요. 항목 색 설정과 상관없이 늘 같아요.
 enum StatusColor {
     static let warningText = Color.dynamic(light: 0x8A4F00, dark: 0xFFB340)
     static let warningBackground = Color.dynamic(light: 0xFFF1D6, dark: 0x4A3511)
     static let error = Color.dynamic(light: 0xB42318, dark: 0xFF6B5E)
     static let active = Color.green
+    /// 메모리 트래픽의 나머지 기기 (화면·저장장치·그 밖)
+    static let otherTraffic = Color.gray.opacity(0.6)
 }
 
 /// 작은 이름표 아래에 값을 보여줘요. (예: 'CPU 최고' / '61 °C')
@@ -145,24 +147,22 @@ struct LabeledValue<Value: Hashable & Sendable & Codable>: View {
     }
 }
 
-/// 펼친 상세 정보를 담는 카드예요.
-struct DetailCard<Content: View>: View {
+/// 펼친 상세 정보를 담는 카드예요. 제목 오른쪽에는 그래프 기간 고르기 같은 작은 조작을 둬요.
+struct DetailCard<Accessory: View, Content: View>: View {
     let title: String
-    /// 제목 오른쪽에 작게 보여줄 글 (예: '18:45:48부터 사용 중')
-    var trailing: String? = nil
+    /// 제목 오른쪽 (예: 1분·5분·30분 고르기)
+    @ViewBuilder let accessory: Accessory
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center, spacing: 8) {
                 Text(title)
                     .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 Spacer(minLength: 8)
-                if let trailing {
-                    Text(trailing)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
+                accessory
             }
             content
         }

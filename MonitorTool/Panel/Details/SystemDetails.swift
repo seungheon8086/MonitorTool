@@ -2,40 +2,88 @@ import Foundation
 import SwiftUI
 
 // 메모리·온도·팬·배터리·네트워크 카드를 눌렀을 때 아래로 펼쳐지는 상세예요.
-// 그래프(1분·5분·30분)는 다음 작업(3-2)에서 붙여요.
+// 그래프 기간(1분·5분·30분)은 카드마다 따로 고르고, 고른 기간은 앱을 다시 켜도 남아요.
 
 // MARK: - 메모리
 
 struct MemoryDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.memory") private var period: ChartPeriod = .oneMinute
+
+    private var memory: MemorySnapshot { store.snapshot.memory }
 
     var body: some View {
-        let memory = store.snapshot.memory
         DetailCard(title: "메모리 자세히") {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("메모리 압력")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                    PressureValue(reading: memory.pressure)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                LabeledValue(label: "압축", reading: memory.compressed, format: ValueFormat.memory,
-                             font: .system(size: 14, weight: .semibold))
-                LabeledValue(label: "스왑", reading: memory.swapUsed, format: ValueFormat.memory,
-                             font: .system(size: 14, weight: .semibold))
-            }
+            PeriodPicker(period: $period)
+        } content: {
+            usageChart
+            summaryRow
             Divider()
-            HStack(alignment: .firstTextBaseline) {
-                Text("DRAM 트래픽")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 8)
-                ReadWriteText(read: memory.trafficRead, write: memory.trafficWrite)
-            }
+            trafficChart
             DeviceTrafficGrid(memory: memory)
             SourceNote(text: "트래픽은 실제로 DRAM까지 간 양이에요(GB/s). 칩 안 캐시에서 끝난 요청은 빼요.")
         }
+    }
+
+    /// 사용량 그래프. 위쪽 선은 전체 메모리예요.
+    private var usageChart: some View {
+        HistoryChart(title: "사용량",
+                     lines: [ChartLine(metric: .memoryUsed, label: "사용량",
+                                       color: appearance.color(for: .memory).color)],
+                     period: period,
+                     scale: usageScale,
+                     style: .filled,
+                     height: 64,
+                     emptyState: memory.used.state,
+                     scaleText: ValueFormat.memory) {
+            MemoryAmountText(used: memory.used, total: memory.total, font: .system(size: 12))
+        }
+    }
+
+    private var usageScale: ChartScale {
+        if let total = memory.total.okValue {
+            return .fixed(total, midline: false)
+        }
+        return .automatic(minimum: 1_073_741_824)
+    }
+
+    /// 메모리 압력 · 압축 · 스왑
+    private var summaryRow: some View {
+        HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("메모리 압력")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                PressureValue(reading: memory.pressure)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            LabeledValue(label: "압축", reading: memory.compressed, format: ValueFormat.memory,
+                         font: .system(size: 14, weight: .semibold))
+            LabeledValue(label: "스왑", reading: memory.swapUsed, format: ValueFormat.memory,
+                         font: .system(size: 14, weight: .semibold))
+        }
+    }
+
+    /// 기기별 DRAM 트래픽을 아래에서부터 쌓은 그래프 (CPU → GPU → ANE → 그 밖)
+    private var trafficChart: some View {
+        HistoryChart(title: "DRAM 트래픽",
+                     lines: trafficLines,
+                     period: period,
+                     scale: .automatic(minimum: 1_000_000_000),
+                     style: .stacked,
+                     height: 90,
+                     emptyState: memory.trafficTotal.state,
+                     scaleText: ValueFormat.gigabytesPerSecondScale) {
+            ReadWriteText(read: memory.trafficRead, write: memory.trafficWrite)
+        }
+    }
+
+    private var trafficLines: [ChartLine] {
+        [ChartLine(metric: .traffic(.cpu), label: "CPU", color: appearance.color(for: .cpu).color.opacity(0.75)),
+         ChartLine(metric: .traffic(.gpu), label: "GPU", color: appearance.color(for: .gpu).color.opacity(0.75)),
+         ChartLine(metric: .traffic(.ane), label: "ANE", color: appearance.color(for: .ane).color.opacity(0.75)),
+         ChartLine(metric: .traffic(.other), label: "그 밖", color: StatusColor.otherTraffic)]
     }
 }
 
@@ -90,7 +138,7 @@ struct ReadWriteText: View {
     }
 }
 
-/// 기기별 DRAM 트래픽. CPU·GPU·ANE는 항목 색, 나머지는 회색이에요.
+/// 기기별 DRAM 트래픽 (누적 그래프의 범례 역할도 해요). CPU·GPU·ANE는 항목 색, 나머지는 회색이에요.
 struct DeviceTrafficGrid: View {
     let memory: MemorySnapshot
     @Environment(AppearanceSettings.self) private var appearance
@@ -128,7 +176,7 @@ struct DeviceTrafficGrid: View {
         case .cpu: appearance.color(for: .cpu).color
         case .gpu: appearance.color(for: .gpu).color
         case .ane: appearance.color(for: .ane).color
-        case .display, .storage, .other: Color.gray.opacity(0.6)
+        case .display, .storage, .other: StatusColor.otherTraffic
         }
     }
 }
@@ -137,36 +185,106 @@ struct DeviceTrafficGrid: View {
 
 struct ThermalDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.thermal") private var period: ChartPeriod = .oneMinute
+
+    private var thermal: ThermalSnapshot { store.snapshot.thermal }
 
     var body: some View {
-        let thermal = store.snapshot.thermal
-        let ane = store.snapshot.ane
         DetailCard(title: "온도·팬 자세히") {
-            VStack(spacing: 0) {
-                ListRow(title: "CPU 최고", note: "코어 센서 10개") {
-                    ValueText(reading: thermal.cpuMax, format: ValueFormat.celsius, font: Self.valueFont)
-                }
+            PeriodPicker(period: $period)
+        } content: {
+            temperatureChart
+            sensorList
+            if thermal.fans.state != .unsupported {
                 Divider()
-                ListRow(title: "GPU 최고", note: "센서 2개") {
-                    ValueText(reading: thermal.gpuMax, format: ValueFormat.celsius, font: Self.valueFont)
-                }
-                Divider()
-                ListRow(title: "ANE", note: "켜져 있을 때만") {
-                    ValueText(reading: ane.temperature, format: ValueFormat.celsius, font: Self.valueFont)
-                }
-                Divider()
-                ListRow(title: "배터리") {
-                    ValueText(reading: thermal.battery, format: ValueFormat.celsius, font: Self.valueFont)
-                }
-                Divider()
-                ListRow(title: "SSD") {
-                    ValueText(reading: thermal.ssd, format: ValueFormat.celsius, font: Self.valueFont)
-                }
+                fanChart
             }
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             FanCards(fans: thermal.fans)
             SourceNote(text: "온도는 SMC 센서에서 읽어요. CPU·GPU 최고는 부하 실험으로 고른 센서 중 가장 높은 값이에요. 칩 전체의 절대 최고 온도는 아니에요.")
         }
+    }
+
+    /// CPU·GPU 최고 온도 그래프 (선 색은 CPU·GPU 항목 색)
+    private var temperatureChart: some View {
+        let cpuColor = appearance.color(for: .cpu).color
+        let gpuColor = appearance.color(for: .gpu).color
+        return HistoryChart(title: "온도",
+                            lines: [ChartLine(metric: .cpuTemperature, label: "CPU 최고", color: cpuColor),
+                                    ChartLine(metric: .gpuTemperature, label: "GPU 최고", color: gpuColor)],
+                            period: period,
+                            scale: .fixed(100, midline: true),
+                            height: 80,
+                            emptyState: thermal.cpuMax.state,
+                            scaleText: ValueFormat.celsius) {
+            HStack(spacing: 10) {
+                LegendValue(color: cpuColor, label: "CPU 최고", reading: thermal.cpuMax, format: ValueFormat.celsius)
+                LegendValue(color: gpuColor, label: "GPU 최고", reading: thermal.gpuMax, format: ValueFormat.celsius)
+            }
+        }
+    }
+
+    /// 센서별 온도 목록
+    private var sensorList: some View {
+        let ane = store.snapshot.ane
+        return VStack(spacing: 0) {
+            ListRow(title: "CPU 최고", note: "코어 센서 10개") {
+                ValueText(reading: thermal.cpuMax, format: ValueFormat.celsius, font: Self.valueFont)
+            }
+            Divider()
+            ListRow(title: "GPU 최고", note: "센서 2개") {
+                ValueText(reading: thermal.gpuMax, format: ValueFormat.celsius, font: Self.valueFont)
+            }
+            Divider()
+            ListRow(title: "ANE", note: "켜져 있을 때만") {
+                ValueText(reading: ane.temperature, format: ValueFormat.celsius, font: Self.valueFont)
+            }
+            Divider()
+            ListRow(title: "배터리") {
+                ValueText(reading: thermal.battery, format: ValueFormat.celsius, font: Self.valueFont)
+            }
+            Divider()
+            ListRow(title: "SSD") {
+                ValueText(reading: thermal.ssd, format: ValueFormat.celsius, font: Self.valueFont)
+            }
+        }
+        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    /// 팬 회전수 그래프 (팬 1은 진하게, 팬 2는 연한 점선)
+    private var fanChart: some View {
+        HistoryChart(title: "팬 회전수",
+                     lines: fanLines,
+                     period: period,
+                     scale: fanScale,
+                     height: 56,
+                     emptyState: thermal.fans.state,
+                     scaleText: ValueFormat.rpm) {
+            HStack(spacing: 10) {
+                ForEach(fanLines) { line in
+                    LegendLabel(color: line.color, dashed: line.dashed, label: line.label)
+                }
+            }
+        }
+    }
+
+    private var fanLines: [ChartLine] {
+        let color = appearance.color(for: .thermal)
+        let fans = thermal.fans.okValue ?? []
+        return fans.enumerated().map { index, fan in
+            ChartLine(metric: .fan(fan.id), label: "팬 \(fan.id + 1)",
+                      color: index == 0 ? color.color : color.secondaryColor,
+                      dashed: index > 0)
+        }
+    }
+
+    /// 위쪽 선: 팬 최대 회전수를 보기 좋게 올린 값 (예: 4,744 → 5,000 RPM)
+    private var fanScale: ChartScale {
+        let maximums = (thermal.fans.okValue ?? []).compactMap(\.maximumRPM)
+        guard let largest = maximums.max() else {
+            return .automatic(minimum: 1000)
+        }
+        return .fixed(ChartData.niceCeiling(largest), midline: false)
     }
 
     private static let valueFont = Font.system(size: 12, weight: .semibold)
@@ -222,8 +340,7 @@ struct FanCards: View {
     private func rangeText(for fan: FanReading) -> String {
         let current = fan.rpm.okValue.map(ValueFormat.rpm) ?? "—"
         guard let minimum = fan.minimumRPM, let maximum = fan.maximumRPM else { return current }
-        let range = "\(Int(minimum.rounded()).formatted())–\(Int(maximum.rounded()).formatted())"
-        return "\(current) · 범위 \(range)"
+        return "\(current) · 범위 \(ValueFormat.compact(minimum.rounded()))–\(ValueFormat.compact(maximum.rounded()))"
     }
 
     private func modeText(for mode: FanMode) -> String {
@@ -239,27 +356,44 @@ struct FanCards: View {
 
 struct BatteryDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.battery") private var period: ChartPeriod = .oneMinute
+
+    private var battery: BatterySnapshot { store.snapshot.battery }
 
     var body: some View {
-        let battery = store.snapshot.battery
         DetailCard(title: "배터리 자세히") {
-            HStack(alignment: .top, spacing: 8) {
-                LabeledValue(label: "성능 상태", reading: battery.condition, format: { $0 },
-                             font: .system(size: 14, weight: .semibold))
-                LabeledValue(label: "최대 용량", reading: battery.maximumCapacity, format: ValueFormat.percent,
-                             font: .system(size: 14, weight: .semibold))
-                LabeledValue(label: "사이클 수", reading: battery.cycleCount, format: { "\($0.formatted())회" },
-                             font: .system(size: 14, weight: .semibold))
-            }
-            HStack(alignment: .firstTextBaseline) {
-                Text("순전력")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 8)
-                ValueText(reading: battery.netPower, format: ValueFormat.signedWatts,
-                          font: .system(size: 13, weight: .semibold))
-            }
+            PeriodPicker(period: $period)
+        } content: {
+            powerChart
+            summaryRow
             SourceNote(text: "순전력은 배터리로 들어가고 나오는 전력이에요. 충전기 출력이나 Mac 전체 소비전력과는 달라요. 남은 시간은 macOS가 추정한 값이에요.")
+        }
+    }
+
+    /// 순전력 그래프. 0 선 위는 충전, 아래는 방전이에요.
+    private var powerChart: some View {
+        HistoryChart(title: "순전력 (위: 충전, 아래: 방전)",
+                     lines: [ChartLine(metric: .batteryNetPower, label: "순전력",
+                                       color: appearance.color(for: .battery).color)],
+                     period: period,
+                     scale: .symmetric(minimum: 10),
+                     height: 64,
+                     emptyState: battery.netPower.state,
+                     scaleText: ValueFormat.wattsScale) {
+            ValueText(reading: battery.netPower, format: ValueFormat.signedWatts, font: .system(size: 12))
+        }
+    }
+
+    /// 성능 상태 · 최대 용량 · 사이클 수
+    private var summaryRow: some View {
+        HStack(alignment: .top, spacing: 8) {
+            LabeledValue(label: "성능 상태", reading: battery.condition, format: { $0 },
+                         font: .system(size: 14, weight: .semibold))
+            LabeledValue(label: "최대 용량", reading: battery.maximumCapacity, format: ValueFormat.percent,
+                         font: .system(size: 14, weight: .semibold))
+            LabeledValue(label: "사이클 수", reading: battery.cycleCount, format: { "\($0.formatted())회" },
+                         font: .system(size: 14, weight: .semibold))
         }
     }
 }
@@ -268,62 +402,95 @@ struct BatteryDetail: View {
 
 struct NetworkDetail: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
+    @AppStorage("chartPeriod.network") private var period: ChartPeriod = .oneMinute
+
+    private var network: NetworkSnapshot { store.snapshot.network }
 
     var body: some View {
-        let network = store.snapshot.network
         DetailCard(title: "네트워크 자세히") {
-            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 7) {
-                GridRow {
-                    Text("누적")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text("↓ 받음")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("↑ 보냄")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                }
-                Divider()
-                GridRow {
-                    TotalTitle(title: "오늘", detail: network.todayDate.map(ValueFormat.monthDay))
-                    ValueText(reading: network.todayDownloaded, format: ValueFormat.byteCount, font: Self.valueFont)
-                    ValueText(reading: network.todayUploaded, format: ValueFormat.byteCount, font: Self.valueFont)
-                }
-                Divider()
-                GridRow {
-                    TotalTitle(title: "이번 실행",
-                               detail: network.sessionStartedAt.map { "\(ValueFormat.clockMinutes($0))부터" })
-                    ValueText(reading: network.sessionDownloaded, format: ValueFormat.byteCount, font: Self.valueFont)
-                    ValueText(reading: network.sessionUploaded, format: ValueFormat.byteCount, font: Self.valueFont)
-                }
-            }
-            .padding(10)
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("인터페이스")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                if network.interfaces.isEmpty {
-                    StateText(state: network.download.state)
-                } else {
-                    ForEach(network.interfaces) { interface in
-                        HStack(spacing: 4) {
-                            Text(interface.displayName)
-                            Text("(\(interface.id))")
-                                .foregroundStyle(.secondary)
-                            Spacer(minLength: 8)
-                            Text("↓ \(ValueFormat.rate(interface.download)) · ↑ \(ValueFormat.rate(interface.upload))")
-                                .monospacedDigit()
-                        }
-                        .font(.system(size: 12))
-                    }
-                }
-            }
+            PeriodPicker(period: $period)
+        } content: {
+            speedChart
+            totalsTable
+            interfaceList
             SourceNote(text: "오늘 누적은 앱이 켜져 있는 동안 관측한 양이에요. VPN 같은 가상 인터페이스는 실제 전송과 겹쳐 세지 않아요.")
+        }
+    }
+
+    /// 받기·보내기 속도 그래프 (보내기는 연한 색)
+    private var speedChart: some View {
+        let color = appearance.color(for: .network)
+        return HistoryChart(title: "속도",
+                            lines: [ChartLine(metric: .networkDownload, label: "↓", color: color.color),
+                                    ChartLine(metric: .networkUpload, label: "↑", color: color.secondaryColor)],
+                            period: period,
+                            scale: .automatic(minimum: 100_000),
+                            height: 72,
+                            emptyState: network.download.state,
+                            scaleText: ValueFormat.rateScale) {
+            HStack(spacing: 10) {
+                LegendValue(color: color.color, label: "↓", reading: network.download, format: ValueFormat.rate)
+                LegendValue(color: color.secondaryColor, label: "↑", reading: network.upload, format: ValueFormat.rate)
+            }
+        }
+    }
+
+    /// 오늘 · 이번 실행 누적
+    private var totalsTable: some View {
+        Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 7) {
+            GridRow {
+                Text("누적")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Text("↓ 받음")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .gridColumnAlignment(.trailing)
+                Text("↑ 보냄")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .gridColumnAlignment(.trailing)
+            }
+            Divider()
+            GridRow {
+                TotalTitle(title: "오늘", detail: network.todayDate.map(ValueFormat.monthDay))
+                ValueText(reading: network.todayDownloaded, format: ValueFormat.byteCount, font: Self.valueFont)
+                ValueText(reading: network.todayUploaded, format: ValueFormat.byteCount, font: Self.valueFont)
+            }
+            Divider()
+            GridRow {
+                TotalTitle(title: "이번 실행",
+                           detail: network.sessionStartedAt.map { "\(ValueFormat.clockMinutes($0))부터" })
+                ValueText(reading: network.sessionDownloaded, format: ValueFormat.byteCount, font: Self.valueFont)
+                ValueText(reading: network.sessionUploaded, format: ValueFormat.byteCount, font: Self.valueFont)
+            }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    /// 인터페이스별 속도
+    private var interfaceList: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("인터페이스")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+            if network.interfaces.isEmpty {
+                StateText(state: network.download.state)
+            } else {
+                ForEach(network.interfaces) { interface in
+                    HStack(spacing: 4) {
+                        Text(interface.displayName)
+                        Text("(\(interface.id))")
+                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 8)
+                        Text("↓ \(ValueFormat.rate(interface.download)) · ↑ \(ValueFormat.rate(interface.upload))")
+                            .monospacedDigit()
+                    }
+                    .font(.system(size: 12))
+                }
+            }
         }
     }
 

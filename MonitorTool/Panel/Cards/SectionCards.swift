@@ -120,11 +120,12 @@ struct PressureLabel: View {
 struct MemoryAmountText: View {
     let used: Reading<Double>
     let total: Reading<Double>
+    var font: Font = .system(size: 15, weight: .semibold)
 
     var body: some View {
         if let usedBytes = used.okValue, let totalBytes = total.okValue {
             Text("\(ValueFormat.memoryNumber(usedBytes)) / \(ValueFormat.memoryNumber(totalBytes)) GB")
-                .font(.system(size: 15, weight: .semibold))
+                .font(font)
                 .monospacedDigit()
                 .lineLimit(1)
                 .fixedSize()

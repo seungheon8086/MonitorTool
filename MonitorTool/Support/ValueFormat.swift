@@ -90,6 +90,38 @@ nonisolated enum ValueFormat {
         return "\(byteCount(bytesPerSecond))/s"
     }
 
+    /// 그래프 눈금용 짧은 숫자: 8, 1.5, 5,000 (정수면 소수점 없이)
+    static func compact(_ value: Double) -> String {
+        guard let number = whole(value) else { return unavailable }
+        if Double(number) == value {
+            return number.formatted()
+        }
+        return oneDecimal(value)
+    }
+
+    /// 그래프 눈금: 8 W
+    static func wattsScale(_ value: Double) -> String {
+        "\(compact(value)) W"
+    }
+
+    /// 그래프 눈금: 6 GB/s (1 GB = 10⁹ 바이트)
+    static func gigabytesPerSecondScale(_ bytesPerSecond: Double) -> String {
+        "\(compact(bytesPerSecond / 1_000_000_000)) GB/s"
+    }
+
+    /// 그래프 눈금: 500 KB/s, 4 MB/s (1 KB = 1000 바이트)
+    static func rateScale(_ bytesPerSecond: Double) -> String {
+        guard bytesPerSecond.isFinite else { return unavailable }
+        let units = ["B/s", "KB/s", "MB/s", "GB/s"]
+        var value = max(bytesPerSecond, 0)
+        var index = 0
+        while value >= 1000, index < units.count - 1 {
+            value /= 1000
+            index += 1
+        }
+        return "\(compact(value)) \(units[index])"
+    }
+
     /// 걸리는 시간: 4시간 20분
     static func duration(_ seconds: Double) -> String {
         guard let totalMinutes = whole(max(seconds, 0) / 60) else { return unavailable }
