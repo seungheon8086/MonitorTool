@@ -148,6 +148,7 @@ struct LabeledValue<Value: Hashable & Sendable & Codable>: View {
 }
 
 /// 펼친 상세 정보를 담는 카드예요. 제목 오른쪽에는 그래프 기간 고르기 같은 작은 조작을 둬요.
+/// 나타날 때는 카드 바로 아래에서 위→아래로 드러나며 펼쳐져요. (아래 RevealFromTop)
 struct DetailCard<Accessory: View, Content: View>: View {
     let title: String
     /// 제목 오른쪽 (예: 1분·5분·30분 고르기)
@@ -174,7 +175,28 @@ struct DetailCard<Accessory: View, Content: View>: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
         }
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .transition(RevealFromTop())
+    }
+}
+
+/// 카드를 펼치고 접을 때 쓰는 움직임이에요. 튀지 않고 부드럽게 멈춰요.
+/// (2026-10-24 사용자 요청: 위에서 떨어지듯 나오지 않고, 메뉴가 펼쳐지듯 자연스럽게)
+enum PanelMotion {
+    static let expand: Animation = .smooth(duration: 0.32)
+}
+
+/// 상세가 카드 바로 아래에서 위→아래로 드러나며 펼쳐지는 전환이에요.
+/// 상세는 제자리에 있고 보이는 높이만 늘어나요. 아래 카드가 밀려 내려가는 속도와 같아서 서로 겹치지 않아요.
+/// 접을 때는 거꾸로 아래에서 위로 말려 들어가요.
+struct RevealFromTop: Transition {
+    func body(content: Content, phase: TransitionPhase) -> some View {
+        content
+            .opacity(phase.isIdentity ? 1 : 0)
+            // 위쪽 끝을 기준으로, 보이는 부분을 0에서 전체 높이까지 늘려요.
+            .mask(alignment: .top) {
+                Rectangle()
+                    .scaleEffect(x: 1, y: phase.isIdentity ? 1 : 0.001, anchor: .top)
+            }
     }
 }
 

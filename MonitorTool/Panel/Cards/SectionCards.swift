@@ -16,7 +16,7 @@ struct SectionCard<Accessory: View, Content: View>: View {
 
     var body: some View {
         Button {
-            withAnimation(.snappy(duration: 0.25)) {
+            withAnimation(PanelMotion.expand) {
                 if expanded.contains(item) {
                     expanded.remove(item)
                 } else {

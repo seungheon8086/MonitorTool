@@ -37,7 +37,7 @@ struct ProcessorCard: View {
         let isExpanded = expanded.contains(item)
         let hint: LocalizedStringKey = isExpanded ? "눌러서 접어요" : "눌러서 자세히 봐요"
         return Button {
-            withAnimation(.snappy(duration: 0.25)) {
+            withAnimation(PanelMotion.expand) {
                 if isExpanded {
                     expanded.remove(item)
                 } else {
