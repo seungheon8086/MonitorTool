@@ -34,13 +34,13 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 - [x] 프로젝트 설정 (macOS 전용, App Sandbox 해제)
 - [x] 실시간 패널 뼈대: 메뉴 막대 아이콘, ⌃⌥M 단축키, 오른쪽 슬라이드 패널(Liquid Glass)
 - [x] 설계 검토안 ([docs/PROJECT_DESIGN.md](docs/PROJECT_DESIGN.md))
-- [ ] 기술 검증
+- [x] 기술 검증
   - [x] 알림 센터 구형 Today 확장의 표시·높이 변경 → macOS 27 미지원 확인 ([진단 앱](Diagnostics/TodayWidgetProbe))
   - [x] WidgetKit 위젯: 위젯 안 화면 전환, 앱과의 데이터 공유, 앱이 뒤에 있을 때의 갱신 ([진단 앱](Diagnostics/WidgetKitProbe))
   - [x] CPU/GPU/ANE 전력: 관리자 권한으로 측정 확인. 권한 없이는 GPU 전력만 갱신돼서 보조 프로그램으로 수집 ([진단 도구](Diagnostics/PowerProbe))
   - [x] E/P·GPU 사용률의 정의: E/P는 OS CPU 시간의 묶음별 평균, GPU는 Device Utilization
   - [x] ANE 사용률: 직접 재는 값이 없음을 확인 → 사용 중 여부와 전력 W를 보여주고 %는 '측정 불가'로 표시
-  - [ ] 관리자 권한 보조 프로그램 등록 (개인 팀 서명) ([진단 앱](Diagnostics/HelperProbe))
+  - [x] 관리자 권한 보조 프로그램: 개인 팀 서명으로 등록·허용, root로 powermetrics 실행, XPC로 앱에 전달 ([진단 앱](Diagnostics/HelperProbe))
   - [x] 온도 센서·팬 RPM 읽기: 관리자 권한 없이 SMC로 읽음, CPU 최고·GPU 최고 센서 확정 ([진단 도구](Diagnostics/SensorProbe))
   - [x] 메모리 트래픽: 관리자 권한 없이 1초마다, 기기별로 읽힘 ([분석](Diagnostics/PowerProbe))
 - [ ] 화면 구현: 패널과 위젯의 접기/펼치기, 상태 표시, 최근 그래프

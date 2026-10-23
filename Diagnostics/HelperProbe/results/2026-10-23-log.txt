@@ -1,0 +1,16 @@
+[6:23:07 PM] 앱 시작. 앱 서명: 유효(VALID) 예 · 디버거 흔적(DEBUGGED) 아니오 [0x62000205]
+[6:23:16 PM] 등록 요청 결과: The operation couldn’t be completed. Operation not permitted [SMAppServiceErrorDomain 1]
+[6:23:16 PM] 지금 상태: 허용 필요 (시스템 설정 → 일반 → 로그인 항목)
+[6:23:52 PM] 보조 프로그램에 권한을 물어봐요… (앱 서명: 유효(VALID) 예 · 디버거 흔적(DEBUGGED) 아니오 [0x62000205])
+[6:23:52 PM] 보조 프로그램 응답: uid 0, euid 0, pid 37312
+[6:23:59 PM] 보조 프로그램에 전력 측정을 요청해요… 1초쯤 걸려요 (앱 서명: 유효(VALID) 예 · 디버거 흔적(DEBUGGED) 아니오 [0x62000205])
+[6:24:01 PM] 측정 결과 (응답까지 1.8초): cpu_power 924 mW, gpu_power 26 mW, ane_power 0 mW, combined_power 950 mW
+──────── 앱 다시 실행 ────────
+[6:24:25 PM] 앱 시작. 앱 서명: 유효(VALID) 예 · 디버거 흔적(DEBUGGED) 예 [0x72000025]
+[6:24:28 PM] 보조 프로그램에 권한을 물어봐요… (앱 서명: 유효(VALID) 예 · 디버거 흔적(DEBUGGED) 예 [0x72000025])
+[6:24:28 PM] 보조 프로그램 응답: uid 0, euid 0, pid 37312
+[6:24:39 PM] XPC 연결이 끊겼어요
+[6:24:39 PM] 등록 해제 성공
+[6:24:39 PM] 지금 상태: 등록 안 됨
+[6:24:44 PM] 등록 해제 성공
+[6:24:44 PM] 지금 상태: 등록 안 됨
