@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		000000000000000000000120 /* MonitorTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MonitorTool.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000120 /* MonitorTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MonitorTool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* MonitorTool */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "MonitorTool";
+			path = MonitorTool;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -59,7 +59,7 @@
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* MonitorTool */,
 			);
-			name = "MonitorTool";
+			name = MonitorTool;
 			productName = MonitorTool;
 			productReference = 000000000000000000000120 /* MonitorTool.app */;
 			productType = "com.apple.product-type.application";
