@@ -2,10 +2,11 @@ import AppKit
 import Foundation
 
 /// 값을 언제 모을지 정해요. 패널이 열려 있으면 1초, 닫혀 있으면 5초마다 모아요. (설계 문서 4장)
-/// 지금은 네트워크와 보조 프로그램의 CPU·ANE 전력을 모아요. 나머지 수집기는 5단계(통합)에서 여기에 붙여요.
+/// 지금은 CPU·GPU 사용률, 네트워크, 보조 프로그램의 CPU·ANE 전력을 모아요. 나머지 수집기는 5단계(통합)에서 여기에 붙여요.
 final class CollectionScheduler {
     private let store: MonitorStore
     private let helper: HelperController
+    private let processors = ProcessorCollector()
     private let network = NetworkCollector()
     private var timer: Timer?
     private var sleepObserver: (any NSObjectProtocol)?
@@ -36,6 +37,7 @@ final class CollectionScheduler {
         panelVisible ? HelperConstants.panelOpenInterval : HelperConstants.panelClosedInterval
     }
 
+    private static let processorMetrics: [Metric] = [.cpuEfficiency, .cpuPerformance, .gpuUsage]
     private static let networkMetrics: [Metric] = [.networkDownload, .networkUpload]
     private static let powerMetrics: [Metric] = [.cpuPower, .anePower]
 
@@ -114,9 +116,14 @@ final class CollectionScheduler {
 
         let now = Date()
         var snapshot = store.snapshot
+        var batches: [MetricBatch] = []
+        // 바로 앞에 쟀으면(0.5초 안) CPU·GPU 사용률은 건너뛰고 앞의 값을 그대로 둬요.
+        if processors.update(&snapshot, now: now) {
+            batches.append(MetricBatch(metrics: CollectionScheduler.processorMetrics, date: now))
+        }
         snapshot.network = network.collect(now: now)
+        batches.append(MetricBatch(metrics: CollectionScheduler.networkMetrics, date: now))
         snapshot.takenAt = now
-        var batches = [MetricBatch(metrics: CollectionScheduler.networkMetrics, date: now)]
         // 새 답이 없어도 매번 전력 값을 정리해요. 오래된 표본은 여기서 '측정 준비 중'으로 바뀌어요.
         if let sampleDate = applyPower(to: &snapshot) {
             batches.append(MetricBatch(metrics: CollectionScheduler.powerMetrics, date: sampleDate))

@@ -2,7 +2,7 @@ import AppKit
 
 /// 앱이 켜지면 메뉴 막대 아이콘, 사이드 패널, 전역 단축키를 준비하고 값을 모으기 시작해요.
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    /// 패널이 보여줄 값이에요. 지금은 보조 프로그램의 CPU·ANE 전력만 들어와요. 나머지는 5단계(통합)에서 붙여요.
+    /// 패널이 보여줄 값이에요. 수집 일정(CollectionScheduler)이 채워요.
     private let store = MonitorStore()
     /// 항목별 색 설정 (설정 창 '모양')
     private let appearance = AppearanceSettings()

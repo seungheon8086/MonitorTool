@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// 패널(나중에는 위젯도)이 보는 값을 모아 두는 곳이에요.
-/// 지금은 네트워크와 보조 프로그램의 CPU·ANE 전력이 들어와요. 나머지 수집기는 5단계(통합)에서 붙여요.
+/// 값은 수집 일정(CollectionScheduler)이 넣어요. 아직 붙이지 않은 수집기의 값은 '준비 중'이에요. (5단계 통합)
 @Observable
 final class MonitorStore {
     /// 가장 최근에 잰 값
