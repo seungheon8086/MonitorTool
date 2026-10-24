@@ -14,20 +14,24 @@ final class PanelController {
     /// 열고 닫을 때 옆으로 움직이는 거리
     private let slideDistance: CGFloat = 120
 
+    /// 패널이 열리고 닫힐 때 불러요. (값을 모으는 간격을 바꿔요)
+    var onVisibilityChange: ((Bool) -> Void)?
+
     /// - Parameters:
     ///   - store: 패널이 보여줄 값
     ///   - appearance: 항목별 색 설정
     ///   - shortcut: 패널 단축키 (머리글에 지금 단축키를 보여줘요)
     ///   - openSettings: 패널 아래 톱니 단추를 눌렀을 때 할 일
+    ///   - allowHelper: 패널 아래 '보조 프로그램 허용하기' 단추를 눌렀을 때 할 일
     init(store: MonitorStore, appearance: AppearanceSettings, shortcut: PanelShortcut,
-         openSettings: @escaping () -> Void) {
+         openSettings: @escaping () -> Void, allowHelper: @escaping () -> Void) {
         panel = SidePanel.make()
 
         // Liquid Glass 위에 SwiftUI 화면(PanelView)을 올려요.
         let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
         glassView.cornerRadius = 24
 
-        let rootView = PanelView(openSettings: openSettings)
+        let rootView = PanelView(openSettings: openSettings, allowHelper: allowHelper)
             .environment(store)
             .environment(appearance)
             .environment(shortcut)
@@ -59,6 +63,7 @@ final class PanelController {
         guard let screen = screenUnderMouse() else { return }
 
         isShown = true
+        onVisibilityChange?(true)
         let panel = self.panel
         let finalFrame = shownFrame(on: screen)
 
@@ -79,6 +84,7 @@ final class PanelController {
         guard isShown else { return }
         isShown = false
         lastHiddenAt = .now
+        onVisibilityChange?(false)
 
         let panel = self.panel
         let finalFrame = panel.frame.offsetBy(dx: slideDistance, dy: 0)

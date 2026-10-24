@@ -265,14 +265,16 @@ nonisolated struct InterfaceRate: Hashable, Sendable, Codable, Identifiable {
 // MARK: - 보조 프로그램
 
 nonisolated enum HelperStatus: String, Hashable, Sendable, Codable {
-    /// 아직 확인하지 않았어요. 보조 프로그램은 5단계(통합)에서 붙여요.
+    /// 아직 확인하지 않았어요. (앱을 막 켰을 때)
     case unknown
-    /// 등록하지 않았어요.
+    /// 꺼져 있어요. (등록하지 않았어요)
     case notRegistered
     /// 시스템 설정에서 허용해야 해요.
     case requiresApproval
     /// 허용돼서 동작 중이에요.
     case enabled
+    /// 허용됐지만 연결하지 못했거나 값을 받지 못했어요.
+    case failed
 
     /// 패널 아래에 '허용하기' 버튼을 보여줘야 하는지
     var needsUserAction: Bool {

@@ -2,13 +2,21 @@ import AppKit
 import SwiftUI
 
 /// 설정 창이에요. 메뉴 막대 앱이라 SwiftUI의 Settings 장면 대신 직접 만든 창을 써요.
-/// 위쪽 도구 막대의 탭(일반·모양)으로 화면을 바꿔요. '보조 프로그램' 탭은 보조 프로그램을 앱에 붙일 때 더해요.
+/// 위쪽 도구 막대의 탭(일반·모양·보조 프로그램)으로 화면을 바꿔요. 위젯 탭은 위젯을 만들 때(6단계) 더해요.
 final class SettingsWindowController: NSObject, NSWindowDelegate {
+    /// 설정 창의 탭 (왼쪽부터 차례대로)
+    enum Tab: Int {
+        case general
+        case appearance
+        case helper
+    }
+
     private let window: NSWindow
     private let tabs: SettingsTabViewController
     private let shortcut: PanelShortcut
 
-    init(appearance: AppearanceSettings, shortcut: PanelShortcut, loginItem: LoginItemSettings) {
+    init(appearance: AppearanceSettings, shortcut: PanelShortcut, loginItem: LoginItemSettings,
+         helper: HelperController) {
         // super.init 전에는 self의 속성을 읽을 수 없어서, 지역 상수로 먼저 만들고 나중에 넣어요.
         let tabs = SettingsTabViewController()
         tabs.tabStyle = .toolbar
@@ -19,6 +27,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         tabs.addTabViewItem(SettingsWindowController.tab(title: "모양", symbol: "paintpalette",
                                                          content: AppearanceSettingsView()
                                                             .environment(appearance)))
+        tabs.addTabViewItem(SettingsWindowController.tab(title: "보조 프로그램", symbol: "lock",
+                                                         content: HelperSettingsView()
+                                                            .environment(helper)))
 
         let window = NSWindow(contentViewController: tabs)
         window.styleMask = [.titled, .closable]
@@ -36,7 +47,11 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     /// 설정 창을 앞으로 가져와요. 메뉴 막대 앱은 먼저 앱을 활성화해야 창이 다른 앱 뒤에 숨지 않아요.
-    func show() {
+    /// - Parameter tab: 이 탭을 골라서 보여줘요. (nil이면 마지막에 보던 탭)
+    func show(tab: Tab? = nil) {
+        if let tab {
+            tabs.selectedTabViewItemIndex = tab.rawValue
+        }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
     }

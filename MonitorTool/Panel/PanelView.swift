@@ -10,10 +10,15 @@ struct PanelView: View {
     @State private var expanded: Set<MonitorItem>
     /// 아래 톱니 단추를 눌렀을 때 할 일 (설정 창 열기)
     private let openSettings: () -> Void
+    /// 아래 '보조 프로그램 허용하기' 단추를 눌렀을 때 할 일
+    private let allowHelper: () -> Void
 
-    init(initiallyExpanded: Set<MonitorItem> = [], openSettings: @escaping () -> Void = {}) {
+    init(initiallyExpanded: Set<MonitorItem> = [],
+         openSettings: @escaping () -> Void = {},
+         allowHelper: @escaping () -> Void = {}) {
         _expanded = State(initialValue: initiallyExpanded)
         self.openSettings = openSettings
+        self.allowHelper = allowHelper
     }
 
     var body: some View {
@@ -31,7 +36,7 @@ struct PanelView: View {
             }
             .scrollIndicators(.hidden)
 
-            PanelFooter(helper: store.snapshot.helper, openSettings: openSettings)
+            PanelFooter(helper: store.snapshot.helper, openSettings: openSettings, allowHelper: allowHelper)
         }
     }
 
@@ -118,13 +123,13 @@ private struct PanelHeader: View {
 private struct PanelFooter: View {
     let helper: HelperStatus
     let openSettings: () -> Void
+    /// 꺼져 있으면 켜고, 시스템 설정의 허용 화면을 열어요.
+    let allowHelper: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
             if helper.needsUserAction {
-                Button {
-                    // 보조 프로그램 등록과 시스템 설정 열기는 보조 프로그램을 붙일 때 연결해요.
-                } label: {
+                Button(action: allowHelper) {
                     Text("CPU·ANE 전력: 보조 프로그램 허용하기")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(StatusColor.warningText)
