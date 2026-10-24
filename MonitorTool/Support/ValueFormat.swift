@@ -160,7 +160,8 @@ nonisolated enum ValueFormat {
         String(format: "%.1f", value)
     }
 
-    nonisolated(unsafe) private static let clockFormatter: DateFormatter = {
+    /// DateFormatter는 여러 스레드에서 함께 써도 되는 타입(Sendable)이라 그대로 둬요.
+    private static let clockFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "HH:mm:ss"
