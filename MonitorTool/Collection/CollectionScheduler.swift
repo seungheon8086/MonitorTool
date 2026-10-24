@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 /// 값을 언제 모을지 정해요. 패널이 열려 있으면 1초, 닫혀 있으면 5초마다 모아요. (설계 문서 4장)
-/// 지금은 CPU·GPU 사용률, IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽), 메모리, 네트워크,
+/// 지금은 CPU·GPU 사용률, IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽), 메모리, 온도·팬, 네트워크,
 /// 보조 프로그램의 CPU·ANE 전력을 모아요. 나머지 수집기는 5단계(통합)에서 여기에 붙여요.
 final class CollectionScheduler {
     private let store: MonitorStore
@@ -10,6 +10,7 @@ final class CollectionScheduler {
     private let processors = ProcessorCollector()
     private let ioReport = IOReportCollector()
     private let memory = MemoryCollector()
+    private let thermal = ThermalCollector()
     private let network = NetworkCollector()
     private var timer: Timer?
     private var sleepObserver: (any NSObjectProtocol)?
@@ -132,6 +133,8 @@ final class CollectionScheduler {
         }
         memory.update(&snapshot.memory, now: now)
         batches.append(MetricBatch(metrics: CollectionScheduler.memoryMetrics, date: now))
+        // ANE 온도는 위에서 읽은 'ANE 사용 중'을 보고 정해요.
+        batches.append(MetricBatch(metrics: thermal.update(&snapshot, now: now), date: now))
         snapshot.network = network.collect(now: now)
         batches.append(MetricBatch(metrics: CollectionScheduler.networkMetrics, date: now))
         snapshot.takenAt = now
