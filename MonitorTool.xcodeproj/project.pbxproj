@@ -36,7 +36,7 @@
 		000000000000000160000000 /* Embed LaunchDaemon plist */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "Contents/Library/LaunchDaemons";
+			dstPath = Contents/Library/LaunchDaemons;
 			dstSubfolderSpec = 1;
 			files = (
 				000000000000000161000000 /* com.seungheon.MonitorTool.helper.plist in Embed LaunchDaemon plist */,
