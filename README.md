@@ -59,7 +59,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 - [x] 네트워크 기록: 속도, 오늘·이번 실행 누적, 날짜별 저장(같은 날 다시 켜면 이어서 셈), 잠자기·자정 처리
 - [ ] 통합: 실제 수집기 연결
   - [x] CPU·GPU 사용률: E·P 묶음별 평균과 코어별 값(OS CPU 시간), GPU Device Utilization
-  - [ ] GPU 전력, ANE 사용 중 여부, 메모리 트래픽 (IOReport)
+  - [x] GPU 전력, ANE 사용 중 여부, DRAM 트래픽(합계·읽기·쓰기·기기별): 관리자 권한 없이 IOReport로
   - [ ] 메모리
   - [ ] 온도·팬
   - [ ] 배터리
@@ -74,7 +74,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 MonitorTool/      앱 코드
   App/            시작점, AppDelegate
   Model/          측정값과 값 상태, 화면이 보는 저장소
-  Collection/     값을 모으는 일정(패널을 열면 1초, 닫으면 5초)과 수집기(CPU·GPU 사용률, 네트워크)
+  Collection/     값을 모으는 일정(패널을 열면 1초, 닫으면 5초)과 수집기(CPU·GPU 사용률, IOReport, 네트워크)
   Helper/         보조 프로그램 켜기·끄기와 XPC 연결
   Appearance/     항목과 항목 색 설정
   MenuBar/        메뉴 막대 아이콘
