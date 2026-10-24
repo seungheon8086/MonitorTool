@@ -6,6 +6,12 @@ nonisolated struct HistorySample: Hashable, Sendable {
     var value: Double?
 }
 
+/// 새로 잰 계열들과 잰 시각이에요. 수집기마다 재는 때가 달라서 묶음마다 따로 기록해요.
+nonisolated struct MetricBatch: Sendable {
+    var metrics: [Metric]
+    var date: Date
+}
+
 /// 그래프용 최근 기록이에요. 메모리에만 최근 30분을 남기고, 앱을 끄면 사라져요. (설계 문서 4장)
 /// 앱을 켜기 전 기록은 만들지 않고, 읽지 못한 값은 0이 아니라 빈칸(nil)으로 남겨요.
 nonisolated struct MetricHistory: Sendable {
@@ -82,6 +88,63 @@ extension MetricHistory {
         append(snapshot.network.upload.okValue, for: .networkUpload, at: date)
 
         removeExpired(now: date)
+    }
+
+    /// 정한 계열만 그 시각으로 기록에 더해요. 정상이 아닌 값은 빈칸으로 남겨요.
+    nonisolated mutating func record(_ metrics: [Metric], from snapshot: MonitorSnapshot, at date: Date) {
+        for metric in metrics {
+            append(MetricHistory.value(of: metric, in: snapshot), for: metric, at: date)
+        }
+        removeExpired(now: date)
+    }
+
+    /// 스냅숏에서 한 계열의 값을 꺼내요. 정상 상태가 아니면 nil이에요. (위 record와 같은 규칙)
+    nonisolated static func value(of metric: Metric, in snapshot: MonitorSnapshot) -> Double? {
+        let memory = snapshot.memory
+        let trafficRead = memory.trafficTotal.okValue != nil
+        switch metric {
+        case .cpuEfficiency:
+            return snapshot.cpu.efficiencyUsage.okValue
+        case .cpuPerformance:
+            return snapshot.cpu.performanceUsage.okValue
+        case .cpuPower:
+            return snapshot.cpu.power.okValue
+        case .gpuUsage:
+            return snapshot.gpu.usage.okValue
+        case .gpuPower:
+            return snapshot.gpu.power.okValue
+        case .anePower:
+            return snapshot.ane.power.okValue
+        case .aneTraffic:
+            return snapshot.ane.dramTraffic.okValue
+        case .memoryUsed:
+            return memory.used.okValue
+        case .traffic(let group):
+            guard trafficRead else { return nil }
+            switch group {
+            case .cpu:
+                return memory.traffic(of: .cpu)
+            case .gpu:
+                return memory.traffic(of: .gpu)
+            case .ane:
+                return memory.traffic(of: .ane)
+            case .other:
+                let otherDevices: [TrafficDevice] = [.display, .storage, .other]
+                return otherDevices.compactMap { memory.traffic(of: $0) }.reduce(0, +)
+            }
+        case .cpuTemperature:
+            return snapshot.thermal.cpuMax.okValue
+        case .gpuTemperature:
+            return snapshot.thermal.gpuMax.okValue
+        case .fan(let id):
+            return snapshot.thermal.fans.okValue?.first { $0.id == id }?.rpm.okValue
+        case .batteryNetPower:
+            return snapshot.battery.netPower.okValue
+        case .networkDownload:
+            return snapshot.network.download.okValue
+        case .networkUpload:
+            return snapshot.network.upload.okValue
+        }
     }
 
     /// 한 계열의 기간 평균이에요. 읽은 값만으로 계산하고, 하나도 없으면 nil이에요.

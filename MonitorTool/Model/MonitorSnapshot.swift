@@ -242,6 +242,8 @@ nonisolated struct NetworkSnapshot: Hashable, Sendable, Codable {
     var todayUploaded: Reading<Double> = .preparing
     /// '오늘'의 기준 날짜
     var todayDate: Date?
+    /// 오늘 누적에서 빠진 양이 있는지 (자정을 넘겨 잠든 동안처럼 어느 날 양인지 나눌 수 없을 때)
+    var todayHasGap = false
     /// 이번 실행 동안 받은 양 (바이트)
     var sessionDownloaded: Reading<Double> = .preparing
     /// 이번 실행 동안 보낸 양 (바이트)

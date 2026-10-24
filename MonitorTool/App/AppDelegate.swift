@@ -44,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("⚠️ \(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
         }
 
-        // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 10초마다 모아요.
+        // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 5초마다 모아요.
         let collectionScheduler = CollectionScheduler(store: store, helper: helper)
         panelController.onVisibilityChange = { [weak collectionScheduler] isShown in
             collectionScheduler?.panelVisible = isShown
@@ -59,6 +59,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             panelController.show()
         }
         #endif
+    }
+
+    /// 앱을 끝낼 때(메뉴의 '종료' 등) 오늘 네트워크 누적을 저장해요.
+    /// Xcode의 정지 단추로 끝내면 불리지 않아서, 마지막 저장(30초마다) 뒤의 양은 남지 않아요.
+    func applicationWillTerminate(_ notification: Notification) {
+        collectionScheduler?.stop()
     }
 
     /// 설정 창을 열어요. 처음 열 때 만들고, 그다음부터는 같은 창을 다시 보여줘요.
