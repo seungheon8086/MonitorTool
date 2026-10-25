@@ -5,6 +5,8 @@ import SwiftUI
 /// 사이드 패널을 만들고, 화면 오른쪽에서 미끄러져 나오고 들어가게 해요.
 final class PanelController {
     private let panel: SidePanel
+    /// 패널이 보여주는 값. 패널을 숨긴 동안에는 화면을 다시 그리지 않게 알려 줘요.
+    private let store: MonitorStore
     private(set) var isShown = false
     private var lastHiddenAt = Date.distantPast
 
@@ -26,6 +28,9 @@ final class PanelController {
     init(store: MonitorStore, appearance: AppearanceSettings, shortcut: PanelShortcut,
          openSettings: @escaping () -> Void, allowHelper: @escaping () -> Void) {
         panel = SidePanel.make()
+        self.store = store
+        // 처음에는 숨겨져 있어요. 보이기 전에는 값이 바뀌어도 화면을 다시 그리지 않아요.
+        store.isDisplayed = false
 
         // Liquid Glass 위에 SwiftUI 화면(PanelView)을 올려요.
         let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
@@ -63,6 +68,8 @@ final class PanelController {
         guard let screen = screenUnderMouse() else { return }
 
         isShown = true
+        // 숨긴 동안 쌓인 값을 화면에 알리고, 그다음 수집 일정이 바로 새로 재요.
+        store.isDisplayed = true
         onVisibilityChange?(true)
         let panel = self.panel
         let finalFrame = shownFrame(on: screen)
@@ -85,6 +92,8 @@ final class PanelController {
         isShown = false
         lastHiddenAt = .now
         onVisibilityChange?(false)
+        // 이제부터는 값이 바뀌어도 숨긴 패널을 다시 그리지 않아요. (닫히는 동안에는 마지막 값 그대로예요)
+        store.isDisplayed = false
 
         let panel = self.panel
         let finalFrame = panel.frame.offsetBy(dx: slideDistance, dy: 0)

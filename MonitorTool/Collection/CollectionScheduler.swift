@@ -1,9 +1,11 @@
 import AppKit
+import Darwin
 import Foundation
 
-/// 값을 언제 모을지 정해요. 패널이 열려 있으면 1초, 닫혀 있으면 5초마다 모아요. (설계 문서 4장)
-/// CPU·GPU 사용률, IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽), 메모리, 온도·팬, 배터리, 네트워크,
-/// 보조 프로그램의 CPU·ANE 전력을 모아요. 배터리는 천천히 바뀌어서 따로 5초(닫혀 있으면 30초)마다 재요.
+/// 값을 언제 모을지 정해요. (설계 문서 4장)
+/// 패널이 열려 있으면 모두 1초(배터리는 5초)마다 모아요.
+/// 닫혀 있으면 네트워크는 5초, CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬과
+/// 보조 프로그램의 CPU·ANE 전력은 10초, 배터리는 30초마다 모아요. 깨어나면 바로 모두 다시 재요.
 final class CollectionScheduler {
     private let store: MonitorStore
     private let helper: HelperController
@@ -19,23 +21,33 @@ final class CollectionScheduler {
     private var dayObserver: (any NSObjectProtocol)?
     /// 마지막으로 그래프 기록에 더한 전력 표본의 측정 시각 (같은 표본을 두 번 더하지 않으려고)
     private var lastRecordedSampleDate: Date?
+    /// 네트워크 말고 나머지 시스템 값(CPU·GPU·메모리·온도·팬·전력)을 마지막으로 잰 때예요.
+    /// 잠든 시간도 세는 시계(나노초)라서, 깨어나면 바로 다시 재요. 0이면 아직 재지 않았어요.
+    private var lastSystemCollectAt: UInt64 = 0
+    /// 온도·팬을 마지막으로 잰 때 (같은 시계)
+    private var lastThermalCollectAt: UInt64 = 0
 
     /// 패널이 열려 있는지예요. 바뀌면 모으는 간격도 바꿔요.
     var panelVisible = false {
         didSet {
             guard panelVisible != oldValue else { return }
             startTimer()
-            // 패널을 열면 다음 차례를 기다리지 않고 바로 새 값을 받아요.
+            // 패널을 열면 다음 차례를 기다리지 않고 바로 모두 새로 재요.
             if panelVisible {
                 collect()
             }
         }
     }
 
-    /// 지금 모으는 간격 (초). 닫혀 있을 때는 네트워크에 맞춰 5초예요. (CPU·RAM·GPU는 10초여도 돼요)
+    /// 타이머 간격 (초). 닫혀 있을 때는 가장 자주 재는 네트워크에 맞춰 5초예요.
     private var interval: TimeInterval {
         panelVisible ? 1 : 5
     }
+
+    /// 닫혀 있을 때 시스템 값을 재는 간격이에요. 10초인데, 타이머가 조금 일찍 와도 되게 0.5초 여유를 둬요.
+    private static let hiddenSystemInterval: UInt64 = 9_500_000_000
+    /// 열려 있을 때 온도·팬을 재는 간격이에요. 2초인데, 같은 까닭으로 0.1초 여유를 둬요.
+    private static let openThermalInterval: UInt64 = 1_900_000_000
 
     /// 보조 프로그램이 powermetrics를 돌리는 간격 (밀리초)
     private var helperIntervalMilliseconds: Int {
@@ -79,8 +91,8 @@ final class CollectionScheduler {
                 self?.collect()
             }
         }
-        // 다른 타이머와 함께 깨어날 수 있게 조금 여유를 줘서 전력을 아껴요.
-        timer.tolerance = 0.1
+        // 간격의 10%만큼 여유를 줘서 다른 타이머와 함께 깨어날 수 있게 해요. (전력 절약)
+        timer.tolerance = interval * 0.1
         // 메뉴를 열거나 스크롤하는 동안에도 멈추지 않게 해요.
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
@@ -115,35 +127,52 @@ final class CollectionScheduler {
 
     /// 한 번 모아요.
     private func collect() {
-        helper.refreshStatusIfDue()
-        if helper.status == .enabled || helper.status == .failed {
-            // 답이 오면 helper.onChange → publishPower()가 불려요.
-            helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
+        helper.refreshStatusIfDue(panelVisible: panelVisible)
+        // 닫혀 있으면 네트워크만 매번(5초) 재고, 나머지 시스템 값은 10초마다 재요.
+        let clock = clock_gettime_nsec_np(CLOCK_MONOTONIC)
+        let systemDue = panelVisible || lastSystemCollectAt == 0
+            || clock &- lastSystemCollectAt >= CollectionScheduler.hiddenSystemInterval
+        // 온도·팬은 SMC에 키를 20개쯤 묻느라 한 번에 5 ms쯤 걸려요(2026-10-25 이 Mac에서 잼).
+        // 그래서 패널이 열려 있어도 2초마다 재요. (설계 문서 4장: 1–2초)
+        let thermalDue = systemDue
+            && (!panelVisible || clock &- lastThermalCollectAt >= CollectionScheduler.openThermalInterval)
+        if systemDue {
+            lastSystemCollectAt = clock
+            if helper.status == .enabled || helper.status == .failed {
+                // 답이 오면 helper.onChange → publishPower()가 불려요.
+                helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
+            }
         }
 
         let now = Date()
         var snapshot = store.snapshot
         var batches: [MetricBatch] = []
-        // 바로 앞에 쟀으면(0.5초 안) CPU·GPU 사용률은 건너뛰고 앞의 값을 그대로 둬요.
-        if processors.update(&snapshot, now: now) {
-            batches.append(MetricBatch(metrics: CollectionScheduler.processorMetrics, date: now))
+        if systemDue {
+            // 바로 앞에 쟀으면(0.5초 안) CPU·GPU 사용률은 건너뛰고 앞의 값을 그대로 둬요.
+            if processors.update(&snapshot, now: now) {
+                batches.append(MetricBatch(metrics: CollectionScheduler.processorMetrics, date: now))
+            }
+            // GPU 전력, ANE 사용 중 여부, DRAM 트래픽도 0.5초 안에 다시 부르면 건너뛰어요.
+            let ioReportMetrics = ioReport.update(&snapshot, now: now)
+            if !ioReportMetrics.isEmpty {
+                batches.append(MetricBatch(metrics: ioReportMetrics, date: now))
+            }
+            memory.update(&snapshot.memory, now: now)
+            batches.append(MetricBatch(metrics: CollectionScheduler.memoryMetrics, date: now))
+            if thermalDue {
+                lastThermalCollectAt = clock
+                // ANE 온도는 위에서 읽은 'ANE 사용 중'을 보고 정해요.
+                batches.append(MetricBatch(metrics: thermal.update(&snapshot, now: now), date: now))
+            }
         }
-        // GPU 전력, ANE 사용 중 여부, DRAM 트래픽도 0.5초 안에 다시 부르면 건너뛰어요.
-        let ioReportMetrics = ioReport.update(&snapshot, now: now)
-        if !ioReportMetrics.isEmpty {
-            batches.append(MetricBatch(metrics: ioReportMetrics, date: now))
-        }
-        memory.update(&snapshot.memory, now: now)
-        batches.append(MetricBatch(metrics: CollectionScheduler.memoryMetrics, date: now))
-        // ANE 온도는 위에서 읽은 'ANE 사용 중'을 보고 정해요.
-        batches.append(MetricBatch(metrics: thermal.update(&snapshot, now: now), date: now))
+        // 배터리는 따로 5초(닫혀 있으면 30초)마다 재요. 잴 때가 아니어도 오래된 값은 '오래됨'으로 바꿔요.
         if battery.update(&snapshot.battery, now: now, panelVisible: panelVisible) {
             batches.append(MetricBatch(metrics: CollectionScheduler.batteryMetrics, date: now))
         }
         snapshot.network = network.collect(now: now)
         batches.append(MetricBatch(metrics: CollectionScheduler.networkMetrics, date: now))
         snapshot.takenAt = now
-        // 새 답이 없어도 매번 전력 값을 정리해요. 오래된 표본은 여기서 '측정 준비 중'으로 바뀌어요.
+        // 새 답이 없어도 매번 전력 값을 정리해요. 오래된 표본은 여기서 '오래됨'으로 바뀌어요.
         if let sampleDate = applyPower(to: &snapshot) {
             batches.append(MetricBatch(metrics: CollectionScheduler.powerMetrics, date: sampleDate))
         }
@@ -164,16 +193,25 @@ final class CollectionScheduler {
     /// 보조 프로그램 상태와 CPU·ANE 전력을 넣어요. 아직 그래프에 넣지 않은 새 표본이면 그 측정 시각을 돌려줘요.
     private func applyPower(to snapshot: inout MonitorSnapshot) -> Date? {
         snapshot.helper = helper.status
-        guard helper.status == .enabled, let sample = helper.latestSample, isFresh(sample) else {
+        guard helper.status == .enabled, let sample = helper.latestSample else {
             // 쓸 수 있는 표본이 없어요. 새로 잰 값이 아니라서 기록에는 더하지 않아요.
             let reading = readingWithoutSample()
             snapshot.cpu.power = reading
             snapshot.ane.power = reading
             return nil
         }
-        snapshot.cpu.power = watts(sample.cpuMilliwatts, at: sample.measuredAt)
-        snapshot.ane.power = watts(sample.aneMilliwatts, at: sample.measuredAt)
-        guard sample.measuredAt != lastRecordedSampleDate else { return nil }
+        // 표본 구간의 2.5배에 2초를 더한 시간(1초 표본은 4.5초, 10초 표본은 27초)보다 오래되면
+        // 새 표본이 제때 오지 않은 거예요. 값은 '오래됨'으로 흐리게 보여주고 기록에는 더하지 않아요.
+        // (닫혀 있을 때는 10초마다 묻고 표본도 10초 구간이라, 받은 표본이 20초쯤까지 오래될 수 있어요)
+        // 패널을 막 닫았을 때는 마지막 1초 표본 다음에 10초 표본이 와요. 그래서 지금 부탁한 간격과
+        // 표본 구간 중 긴 쪽을 기준으로 삼아, 닫은 직후의 1초 표본을 '오래됨'으로 보지 않아요.
+        let expectedInterval = max(sample.interval, Double(helperIntervalMilliseconds) / 1000)
+        let limit = expectedInterval * 2.5 + 2
+        let now = Date()
+        snapshot.cpu.power = watts(sample.cpuMilliwatts, at: sample.measuredAt).checkedFreshness(now: now, limit: limit)
+        snapshot.ane.power = watts(sample.aneMilliwatts, at: sample.measuredAt).checkedFreshness(now: now, limit: limit)
+        guard now.timeIntervalSince(sample.measuredAt) <= limit,
+              sample.measuredAt != lastRecordedSampleDate else { return nil }
         lastRecordedSampleDate = sample.measuredAt
         return sample.measuredAt
     }
@@ -188,12 +226,6 @@ final class CollectionScheduler {
         case .failed:
             return .failed(helper.problem ?? "보조 프로그램에 연결하지 못했어요.")
         }
-    }
-
-    /// 표본이 너무 오래되지 않았는지예요. 표본 구간의 2배에 2초를 더한 시간 안이면 써요.
-    /// (패널을 열어 1초 간격으로 바뀌는 동안에는 직전의 10초 표본을 그대로 보여줘요)
-    private func isFresh(_ sample: PowerSample) -> Bool {
-        Date().timeIntervalSince(sample.measuredAt) <= sample.interval * 2 + 2
     }
 
     /// mW를 W로 바꿔요. 값이 없으면 0이 아니라 '읽지 못함'으로 남겨요.
