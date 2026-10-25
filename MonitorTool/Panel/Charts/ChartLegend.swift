@@ -50,12 +50,8 @@ struct LegendValue: View {
         HStack(spacing: 4) {
             LegendSwatch(color: color, dashed: dashed)
             Text(label)
-            if let value = reading.okValue {
-                Text(format(value))
-                    .monospacedDigit()
-            } else {
-                StateText(state: reading.state)
-            }
+            // 정상이면 숫자, 갱신이 멈췄으면 흐린 숫자와 시계, 그 밖에는 상태를 보여줘요.
+            ValueText(reading: reading, format: format, font: .system(size: 12))
         }
         .font(.system(size: 12))
     }
@@ -76,7 +72,8 @@ struct ValueWithAverage: View {
                 .font(.system(size: 12))
                 .monospacedDigit()
         } else {
-            StateText(state: reading.state)
+            // 갱신이 멈춘 값은 평균 없이 흐린 숫자와 시계만, 그 밖에는 상태를 보여줘요.
+            ValueText(reading: reading, format: format, font: .system(size: 12))
         }
     }
 

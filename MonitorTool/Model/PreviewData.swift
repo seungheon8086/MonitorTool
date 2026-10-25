@@ -103,6 +103,24 @@ extension MonitorSnapshot {
         snapshot.ane.dramTraffic = .ok(0, at: snapshot.takenAt ?? Date())
         return snapshot
     }
+
+    /// 출처가 제때 새 값을 주지 않은 예시 (화면 시안 '값 상태 · 오래됨')
+    /// CPU·ANE 전력은 보조 프로그램의 1초 표본이 12초째 오지 않았고, 배터리 순전력·사이클 수는 4분,
+    /// 성능 상태·최대 용량은 2시간 전 값이에요. 실제 앱과 같은 기준(checkedFreshness)으로 '오래됨'을 붙여요.
+    nonisolated static var exampleStale: MonitorSnapshot {
+        var snapshot = example
+        let now = snapshot.takenAt ?? Date()
+        let powerAt = now.addingTimeInterval(-12)
+        snapshot.cpu.power = Reading<Double>.ok(2.3, at: powerAt).checkedFreshness(now: now, limit: 4.5)
+        snapshot.ane.power = Reading<Double>.ok(1.4, at: powerAt).checkedFreshness(now: now, limit: 4.5)
+        let gaugeAt = now.addingTimeInterval(-4 * 60)
+        snapshot.battery.netPower = Reading<Double>.ok(-11.2, at: gaugeAt).checkedFreshness(now: now, limit: 3 * 60)
+        snapshot.battery.cycleCount = Reading<Int>.ok(212, at: gaugeAt).checkedFreshness(now: now, limit: 3 * 60)
+        let healthAt = now.addingTimeInterval(-2 * 3600)
+        snapshot.battery.condition = Reading<String>.ok("정상", at: healthAt).checkedFreshness(now: now, limit: 65 * 60)
+        snapshot.battery.maximumCapacity = Reading<Double>.ok(91, at: healthAt).checkedFreshness(now: now, limit: 65 * 60)
+        return snapshot
+    }
 }
 
 extension MonitorStore {
@@ -119,6 +137,13 @@ extension MonitorStore {
         return MonitorStore(snapshot: snapshot,
                             history: .example(endingAt: snapshot.takenAt ?? Date(),
                                               helperAllowed: false, aneActive: false))
+    }
+
+    /// 오래된 값 예시 (그래프 기록은 정상 예시와 같아요)
+    static var exampleStale: MonitorStore {
+        let snapshot = MonitorSnapshot.exampleStale
+        return MonitorStore(snapshot: snapshot,
+                            history: .example(endingAt: snapshot.takenAt ?? Date()))
     }
 }
 

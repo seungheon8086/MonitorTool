@@ -17,6 +17,10 @@ nonisolated enum ValueState: Hashable, Sendable, Codable {
     case off
     /// 읽기에 실패했어요.
     case failed(message: String)
+    /// 전에 잰 값은 있지만 새 값이 제때 오지 않았어요. 값은 흐리게, 'N초 전 값'과 함께 보여줘요.
+    /// age는 그 값을 잰 뒤 지난 시간(초)이에요. 출처가 따로 값을 내는 경우에 생겨요.
+    /// (예: 보조 프로그램의 전력 표본, 배터리가 약 1분마다 알려 주는 값, 30분마다 읽는 성능 상태)
+    case stale(age: Int)
 }
 
 /// 화면에 보여줄 값 하나예요. 숫자와 함께 상태와 측정 시각을 가지고 다녀요.
@@ -63,5 +67,23 @@ nonisolated struct Reading<Value: Hashable & Sendable & Codable>: Hashable, Send
 
     static func failed(_ message: String) -> Reading {
         Reading(value: nil, state: .failed(message: message), measuredAt: nil)
+    }
+
+    /// 측정 시각이 limit초보다 오래됐으면 '오래됨'으로, 아니면 '정상'으로 바꿔요. 값은 그대로 둬요.
+    /// 정상·오래됨이 아닌 값(준비 중·실패 등)은 바꾸지 않아요.
+    /// (설계 문서 2장: 갱신이 멈춘 값을 지금 값처럼 보여주지 않아요)
+    func checkedFreshness(now: Date, limit: TimeInterval) -> Reading {
+        guard let value, let measuredAt else { return self }
+        switch state {
+        case .ok, .stale:
+            let age = now.timeIntervalSince(measuredAt)
+            guard age.isFinite, age > limit else {
+                return Reading(value: value, state: .ok, measuredAt: measuredAt)
+            }
+            // Int(Double)는 너무 큰 값을 받으면 앱을 멈추게 해서 미리 줄여요.
+            return Reading(value: value, state: .stale(age: Int(min(age, 1e9))), measuredAt: measuredAt)
+        default:
+            return self
+        }
     }
 }

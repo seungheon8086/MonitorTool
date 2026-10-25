@@ -56,19 +56,61 @@ struct UsageBar: View {
 }
 
 /// 값이 정상이면 숫자를, 아니면 상태(준비 중·권한 필요 등)를 보여줘요.
+/// 갱신이 멈춘 값은 시계를 붙여 흐리게 보여주고, 몇 초 전 값인지는 마우스를 올리면 알려 줘요.
 struct ValueText<Value: Hashable & Sendable & Codable>: View {
     let reading: Reading<Value>
     let format: (Value) -> String
     var font: Font = .system(size: 15, weight: .semibold)
+    /// 오래된 값 앞에 시계를 붙일지예요. LabeledValue처럼 'N초 전 값'을 따로 보여주는 곳에서는 꺼요.
+    var marksStale = true
 
     var body: some View {
         if let value = reading.okValue {
             Text(format(value))
                 .font(font)
                 .monospacedDigit()
+        } else if case .stale(let age) = reading.state, let value = reading.value {
+            // 화면 시안 '값 상태 · 오래됨': 값은 흐리게, 시계와 함께
+            HStack(spacing: 3) {
+                if marksStale {
+                    StaleClock()
+                }
+                Text(format(value))
+                    .font(font)
+                    .monospacedDigit()
+                    .opacity(0.45)
+            }
+            .help("\(ValueFormat.age(age)) 전 값이에요. 새 값이 아직 오지 않았어요.")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("\(ValueFormat.age(age)) 전 값, \(format(value))"))
         } else {
             StateText(state: reading.state)
         }
+    }
+}
+
+/// 오래된 값을 알리는 작은 시계예요.
+struct StaleClock: View {
+    var body: some View {
+        Image(systemName: "clock")
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(StatusColor.warningText)
+            .accessibilityHidden(true)
+    }
+}
+
+/// '⏱ 12초 전 값' 표시예요. (화면 시안 '값 상태 · 오래됨')
+struct StaleAge: View {
+    let age: Int
+
+    var body: some View {
+        HStack(spacing: 3) {
+            StaleClock()
+            Text("\(ValueFormat.age(age)) 전 값")
+        }
+        .font(.system(size: 11))
+        .foregroundStyle(StatusColor.warningText)
+        .lineLimit(1)
     }
 }
 
@@ -102,6 +144,8 @@ struct StateText: View {
             Label("읽지 못함", systemImage: "exclamationmark.triangle")
                 .font(.system(size: 12))
                 .foregroundStyle(StatusColor.error)
+        case .stale(let age):
+            StaleAge(age: age)
         }
     }
 }
@@ -130,6 +174,7 @@ enum StatusColor {
 }
 
 /// 작은 이름표 아래에 값을 보여줘요. (예: 'CPU 최고' / '61 °C')
+/// 갱신이 멈춘 값은 흐리게 보여주고 그 아래에 '⏱ 12초 전 값'을 적어요.
 struct LabeledValue<Value: Hashable & Sendable & Codable>: View {
     let label: String
     let reading: Reading<Value>
@@ -141,7 +186,10 @@ struct LabeledValue<Value: Hashable & Sendable & Codable>: View {
             Text(label)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
-            ValueText(reading: reading, format: format, font: font)
+            ValueText(reading: reading, format: format, font: font, marksStale: false)
+            if case .stale(let age) = reading.state {
+                StaleAge(age: age)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -197,6 +197,15 @@ private struct PanelFooter: View {
         .background(.regularMaterial)
 }
 
+#Preview("오래된 값 (CPU·ANE 전력, 배터리)") {
+    PanelView(initiallyExpanded: [.battery])
+        .environment(MonitorStore.exampleStale)
+        .environment(AppearanceSettings())
+        .environment(PanelShortcut(action: {}))
+        .frame(width: 380, height: 1300)
+        .background(.regularMaterial)
+}
+
 #Preview("수집 전 (지금 앱 실행 화면)") {
     PanelView()
         .environment(MonitorStore())

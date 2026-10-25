@@ -187,8 +187,14 @@ final class BatteryCollector {
     private static let healthRefreshInterval: UInt64 = 30 * 60 * 1_000_000_000
     private static let healthRetryInterval: UInt64 = 5 * 60 * 1_000_000_000
 
-    /// 새로 쟀으면 true예요.
+    /// 배터리는 순전력·사이클 수를 약 1분마다 새로 알려 줘요. 3분이 지나도 그대로면 '오래됨'이에요.
+    private static let gaugeFreshness: TimeInterval = 3 * 60
+    /// 성능 상태·최대 용량은 30분마다 읽어요. 다시 읽기가 실패해서 1시간 5분이 지나면 '오래됨'이에요.
+    private static let healthFreshness: TimeInterval = 65 * 60
+
+    /// 새로 쟀으면 true예요. 잴 때가 아니어도 매번, 측정 시각이 오래된 값은 '오래됨'으로 바꿔요.
     func update(_ battery: inout BatterySnapshot, now: Date, panelVisible: Bool) -> Bool {
+        defer { BatteryCollector.checkFreshness(&battery, now: now) }
         let clock = clock_gettime_nsec_np(CLOCK_MONOTONIC)
         // 수집 일정의 간격(1초·5초)에 맞춰 조금 일찍(0.5초) 재도 되게 해요.
         let interval: UInt64 = panelVisible ? 4_500_000_000 : 29_500_000_000
@@ -228,6 +234,14 @@ final class BatteryCollector {
         refreshHealthIfDue(clock: clock)
         applyHealth(&battery)
         return true
+    }
+
+    /// 출처가 따로 값을 내는 항목만 봐요. 잔량·충전 상태·남은 시간은 잴 때마다 새로 묻는 값이라 보지 않아요.
+    private static func checkFreshness(_ battery: inout BatterySnapshot, now: Date) {
+        battery.netPower = battery.netPower.checkedFreshness(now: now, limit: gaugeFreshness)
+        battery.cycleCount = battery.cycleCount.checkedFreshness(now: now, limit: gaugeFreshness)
+        battery.condition = battery.condition.checkedFreshness(now: now, limit: healthFreshness)
+        battery.maximumCapacity = battery.maximumCapacity.checkedFreshness(now: now, limit: healthFreshness)
     }
 
     // MARK: - IOPowerSources

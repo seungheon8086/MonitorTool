@@ -133,6 +133,14 @@ nonisolated enum ValueFormat {
         return "\(minutes)분"
     }
 
+    /// 값이 얼마나 오래됐는지: 12초, 3분, 2시간 (뒤에 '전 값'을 붙여 써요)
+    static func age(_ seconds: Int) -> String {
+        let seconds = max(seconds, 0)
+        if seconds < 60 { return "\(seconds)초" }
+        if seconds < 3600 { return "\(seconds / 60)분" }
+        return "\(seconds / 3600)시간"
+    }
+
     /// 18:46:12 (24시간 표기)
     static func clock(_ date: Date) -> String {
         clockFormatter.string(from: date)
