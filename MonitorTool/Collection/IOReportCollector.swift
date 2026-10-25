@@ -79,9 +79,19 @@ final class IOReportCollector {
         let library = IOReportLibrary()
         self.library = library
         // 구독할 때 첫 표본을 기준으로 잡아요. 첫 값은 다음 표본(0.5초 이상 뒤)에 나와요.
-        energy = library.flatMap { IOReportSubscription(library: $0, group: "Energy Model") }
-        clusterPower = library.flatMap { IOReportSubscription(library: $0, group: "SoC Stats", subgroup: "Cluster Power States") }
-        memoryCounters = library.flatMap { IOReportSubscription(library: $0, group: "AMC Stats", subgroup: "Perf Counters") }
+        // 쓰는 채널만 구독해요. 그룹 전체(메모리 카운터는 103개)를 매번 표본으로 만들고 훑으면 1초마다 수 ms가 들어요.
+        energy = library.flatMap { library in
+            IOReportSubscription(library: library, group: "Energy Model",
+                                 keep: { name in name == "GPU Energy" })
+        }
+        clusterPower = library.flatMap { library in
+            IOReportSubscription(library: library, group: "SoC Stats", subgroup: "Cluster Power States",
+                                 keep: { name in name.hasPrefix("ANE") })
+        }
+        memoryCounters = library.flatMap { library in
+            IOReportSubscription(library: library, group: "AMC Stats", subgroup: "Perf Counters",
+                                 keep: { name in name.hasSuffix("DCS RD") || name.hasSuffix("DCS WR") })
+        }
         lastMeasuredAt = clock_gettime_nsec_np(CLOCK_UPTIME_RAW)
     }
 

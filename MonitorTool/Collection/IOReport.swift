@@ -130,12 +130,42 @@ final class IOReportSubscription {
     private var previous: CFDictionary
 
     /// 그룹을 찾지 못하거나 구독하지 못하면 nil이에요.
-    init?(library: IOReportLibrary, group: String, subgroup: String? = nil) {
+    /// - Parameter keep: 이름으로 고른 채널만 구독해요. 표본을 만들고 훑는 채널이 줄어서 가벼워져요.
+    ///   고른 채널이 없거나 고른 채널로 구독하지 못하면 그룹 전체를 구독해요.
+    convenience init?(library: IOReportLibrary, group: String, subgroup: String? = nil,
+                      keep: ((String) -> Bool)? = nil) {
         let subgroupName = subgroup.map { $0 as CFString }
-        guard let found = library.copyChannelsInGroup(group as CFString, subgroupName, 0, 0, 0)?.takeRetainedValue(),
-              let desired = CFDictionaryCreateMutableCopy(kCFAllocatorDefault, 0, found) else {
+        guard let found = library.copyChannelsInGroup(group as CFString, subgroupName, 0, 0, 0)?.takeRetainedValue() else {
             return nil
         }
+        if let keep {
+            let kept = IOReportLibrary.channels(in: found).filter { keep(library.name(of: $0)) }
+            if !kept.isEmpty,
+               let desired = CFDictionaryCreateMutableCopy(kCFAllocatorDefault, 0, found) {
+                (desired as NSMutableDictionary)["IOReportChannels"] = kept as NSArray
+                if let parts = IOReportSubscription.subscribe(library: library, desired: desired) {
+                    self.init(library: library, parts: parts)
+                    return
+                }
+            }
+        }
+        guard let desired = CFDictionaryCreateMutableCopy(kCFAllocatorDefault, 0, found),
+              let parts = IOReportSubscription.subscribe(library: library, desired: desired) else {
+            return nil
+        }
+        self.init(library: library, parts: parts)
+    }
+
+    private init(library: IOReportLibrary, parts: (subscription: OpaquePointer, channels: CFMutableDictionary, first: CFDictionary)) {
+        self.library = library
+        self.subscription = parts.subscription
+        self.channels = parts.channels
+        self.previous = parts.first
+    }
+
+    /// 구독하고 첫 표본을 만들어요. 실패하면 nil이에요.
+    private static func subscribe(library: IOReportLibrary, desired: CFMutableDictionary)
+        -> (subscription: OpaquePointer, channels: CFMutableDictionary, first: CFDictionary)? {
         // 구독한 채널 사전의 소유 규칙은 문서가 없어서 놓지 않아요. 앱이 켜져 있는 동안 한 번만 만들어요.
         var subscribed: Unmanaged<CFMutableDictionary>?
         guard let subscription = library.createSubscription(nil, desired, &subscribed, 0, nil),
@@ -143,10 +173,7 @@ final class IOReportSubscription {
               let first = library.createSamples(subscription, subscribedChannels, nil)?.takeRetainedValue() else {
             return nil
         }
-        self.library = library
-        self.subscription = subscription
-        self.channels = subscribedChannels
-        self.previous = first
+        return (subscription, subscribedChannels, first)
     }
 
     /// 지난번 표본 뒤로 늘어난 양 (채널 목록). 표본을 만들지 못하면 nil이에요.
