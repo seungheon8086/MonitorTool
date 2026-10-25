@@ -10,7 +10,7 @@ nonisolated struct HotKeyCombo: Codable, Hashable, Sendable {
     /// 화면에 보여줄 키 이름 (예: M, F5, ←)
     var keyName: String
 
-    /// 기본 단축키 ⌃⌥M
+    /// 직접 정한 조합의 기본값 ⌃⌥M (패널 단축키의 기본은 fn + Space예요)
     static let standard = HotKeyCombo(keyCode: UInt32(kVK_ANSI_M),
                                       carbonModifiers: UInt32(controlKey | optionKey),
                                       keyName: "M")

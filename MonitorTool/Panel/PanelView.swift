@@ -25,7 +25,8 @@ struct PanelView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    PanelHeader(takenAt: store.snapshot.takenAt, shortcutText: shortcut.combo.displayText)
+                    PanelHeader(takenAt: store.snapshot.takenAt, shortcutText: shortcut.displayText,
+                                shortcutNeedsAttention: shortcut.needsAttention)
                     processorSection
                     memorySection
                     thermalSection
@@ -90,8 +91,10 @@ struct PanelView: View {
 /// 패널 맨 위: 앱 이름, 단축키, 마지막 측정 시각
 private struct PanelHeader: View {
     let takenAt: Date?
-    /// 지금 단축키 (예: ⌃⌥M)
-    let shortcutText: String
+    /// 지금 단축키 (예: fn Space, ⌃⌥M). 단축키를 껐으면 nil이에요.
+    let shortcutText: String?
+    /// 단축키가 켜져 있는데 지금 동작하지 않는지 (예: 손쉬운 사용 허용 전)
+    let shortcutNeedsAttention: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -99,10 +102,14 @@ private struct PanelHeader: View {
                 Text("MonitorTool")
                     .font(.title2.weight(.semibold))
                 Spacer()
-                Text(shortcutText)
-                    .font(.callout.monospaced())
-                    .foregroundStyle(.secondary)
-                    .help("이 단축키로 패널을 열고 닫아요. 설정 창 '일반'에서 바꿀 수 있어요.")
+                if let shortcutText {
+                    Text(shortcutText)
+                        .font(.callout.monospaced())
+                        .foregroundStyle(shortcutNeedsAttention ? StatusColor.warningText : Color.secondary)
+                        .help(shortcutNeedsAttention
+                              ? "단축키가 아직 동작하지 않아요. 설정 창 '일반'에서 확인해 주세요."
+                              : "이 단축키로 어디서든 패널을 열고 닫아요. 설정 창 '일반'에서 바꾸거나 끌 수 있어요.")
+                }
             }
             if let takenAt {
                 Text("\(ValueFormat.clock(takenAt)) 측정 · 1초마다 갱신")

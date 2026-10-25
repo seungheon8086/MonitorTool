@@ -18,7 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var collectionScheduler: CollectionScheduler?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 단축키(기본 ⌃⌥M)로 어디서든 패널을 열고 닫아요. 설정 창 '일반'에서 바꿀 수 있어요.
+        // 단축키(기본 fn + Space)로 어디서든 패널을 열고 닫아요.
+        // 설정 창 '일반'에서 켜고 끄고, 직접 정한 조합(기본 ⌃⌥M)으로 바꿀 수 있어요.
         let shortcut = PanelShortcut { [weak self] in
             self?.panelController?.toggle()
         }
@@ -33,14 +34,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let statusItemController = StatusItemController(panelController: panelController,
                                                         openSettings: { [weak self] in self?.showSettings() })
-        statusItemController.showShortcut(shortcut.combo)
+        statusItemController.showShortcut(shortcut.menuShortcut)
         self.statusItemController = statusItemController
 
-        // 단축키를 바꾸면 메뉴 막대 메뉴의 표시도 바꿔요.
-        shortcut.onChange = { [weak statusItemController] combo in
-            statusItemController?.showShortcut(combo)
+        // 단축키를 바꾸거나 끄면 메뉴 막대 메뉴의 표시도 바꿔요.
+        shortcut.onChange = { [weak statusItemController, weak shortcut] in
+            guard let shortcut else { return }
+            statusItemController?.showShortcut(shortcut.menuShortcut)
         }
-        if !shortcut.activate() {
+        // fn + Space인데 손쉬운 사용 허용이 아직 없으면 macOS의 허용 창을 한 번 띄워요.
+        if !shortcut.activate(promptForPermission: true) {
             print("⚠️ \(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
         }
 

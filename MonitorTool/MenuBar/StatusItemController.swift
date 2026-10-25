@@ -21,11 +21,11 @@ final class StatusItemController: NSObject {
         configureMenu()
     }
 
-    /// 메뉴의 '패널 열기/닫기' 옆에 지금 단축키를 보여줘요.
-    /// (메뉴는 보여주기만 하고, 실제 단축키는 GlobalHotKey가 받아요)
-    func showShortcut(_ combo: HotKeyCombo) {
-        toggleItem.keyEquivalent = combo.menuKeyEquivalent
-        toggleItem.keyEquivalentModifierMask = GlobalHotKey.modifierFlags(fromCarbon: combo.carbonModifiers)
+    /// 메뉴의 '패널 열기/닫기' 옆에 지금 단축키를 보여줘요. 단축키를 껐으면 아무것도 보여주지 않아요.
+    /// (메뉴는 보여주기만 하고, 실제 단축키는 GlobalHotKey나 FnSpaceHotKey가 받아요)
+    func showShortcut(_ shortcut: MenuShortcut) {
+        toggleItem.keyEquivalent = shortcut.key
+        toggleItem.keyEquivalentModifierMask = shortcut.modifiers
     }
 
     private func configureButton() {

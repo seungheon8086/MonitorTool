@@ -1,15 +1,17 @@
 import SwiftUI
 
 /// 설정 창 '일반' 탭: 패널 단축키와 로그인할 때 열기 (화면 시안 '설정 창 · 일반')
+/// 단축키는 켜고 끌 수 있고, fn + Space와 직접 정한 조합 중에서 골라요. (2026-10-25 사용자 결정)
 struct GeneralSettingsView: View {
     @Environment(LoginItemSettings.self) private var loginItem
+    @Environment(PanelShortcut.self) private var shortcut
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             SettingsSectionTitle(title: "패널 단축키")
-            SettingsNote(text: "어디서든 이 단축키로 패널을 열고 닫아요.")
-            SettingsBox {
-                ShortcutRecorder()
+            SettingsNote(text: "다른 앱을 쓰는 중에도 단축키로 패널을 열고 닫아요. 끄면 메뉴 막대 아이콘으로만 열어요.")
+            SettingsBox(spacing: 10) {
+                ShortcutSettings()
             }
 
             SettingsSectionTitle(title: "시작")
@@ -27,6 +29,130 @@ struct GeneralSettingsView: View {
         .frame(width: SettingsLayout.width, alignment: .leading)
         .onAppear {
             loginItem.refresh()
+            // 시스템 설정에서 손쉬운 사용을 허용하고 돌아왔을 수 있어요.
+            shortcut.refreshPermission()
+        }
+    }
+}
+
+/// 패널 단축키: 켜기·끄기 스위치와 fn + Space / 직접 정한 조합 고르기
+struct ShortcutSettings: View {
+    @Environment(PanelShortcut.self) private var shortcut
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text("어디서든 단축키로 패널 열기")
+                .font(.system(size: 13))
+            Spacer(minLength: 8)
+            Toggle("어디서든 단축키로 패널 열기", isOn: isEnabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
+        }
+        Divider()
+        VStack(alignment: .leading, spacing: 12) {
+            ShortcutChoiceRow(title: "fn + Space",
+                              isSelected: shortcut.kind == .fnSpace,
+                              select: { shortcut.setKind(.fnSpace) }) {
+                FnShortcutStatus()
+            }
+            ShortcutChoiceRow(title: "직접 정한 조합",
+                              isSelected: shortcut.kind == .custom,
+                              select: { shortcut.setKind(.custom) }) {
+                ShortcutRecorder()
+                    .disabled(shortcut.kind != .custom)
+            }
+        }
+        .disabled(!shortcut.isEnabled)
+        .opacity(shortcut.isEnabled ? 1 : 0.5)
+    }
+
+    private var isEnabled: Binding<Bool> {
+        Binding(get: { shortcut.isEnabled },
+                set: { shortcut.setEnabled($0) })
+    }
+}
+
+/// 단축키 고르기의 한 줄: 동그라미 + 이름, 그 아래 설명이나 입력 칸
+private struct ShortcutChoiceRow<Detail: View>: View {
+    let title: String
+    let isSelected: Bool
+    let select: () -> Void
+    @ViewBuilder let detail: Detail
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button(action: select) {
+                HStack(spacing: 8) {
+                    Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                    Text(title)
+                        .font(.system(size: 13))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            detail
+                .padding(.leading, 22)
+        }
+    }
+}
+
+/// fn + Space 아래 글: 손쉬운 사용 허용 상태와 허용 단추
+private struct FnShortcutStatus: View {
+    @Environment(PanelShortcut.self) private var shortcut
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if shortcut.kind == .fnSpace && shortcut.isEnabled {
+                status
+            }
+            Text("fn + Space를 받으려면 키보드 입력을 살펴야 해서 손쉬운 사용 허용이 필요해요. fn + Space인지만 확인하고, 다른 입력은 그대로 흘려보내며 아무것도 저장하지 않아요.")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private var status: some View {
+        switch shortcut.fnState {
+        case .active:
+            Label("손쉬운 사용 허용됨 · 어디서든 fn + Space로 패널을 열고 닫아요", systemImage: "checkmark.circle.fill")
+                .font(.system(size: 12))
+                .foregroundStyle(StatusColor.active)
+        case .needsPermission:
+            VStack(alignment: .leading, spacing: 4) {
+                Text("시스템 설정 > 개인정보 보호 및 보안 > 손쉬운 사용에서 MonitorTool을 허용해야 동작해요.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(StatusColor.warningText)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 10) {
+                    Button("허용하기") {
+                        shortcut.requestPermission()
+                    }
+                    Button("손쉬운 사용 설정 열기") {
+                        shortcut.openAccessibilitySettings()
+                    }
+                    .buttonStyle(.link)
+                    .font(.system(size: 12))
+                }
+            }
+        case .failed:
+            VStack(alignment: .leading, spacing: 4) {
+                Text("손쉬운 사용에서 허용돼 있는데 키 입력을 받지 못했어요. MonitorTool을 다시 켜 보고, 그래도 안 되면 목록에서 MonitorTool을 지운 뒤 다시 허용해 주세요.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(StatusColor.error)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("손쉬운 사용 설정 열기") {
+                    shortcut.openAccessibilitySettings()
+                }
+                .buttonStyle(.link)
+                .font(.system(size: 12))
+            }
+        case .off:
+            EmptyView()
         }
     }
 }
