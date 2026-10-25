@@ -2,8 +2,8 @@ import AppKit
 import Foundation
 
 /// 값을 언제 모을지 정해요. 패널이 열려 있으면 1초, 닫혀 있으면 5초마다 모아요. (설계 문서 4장)
-/// 지금은 CPU·GPU 사용률, IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽), 메모리, 온도·팬, 네트워크,
-/// 보조 프로그램의 CPU·ANE 전력을 모아요. 나머지 수집기는 5단계(통합)에서 여기에 붙여요.
+/// CPU·GPU 사용률, IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽), 메모리, 온도·팬, 배터리, 네트워크,
+/// 보조 프로그램의 CPU·ANE 전력을 모아요. 배터리는 천천히 바뀌어서 따로 5초(닫혀 있으면 30초)마다 재요.
 final class CollectionScheduler {
     private let store: MonitorStore
     private let helper: HelperController
@@ -11,6 +11,7 @@ final class CollectionScheduler {
     private let ioReport = IOReportCollector()
     private let memory = MemoryCollector()
     private let thermal = ThermalCollector()
+    private let battery = BatteryCollector()
     private let network = NetworkCollector()
     private var timer: Timer?
     private var sleepObserver: (any NSObjectProtocol)?
@@ -43,6 +44,7 @@ final class CollectionScheduler {
 
     private static let processorMetrics: [Metric] = [.cpuEfficiency, .cpuPerformance, .gpuUsage]
     private static let memoryMetrics: [Metric] = [.memoryUsed]
+    private static let batteryMetrics: [Metric] = [.batteryNetPower]
     private static let networkMetrics: [Metric] = [.networkDownload, .networkUpload]
     private static let powerMetrics: [Metric] = [.cpuPower, .anePower]
 
@@ -135,6 +137,9 @@ final class CollectionScheduler {
         batches.append(MetricBatch(metrics: CollectionScheduler.memoryMetrics, date: now))
         // ANE 온도는 위에서 읽은 'ANE 사용 중'을 보고 정해요.
         batches.append(MetricBatch(metrics: thermal.update(&snapshot, now: now), date: now))
+        if battery.update(&snapshot.battery, now: now, panelVisible: panelVisible) {
+            batches.append(MetricBatch(metrics: CollectionScheduler.batteryMetrics, date: now))
+        }
         snapshot.network = network.collect(now: now)
         batches.append(MetricBatch(metrics: CollectionScheduler.networkMetrics, date: now))
         snapshot.takenAt = now

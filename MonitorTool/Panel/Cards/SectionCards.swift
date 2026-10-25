@@ -260,9 +260,11 @@ enum BatteryText {
         switch chargeState {
         case .charging:
             if let time { return "충전 중 · 완충까지 \(ValueFormat.duration(time))" }
+            if battery.timeRemaining.state == .preparing { return "충전 중 · 완충 시간 계산 중" }
             return "충전 중"
         case .discharging:
             if let time { return "방전 중 · \(ValueFormat.duration(time)) 남음" }
+            if battery.timeRemaining.state == .preparing { return "방전 중 · 남은 시간 계산 중" }
             return "방전 중"
         case .charged:
             return "완충"
