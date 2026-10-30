@@ -263,6 +263,57 @@ final class HelperController {
         refreshStatusIfDue()
     }
 
+    // MARK: - 팬 제어 (docs/FAN_CONTROL.md)
+
+    /// 보조 프로그램에 팬 고정이나 시스템 제어를 요청해요. 답(상태, 거절·실패 이유)은 메인 스레드에서 받아요.
+    func sendFanControl(_ request: FanControlRequest,
+                        completion: @escaping @MainActor @Sendable (FanControlState?, String?) -> Void) {
+        guard let data = try? JSONEncoder().encode(request) else {
+            completion(nil, "요청 형식 오류")
+            return
+        }
+        callFanService(completion: completion) { helper, reply in
+            helper.setFanControl(data, reply: reply)
+        }
+    }
+
+    /// 보조 프로그램에 지금 팬 제어 상태를 물어요.
+    func fetchFanState(completion: @escaping @MainActor @Sendable (FanControlState?, String?) -> Void) {
+        callFanService(completion: completion) { helper, reply in
+            helper.fanControlState(reply: reply)
+        }
+    }
+
+    /// 전력 요청과 같은 연결을 써요. 앱이 꺼져 이 연결이 끊기면 보조 프로그램이 팬을 시스템 제어로 돌려요.
+    private func callFanService(completion: @escaping @MainActor @Sendable (FanControlState?, String?) -> Void,
+                                call: (HelperProtocol, @escaping @Sendable (Data?, String?) -> Void) -> Void) {
+        guard !isPreview else {
+            completion(nil, nil)
+            return
+        }
+        guard status == .enabled || status == .failed, !isMissingFromApp, !isBusy else {
+            completion(nil, "보조 프로그램 허용 필요")
+            return
+        }
+        let connection = self.connection ?? makeConnection()
+        self.connection = connection
+        let proxy = connection.remoteObjectProxyWithErrorHandler { @Sendable _ in
+            Task { @MainActor in
+                completion(nil, "보조 프로그램 연결 실패")
+            }
+        }
+        guard let helper = proxy as? HelperProtocol else {
+            completion(nil, "보조 프로그램 연결 실패")
+            return
+        }
+        call(helper) { @Sendable data, helperProblem in
+            let state = data.flatMap { try? JSONDecoder().decode(FanControlState.self, from: $0) }
+            Task { @MainActor in
+                completion(state, helperProblem)
+            }
+        }
+    }
+
     // MARK: - 연결
 
     private func makeConnection() -> NSXPCConnection {

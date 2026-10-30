@@ -25,8 +25,12 @@ final class PanelController {
     ///   - shortcut: 패널 단축키 (머리글에 지금 단축키를 보여줘요)
     ///   - openSettings: 패널 아래 톱니 단추를 눌렀을 때 할 일
     ///   - allowHelper: 패널 아래 '보조 프로그램 허용하기' 단추를 눌렀을 때 할 일
+    ///   - fanControl: 팬 제어 (온도·팬 펼침 아래 '팬 제어')
+    ///   - openFanSettings: 팬 제어의 '프리셋 편집'을 눌렀을 때 할 일
     init(store: MonitorStore, appearance: AppearanceSettings, shortcut: PanelShortcut,
-         openSettings: @escaping () -> Void, allowHelper: @escaping () -> Void) {
+         fanControl: FanControlModel,
+         openSettings: @escaping () -> Void, allowHelper: @escaping () -> Void,
+         openFanSettings: @escaping () -> Void) {
         panel = SidePanel.make()
         self.store = store
         // 처음에는 숨겨져 있어요. 보이기 전에는 값이 바뀌어도 화면을 다시 그리지 않아요.
@@ -36,10 +40,12 @@ final class PanelController {
         let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
         glassView.cornerRadius = 24
 
-        let rootView = PanelView(openSettings: openSettings, allowHelper: allowHelper)
+        let rootView = PanelView(openSettings: openSettings, allowHelper: allowHelper,
+                                 openFanSettings: openFanSettings)
             .environment(store)
             .environment(appearance)
             .environment(shortcut)
+            .environment(fanControl)
         let hostingView = NSHostingView(rootView: rootView)
         hostingView.sizingOptions = []  // SwiftUI 내용 크기가 패널 크기를 바꾸지 않게 해요.
         hostingView.frame = glassView.bounds

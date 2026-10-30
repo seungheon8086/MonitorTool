@@ -15,6 +15,8 @@ final class CollectionScheduler {
     private let thermal = ThermalCollector()
     private let battery = BatteryCollector()
     private let network = NetworkCollector()
+    /// 시스템 값을 모을 때마다 불러요. (패널이 열려 있으면 1초, 닫혀 있으면 10초) 팬 제어 상태를 다시 물어요.
+    var onSystemCollect: (() -> Void)?
     private var timer: Timer?
     private var sleepObserver: (any NSObjectProtocol)?
     private var wakeObserver: (any NSObjectProtocol)?
@@ -142,6 +144,7 @@ final class CollectionScheduler {
                 // 답이 오면 helper.onChange → publishPower()가 불려요.
                 helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
             }
+            onSystemCollect?()
         }
 
         let now = Date()

@@ -12,13 +12,17 @@ struct PanelView: View {
     private let openSettings: () -> Void
     /// 아래 '보조 프로그램 허용하기' 단추를 눌렀을 때 할 일
     private let allowHelper: () -> Void
+    /// 팬 제어의 '프리셋 편집': 설정 창 '팬' 탭 열기
+    private let openFanSettings: () -> Void
 
     init(initiallyExpanded: Set<MonitorItem> = [],
          openSettings: @escaping () -> Void = {},
-         allowHelper: @escaping () -> Void = {}) {
+         allowHelper: @escaping () -> Void = {},
+         openFanSettings: @escaping () -> Void = {}) {
         _expanded = State(initialValue: initiallyExpanded)
         self.openSettings = openSettings
         self.allowHelper = allowHelper
+        self.openFanSettings = openFanSettings
     }
 
     var body: some View {
@@ -68,6 +72,7 @@ struct PanelView: View {
         ThermalCard(expanded: $expanded)
         if expanded.contains(.thermal) {
             ThermalDetail()
+            FanControlSection(openFanSettings: openFanSettings, allowHelper: allowHelper)
         }
     }
 
@@ -173,6 +178,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }
@@ -182,6 +188,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 2700)
         .background(.regularMaterial)
 }
@@ -191,6 +198,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore.example)
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
@@ -200,6 +208,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore.exampleNeedsHelper)
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 1500)
         .background(.regularMaterial)
 }
@@ -209,6 +218,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore.exampleStale)
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
@@ -218,6 +228,7 @@ private struct PanelFooter: View {
         .environment(MonitorStore())
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
+        .environment(FanControlModel.preview())
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }

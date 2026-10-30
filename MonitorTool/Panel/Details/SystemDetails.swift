@@ -291,6 +291,7 @@ struct ThermalDetail: View {
 
 /// 팬마다 회전수, 범위, 모드를 보여줘요.
 struct FanCards: View {
+    @Environment(FanControlModel.self) private var fanControl
     let fans: Reading<[FanReading]>
 
     private var columns: [GridItem] {
@@ -308,7 +309,7 @@ struct FanCards: View {
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
-                        Text("모드: \(modeText(for: fan.mode))")
+                        Text("모드: \(modeText(for: fan))")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
@@ -342,11 +343,15 @@ struct FanCards: View {
         return "\(current) · 범위 \(ValueFormat.compact(minimum.rounded()))–\(ValueFormat.compact(maximum.rounded()))"
     }
 
-    private func modeText(for mode: FanMode) -> String {
-        switch mode {
-        case .automatic: "시스템 자동"
-        case .manual: "수동"
-        case .unknown: "알 수 없음"
+    /// '시스템 자동', '고정 · 목표 2,000', 다른 프로그램이 수동으로 둔 경우 '수동'
+    private func modeText(for fan: FanReading) -> String {
+        if fan.mode == .manual, let active = fanControl.active, active.targets.indices.contains(fan.id) {
+            return "고정 · 목표 \(FanText.value(active.targets[fan.id]))"
+        }
+        switch fan.mode {
+        case .automatic: return "시스템 자동"
+        case .manual: return "수동"
+        case .unknown: return "알 수 없음"
         }
     }
 }

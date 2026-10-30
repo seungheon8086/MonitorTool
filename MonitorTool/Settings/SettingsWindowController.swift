@@ -2,13 +2,14 @@ import AppKit
 import SwiftUI
 
 /// 설정 창이에요. 메뉴 막대 앱이라 SwiftUI의 Settings 장면 대신 직접 만든 창을 써요.
-/// 위쪽 도구 막대의 탭(일반·모양·보조 프로그램)으로 화면을 바꿔요. 위젯 탭은 위젯을 만들 때(6단계) 더해요.
+/// 위쪽 도구 막대의 탭(일반·모양·보조 프로그램·팬)으로 화면을 바꿔요. 위젯 탭은 위젯을 다시 만들 때 더해요.
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// 설정 창의 탭 (왼쪽부터 차례대로)
     enum Tab: Int {
         case general
         case appearance
         case helper
+        case fan
     }
 
     private let window: NSWindow
@@ -16,7 +17,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let shortcut: PanelShortcut
 
     init(appearance: AppearanceSettings, shortcut: PanelShortcut, loginItem: LoginItemSettings,
-         helper: HelperController) {
+         helper: HelperController, fanControl: FanControlModel) {
         // super.init 전에는 self의 속성을 읽을 수 없어서, 지역 상수로 먼저 만들고 나중에 넣어요.
         let tabs = SettingsTabViewController()
         tabs.tabStyle = .toolbar
@@ -30,6 +31,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         tabs.addTabViewItem(SettingsWindowController.tab(title: "보조 프로그램", symbol: "lock",
                                                          content: HelperSettingsView()
                                                             .environment(helper)))
+
+        tabs.addTabViewItem(SettingsWindowController.tab(title: "팬", symbol: "fan",
+                                                         content: FanSettingsView().environment(fanControl)))
 
         let window = NSWindow(contentViewController: tabs)
         window.styleMask = [.titled, .closable]

@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let loginItem = LoginItemSettings()
     /// CPU·ANE 전력을 읽는 관리자 권한 보조 프로그램 (설정 창 '보조 프로그램')
     private let helper = HelperController()
+    /// 팬 제어 (패널 '팬 제어', 설정 창 '팬')
+    private lazy var fanControl = FanControlModel(helper: helper)
 
     private var panelShortcut: PanelShortcut?
     private var panelController: PanelController?
@@ -28,8 +30,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panelController = PanelController(store: store,
                                               appearance: appearance,
                                               shortcut: shortcut,
+                                              fanControl: fanControl,
                                               openSettings: { [weak self] in self?.showSettings() },
-                                              allowHelper: { [weak self] in self?.allowHelper() })
+                                              allowHelper: { [weak self] in self?.allowHelper() },
+                                              openFanSettings: { [weak self] in self?.showSettings(tab: .fan) })
         self.panelController = panelController
 
         let statusItemController = StatusItemController(panelController: panelController,
@@ -52,6 +56,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController.onVisibilityChange = { [weak collectionScheduler] isShown in
             collectionScheduler?.panelVisible = isShown
         }
+        // 시스템 값을 모을 때마다 팬 제어 상태도 보조 프로그램에 다시 물어요.
+        collectionScheduler.onSystemCollect = { [weak fanControl = self.fanControl] in fanControl?.refresh() }
         collectionScheduler.start()
         self.collectionScheduler = collectionScheduler
 
@@ -77,7 +83,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsWindowController = SettingsWindowController(appearance: appearance,
                                                                 shortcut: panelShortcut,
                                                                 loginItem: loginItem,
-                                                                helper: helper)
+                                                                helper: helper,
+                                                                fanControl: fanControl)
         }
         settingsWindowController?.show(tab: tab)
     }

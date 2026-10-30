@@ -173,7 +173,7 @@ struct ThermalCard: View {
     var body: some View {
         let thermal = store.snapshot.thermal
         SectionCard(item: .thermal, expanded: $expanded) {
-            EmptyView()
+            FanModeBadge()
         } content: {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                 LabeledValue(label: "CPU 최고", reading: thermal.cpuMax, format: ValueFormat.celsius)
