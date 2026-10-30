@@ -40,7 +40,8 @@ final class FanController: @unchecked Sendable {
     /// 앱의 ThermalCollector와 같은 대표 센서예요.
     private static let cpuTemperatureKeys = ["Tp01", "Tp05", "Tp09", "Tp0D", "Tp0H",
                                              "Tp0L", "Tp0P", "Tp0T", "Tp0X", "Tp0b"]
-    private static let gpuTemperatureKeys = ["Tg05", "Tg0D"]
+    /// GPU 보정 키와 원래 센서. 원래 센서가 0(꺼짐)이면 보정 키는 9.2 °C를 줘서 쓰지 않아요. (앱의 ThermalCollector와 같은 규칙)
+    private static let gpuTemperaturePairs: [(derived: String, raw: String)] = [("Tg05", "Tg04"), ("Tg0D", "Tg0C")]
 
     // IOKit 전원 알림 번호 (iokit_common_msg 매크로는 Swift로 들어오지 않아서 숫자로 적어요)
     private static let messageCanSystemSleep: UInt32 = 0xE000_0270
@@ -255,7 +256,11 @@ final class FanController: @unchecked Sendable {
             confirmed: confirmed,
             thermalPressure: thermalPressure(),
             cpuMax: FanSafetyRules.highest(Self.cpuTemperatureKeys.map { smc.number($0) }),
-            gpuMax: FanSafetyRules.highest(Self.gpuTemperatureKeys.map { smc.number($0) }),
+            gpuMax: FanSafetyRules.highest(Self.gpuTemperaturePairs.map { pair -> Double? in
+                // 원래 센서가 없는 Mac이면 보정 키만 보고, 20 °C 이하 거르기(highest)에 맡겨요.
+                if let raw = smc.number(pair.raw), raw <= 0 { return nil }
+                return smc.number(pair.derived)
+            }),
             modes: fans.map { smc.number($0.modeKey) },
             targets: fans.map { smc.number($0.targetKey) },
             expected: request.targets.map(\.smcValue))
