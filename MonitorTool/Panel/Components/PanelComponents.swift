@@ -80,7 +80,7 @@ struct ValueText<Value: Hashable & Sendable & Codable>: View {
                     .monospacedDigit()
                     .opacity(0.45)
             }
-            .help("\(ValueFormat.age(age)) 전 값이에요. 새 값이 아직 오지 않았어요.")
+
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("\(ValueFormat.age(age)) 전 값, \(format(value))"))
         } else {

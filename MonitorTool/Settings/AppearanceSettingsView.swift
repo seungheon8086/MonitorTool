@@ -8,7 +8,7 @@ struct AppearanceSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             SettingsSectionTitle(title: "항목 색")
-            SettingsNote(text: "패널과 위젯의 막대·그래프에 쓰는 색이에요. 항목마다 일곱 가지 중에서 골라요.")
+
             SettingsBox(spacing: 0, padding: 0) {
                 ForEach(MonitorItem.allCases) { item in
                     if item != MonitorItem.allCases.first {
@@ -16,9 +16,6 @@ struct AppearanceSettingsView: View {
                     }
                     ItemColorRow(item: item)
                 }
-            }
-            if appearance.processorColorsClash {
-                ClashWarning()
             }
 
             SettingsSectionTitle(title: "미리보기")
@@ -30,10 +27,6 @@ struct AppearanceSettingsView: View {
             }
 
             HStack(alignment: .center, spacing: 16) {
-                Text("상태를 알리는 색(사용 중, 권한 필요, 오류)은 바뀌지 않아요. 위젯도 여기서 고른 색을 써요.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 Button("기본 색으로 되돌리기") {
                     appearance.resetToDefaults()
@@ -83,25 +76,6 @@ private struct ItemColorRow: View {
     private var selection: Binding<ItemColor> {
         Binding(get: { appearance.color(for: item) },
                 set: { appearance.setColor($0, for: item) })
-    }
-}
-
-/// CPU·GPU·ANE에 같은 색을 골랐을 때의 안내
-private struct ClashWarning: View {
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 12))
-            Text("CPU·GPU·ANE 중 같은 색을 고른 항목이 있어요. 메모리 트래픽 그래프에서는 세 항목이 함께 나와서 구분하기 어려워요.")
-                .font(.system(size: 12))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .foregroundStyle(StatusColor.warningText)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(StatusColor.warningBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .accessibilityElement(children: .combine)
     }
 }
 

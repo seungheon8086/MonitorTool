@@ -18,7 +18,6 @@ struct CPUDetail: View {
             usageChart
             powerChart
             coreSection
-            SourceNote(text: "사용률은 OS가 집계한 CPU 시간이에요. 전력은 보조 프로그램이 powermetrics로 잰 CPU 전체 값(1초 구간 평균)이에요.")
         }
     }
 
@@ -112,7 +111,6 @@ struct GPUDetail: View {
         } content: {
             usageChart
             powerChart
-            SourceNote(text: "사용률은 GPU 드라이버가 알려 주는 값(Device Utilization)이에요. 전력은 권한 없이 읽는 GPU 에너지 카운터로 계산해요.")
         }
     }
 
@@ -156,8 +154,6 @@ struct ANEDetail: View {
             summaryRow
             powerChart
             trafficChart
-            InfoBox(text: "사용률(%)은 보여 드리지 않아요. macOS가 ANE가 일한 시간의 비율을 알려 주지 않기 때문이에요. '사용 중'은 ANE 전원이 켜져 있는지로 판단해요. 일한 양은 트래픽 그래프로 가늠할 수 있어요.")
-            SourceNote(text: "전력: 보조 프로그램(powermetrics) · 트래픽: 메모리 컨트롤러의 ANE0 DRAM 값 · 온도: ANE 센서 중 최고값(켜져 있을 때만)")
         }
     }
 

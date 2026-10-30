@@ -22,7 +22,6 @@ struct MemoryDetail: View {
             Divider()
             trafficChart
             DeviceTrafficGrid(memory: memory)
-            SourceNote(text: "트래픽은 실제로 DRAM까지 간 양이에요(GB/s). 칩 안 캐시에서 끝난 요청은 빼요.")
         }
     }
 
@@ -201,7 +200,6 @@ struct ThermalDetail: View {
                 fanChart
             }
             FanCards(fans: thermal.fans)
-            SourceNote(text: "온도는 SMC 센서에서 읽어요. CPU·GPU 최고는 부하 실험으로 고른 센서 중 가장 높은 값이에요. 칩 전체의 절대 최고 온도는 아니에요.")
         }
     }
 
@@ -367,7 +365,6 @@ struct BatteryDetail: View {
         } content: {
             powerChart
             summaryRow
-            SourceNote(text: "순전력은 배터리로 들어가고 나오는 전력이에요. 충전기 출력이나 Mac 전체 소비전력과는 달라요. 남은 시간은 macOS가 추정한 값이에요.")
         }
     }
 
@@ -415,9 +412,8 @@ struct NetworkDetail: View {
             totalsTable
             interfaceList
             if network.todayHasGap {
-                SourceNote(text: "오늘 누적에는 자정을 넘겨 잠든 동안의 트래픽이 빠져 있어요. 어느 날의 양인지 나눌 수 없어서예요.")
+                SourceNote(text: "누적 일부 누락")
             }
-            SourceNote(text: "오늘 누적은 앱이 켜져 있는 동안 관측한 양이에요. Wi-Fi·이더넷 같은 실제 장치만 세고, VPN·AirDrop 같은 가상 인터페이스는 겹쳐 세지 않아요.")
         }
     }
 

@@ -35,9 +35,9 @@ nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Send
     /// 한 항목 안의 두 번째 계열을 같은 색으로 연하게 쓰는 경우의 설명이에요.
     var secondaryNote: String? {
         switch self {
-        case .cpu: "E 코어는 같은 색을 연하게 써요"
-        case .thermal: "팬 2는 같은 색을 연하게 써요"
-        case .network: "업로드는 같은 색을 연하게 써요"
+        case .cpu: "P-core : 진하게, E-core : 연하게"
+        case .thermal: "Fan1 : 진하게, Fan2 : 연하게"
+        case .network: "up : 연하게, down : 진하게"
         default: nil
         }
     }

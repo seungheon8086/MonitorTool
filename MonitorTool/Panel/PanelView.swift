@@ -107,8 +107,8 @@ private struct PanelHeader: View {
                         .font(.callout.monospaced())
                         .foregroundStyle(shortcutNeedsAttention ? StatusColor.warningText : Color.secondary)
                         .help(shortcutNeedsAttention
-                              ? "단축키가 아직 동작하지 않아요. 설정 창 '일반'에서 확인해 주세요."
-                              : "이 단축키로 어디서든 패널을 열고 닫아요. 설정 창 '일반'에서 바꾸거나 끌 수 있어요.")
+                              ? "단축키 작동 불가. MonitorTool 설정 > 일반에서 확인 필요"
+                              : "전역 접근 단축키(fn + Space는 손쉬운 사용 허용 필요)")
                 }
             }
             if let takenAt {

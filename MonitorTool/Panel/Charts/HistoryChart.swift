@@ -82,10 +82,10 @@ struct HistoryChart<Trailing: View>: View {
     /// 기록이 없을 때 그래프 가운데에 보여줄 글
     private var emptyMessage: String {
         switch emptyState {
-        case .permissionNeeded: "보조 프로그램을 허용하면 기록이 쌓여요"
-        case .unsupported: "이 Mac에는 없는 기능이에요"
-        case .notMeasurable: "macOS가 이 값을 알려 주지 않아요"
-        default: "기록이 쌓이면 그래프가 보여요"
+        case .permissionNeeded: ""
+        case .unsupported: "이 Mac은 해당 기능을 지원하지 않음"
+        case .notMeasurable: "측정 불가"
+        default: ""
         }
     }
 

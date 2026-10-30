@@ -9,7 +9,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             SettingsSectionTitle(title: "패널 단축키")
-            SettingsNote(text: "다른 앱을 쓰는 중에도 단축키로 패널을 열고 닫아요. 끄면 메뉴 막대 아이콘으로만 열어요.")
+            SettingsNote(text: "전역 접근 단축키(fn + Space는 손쉬운 사용 허용 필요)")
             SettingsBox(spacing: 10) {
                 ShortcutSettings()
             }
@@ -20,10 +20,6 @@ struct GeneralSettingsView: View {
                 LoginItemRow()
             }
 
-            Text("바꾼 설정은 바로 적용돼요.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .padding(.top, 8)
         }
         .padding(EdgeInsets(top: 20, leading: 24, bottom: 24, trailing: 24))
         .frame(width: SettingsLayout.width, alignment: .leading)
@@ -108,10 +104,6 @@ private struct FnShortcutStatus: View {
             if shortcut.kind == .fnSpace && shortcut.isEnabled {
                 status
             }
-            Text("fn + Space를 받으려면 키보드 입력을 살펴야 해서 손쉬운 사용 허용이 필요해요. fn + Space인지만 확인하고, 다른 입력은 그대로 흘려보내며 아무것도 저장하지 않아요.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -119,12 +111,10 @@ private struct FnShortcutStatus: View {
     private var status: some View {
         switch shortcut.fnState {
         case .active:
-            Label("손쉬운 사용 허용됨 · 어디서든 fn + Space로 패널을 열고 닫아요", systemImage: "checkmark.circle.fill")
-                .font(.system(size: 12))
-                .foregroundStyle(StatusColor.active)
+            EmptyView()
         case .needsPermission:
             VStack(alignment: .leading, spacing: 4) {
-                Text("시스템 설정 > 개인정보 보호 및 보안 > 손쉬운 사용에서 MonitorTool을 허용해야 동작해요.")
+                Text("권한 필요: 시스템 설정 > 개인정보 보호 및 보안 > 손쉬운 사용에서 MonitorTool 허용")
                     .font(.system(size: 12))
                     .foregroundStyle(StatusColor.warningText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -141,7 +131,7 @@ private struct FnShortcutStatus: View {
             }
         case .failed:
             VStack(alignment: .leading, spacing: 4) {
-                Text("손쉬운 사용에서 허용돼 있는데 키 입력을 받지 못했어요. MonitorTool을 다시 켜 보고, 그래도 안 되면 목록에서 MonitorTool을 지운 뒤 다시 허용해 주세요.")
+                Text("키 입력 수신 실패. 프로그램 재시작 필요")
                     .font(.system(size: 12))
                     .foregroundStyle(StatusColor.error)
                     .fixedSize(horizontal: false, vertical: true)
@@ -191,10 +181,12 @@ struct ShortcutRecorder: View {
                     shortcut.resetToStandard()
                 }
             }
-            Text(hint)
-                .font(.system(size: 12))
-                .foregroundStyle(shortcut.problem == nil ? Color.secondary : StatusColor.error)
-                .fixedSize(horizontal: false, vertical: true)
+            if !hint.isEmpty {
+                Text(hint)
+                    .font(.system(size: 12))
+                    .foregroundStyle(shortcut.problem == nil ? Color.secondary : StatusColor.error)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -203,9 +195,9 @@ struct ShortcutRecorder: View {
             return problem
         }
         if shortcut.isRecording {
-            return "원하는 조합을 누르세요. Esc를 누르면 취소돼요."
+            return "Esc : 취소"
         }
-        return "칸을 누르고 새 조합을 누르면 바로 바뀌어요. ⌘·⌃·⌥ 중 하나 이상이 들어가야 해요."
+        return ""
     }
 
     private var fieldFill: Color {
@@ -250,19 +242,12 @@ struct LoginItemRow: View {
                 .fixedSize(horizontal: false, vertical: true)
         } else if loginItem.needsApproval {
             HStack(spacing: 6) {
-                Text("시스템 설정의 로그인 항목에서 허용해야 켜져요.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(StatusColor.warningText)
                 Button("로그인 항목 열기") {
                     loginItem.openSystemSettings()
                 }
                 .buttonStyle(.link)
                 .font(.system(size: 11))
             }
-        } else {
-            Text("켜 두면 Mac에 로그인할 때 메뉴 막대에 바로 나타나요.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
         }
     }
 }
