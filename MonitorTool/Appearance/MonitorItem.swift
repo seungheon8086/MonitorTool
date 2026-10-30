@@ -36,7 +36,7 @@ nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Send
     var secondaryNote: String? {
         switch self {
         case .cpu: "P-core : 진하게, E-core : 연하게"
-        case .thermal: "Fan1 : 진하게, Fan2 : 연하게"
+        case .thermal: "왼쪽 : 연하게, 오른쪽 : 진하게"
         case .network: "up : 연하게, down : 진하게"
         default: nil
         }

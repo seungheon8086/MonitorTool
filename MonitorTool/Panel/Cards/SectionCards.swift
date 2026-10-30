@@ -180,7 +180,7 @@ struct ThermalCard: View {
                 LabeledValue(label: "GPU 최고", reading: thermal.gpuMax, format: ValueFormat.celsius)
                 if let fans = thermal.fans.okValue {
                     ForEach(fans) { fan in
-                        FanValue(fan: fan)
+                        FanValue(fan: fan, count: fans.count)
                     }
                 } else {
                     LabeledValue(label: "팬",
@@ -195,10 +195,12 @@ struct ThermalCard: View {
 /// 팬 하나의 회전수. 읽기에 성공한 0 RPM은 '정지'로 보여줘요.
 struct FanValue: View {
     let fan: FanReading
+    /// 팬 수 (이름을 왼쪽·오른쪽으로 부를지 정해요)
+    let count: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("팬 \(fan.id + 1)")
+            Text(FanName.long(id: fan.id, count: count))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
             if let rpm = fan.rpm.okValue {

@@ -7,7 +7,7 @@ struct ChartLine: Identifiable {
     /// 이름 (범례·구분용, 그래프 안에서 겹치지 않게)
     let label: String
     let color: Color
-    /// 점선으로 그릴지 (같은 항목의 두 번째 계열, 예: 팬 2)
+    /// 점선으로 그릴지 (같은 항목의 두 번째 계열, 예: 왼쪽 팬)
     var dashed: Bool = false
 
     var id: String { label }

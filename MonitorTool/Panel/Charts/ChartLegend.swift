@@ -23,7 +23,7 @@ struct LegendSwatch: View {
     }
 }
 
-/// 범례 한 칸: 색 막대 + 이름 (예: '▬ 팬 1')
+/// 범례 한 칸: 색 막대 + 이름 (예: '▬ 오른쪽')
 struct LegendLabel: View {
     let color: Color
     var dashed: Bool = false

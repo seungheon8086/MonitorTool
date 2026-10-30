@@ -249,7 +249,7 @@ struct ThermalDetail: View {
         .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
-    /// 팬 회전수 그래프 (팬 1은 진하게, 팬 2는 연한 점선)
+    /// 팬 회전수 그래프 (오른쪽은 진하게, 왼쪽은 연한 점선)
     private var fanChart: some View {
         HistoryChart(title: "팬 회전수",
                      lines: fanLines,
@@ -269,10 +269,11 @@ struct ThermalDetail: View {
     private var fanLines: [ChartLine] {
         let color = appearance.color(for: .thermal)
         let fans = thermal.fans.okValue ?? []
-        return fans.enumerated().map { index, fan in
-            ChartLine(metric: .fan(fan.id), label: "팬 \(fan.id + 1)",
-                      color: index == 0 ? color.color : color.secondaryColor,
-                      dashed: index > 0)
+        return fans.map { fan in
+            let light = FanName.isLight(id: fan.id, count: fans.count)
+            return ChartLine(metric: .fan(fan.id), label: FanName.short(id: fan.id, count: fans.count),
+                             color: light ? color.secondaryColor : color.color,
+                             dashed: light)
         }
     }
 
@@ -301,7 +302,7 @@ struct FanCards: View {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                 ForEach(list) { fan in
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(title(for: fan))
+                        Text(title(for: fan, count: list.count))
                             .font(.system(size: 12, weight: .semibold))
                         Text(rangeText(for: fan))
                             .font(.system(size: 11))
@@ -327,11 +328,11 @@ struct FanCards: View {
         }
     }
 
-    /// '팬 1 · 정지', '팬 2 · 2,140 RPM'
-    private func title(for fan: FanReading) -> String {
-        let number = fan.id + 1
-        guard let rpm = fan.rpm.okValue else { return "팬 \(number) · 읽지 못함" }
-        return rpm < 1 ? "팬 \(number) · 정지" : "팬 \(number) · \(ValueFormat.rpm(rpm))"
+    /// '왼쪽 · 정지', '오른쪽 · 2,140 RPM'
+    private func title(for fan: FanReading, count: Int) -> String {
+        let name = FanName.short(id: fan.id, count: count)
+        guard let rpm = fan.rpm.okValue else { return "\(name) · 읽지 못함" }
+        return rpm < 1 ? "\(name) · 정지" : "\(name) · \(ValueFormat.rpm(rpm))"
     }
 
     /// '0 RPM · 범위 1,499–4,296'

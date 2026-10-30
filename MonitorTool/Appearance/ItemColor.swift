@@ -24,7 +24,7 @@ nonisolated enum ItemColor: String, CaseIterable, Identifiable, Hashable, Sendab
         .dynamic(light: lightHex, dark: darkHex)
     }
 
-    /// 같은 항목의 두 번째 계열(E 코어, 업로드, 팬 2)에 쓰는 연한 색이에요.
+    /// 같은 항목의 두 번째 계열(E 코어, 업로드, 왼쪽 팬)에 쓰는 연한 색이에요.
     var secondaryColor: Color {
         color.opacity(0.5)
     }

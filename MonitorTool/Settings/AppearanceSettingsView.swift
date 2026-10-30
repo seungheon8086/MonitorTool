@@ -94,7 +94,7 @@ private struct ColorPreviewRow: View {
             UsageBar(fraction: Self.sampleFractions[seed % Self.sampleFractions.count], color: color.color)
                 .frame(width: 96)
             ZStack {
-                // 두 번째 계열이 있는 항목(CPU의 E 코어, 팬 2, 업로드)은 연한 선을 하나 더 그려요.
+                // 두 번째 계열이 있는 항목(CPU의 E 코어, 왼쪽 팬, 업로드)은 연한 선을 하나 더 그려요.
                 if item.secondaryNote != nil {
                     Sparkline(values: Self.wave(seed: 53 + seed * 5, base: 0.3, amplitude: 0.3),
                               color: color.secondaryColor)
