@@ -14,6 +14,15 @@ nonisolated protocol HelperProtocol {
     ///   - reply: (PowerSample을 JSON으로 담은 값, 문제 설명). 첫 표본을 기다리는 중이거나
     ///     보조 프로그램이 새 버전으로 다시 뜨는 중이면 둘 다 nil이에요.
     func latestPower(intervalMilliseconds: Int, reply: @escaping (Data?, String?) -> Void)
+
+    /// 팬 제어를 요청해요. (docs/FAN_CONTROL.md)
+    /// - Parameters:
+    ///   - request: FanControlRequest를 JSON으로 담은 값. 목표가 비어 있으면 시스템 제어로 돌려요.
+    ///   - reply: (적용한 뒤의 FanControlState JSON, 거절·실패 이유). 거절이면 상태는 바뀌지 않아요.
+    func setFanControl(_ request: Data, reply: @escaping (Data?, String?) -> Void)
+
+    /// 지금 팬 제어 상태(FanControlState JSON)를 돌려줘요.
+    func fanControlState(reply: @escaping (Data?, String?) -> Void)
 }
 
 /// 이름, 측정 간격, 서명 요구사항처럼 두 쪽이 똑같이 알아야 하는 값이에요.
