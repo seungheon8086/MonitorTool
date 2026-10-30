@@ -4,7 +4,8 @@
 // 1) info: 팬 관련 SMC 키(F…)의 형식·크기·속성 바이트와 값, 시험 모드 키(Ftst)·M5식 모드 키(F0md)가 있는지
 // 2) unpriv-write: 관리자 권한 없이 쓰기가 거절되는지 (지금 값을 그대로 다시 써서 값은 바뀌지 않아요)
 // 3) control: 관리자 권한으로 수동 모드 전환 → 목표 RPM 2,500 → 3,500 → 2,000 → 시스템 제어로 복원하며 1초마다 기록
-// 4) restore: 수동 모드(1)로 남은 팬과 켜진 Ftst를 시스템 제어로 되돌려요 (measure.sh가 끝날 때 항상 불러요)
+// 4) stress: CPU·GPU 부하 중 시스템이 몇 °C에서 팬을 돌리는지, 팬마다 다른 목표, 돌고 있는 팬의 정지(0)
+// 5) restore: 수동 모드(1)로 남은 팬과 켜진 Ftst를 시스템 제어로 되돌려요 (measure.sh가 끝날 때 항상 불러요)
 //
 // 안전장치: 목표 RPM은 팬의 최소~최대 안으로만, 속도를 올리는 쪽으로만 시험해요.
 // CPU·GPU 온도가 95 °C를 넘거나 Control-C·종료 신호를 받으면 바로 시스템 제어로 되돌리고 끝나요.
@@ -16,11 +17,14 @@
 //   ./fan_probe info
 //   ./fan_probe unpriv-write
 //   sudo ./fan_probe control
+//   sudo ./fan_probe stress [최대초] [회전초] # 부하를 켠 상태에서: 시스템 제어 → 팬마다 다른 목표 → 정지 → 복원
+//   ./fan_probe watch <초> <이름표>          # 읽기만 하며 기록
 //   sudo ./fan_probe restore
 
 import Darwin
 import Foundation
 import IOKit
+import notify
 
 // MARK: - 공통
 
@@ -316,6 +320,33 @@ func highest(_ smc: SMC, _ keys: [String]) -> Double? {
     keys.compactMap { smc.number($0) }.filter { $0 > 0 }.max()
 }
 
+// MARK: - macOS 열 압력
+
+/// macOS가 공개하는 열 압력 단계 (com.apple.system.thermalpressurelevel)
+/// 0 보통 · 1 조금 · 2 높음 · 3 매우 높음(trapping) · 4 잠자기 직전(sleeping)
+final class ThermalPressure {
+    private let token: Int32
+    private let registered: Bool
+
+    init() {
+        var newToken: Int32 = 0
+        registered = notify_register_check("com.apple.system.thermalpressurelevel", &newToken) == 0
+        token = newToken
+    }
+
+    var level: UInt64? {
+        guard registered else { return nil }
+        var state: UInt64 = 0
+        guard notify_get_state(token, &state) == 0 else { return nil }
+        return state
+    }
+}
+
+/// ProcessInfo의 열 상태: 0 nominal · 1 fair · 2 serious · 3 critical
+func processThermalState() -> Int {
+    ProcessInfo.processInfo.thermalState.rawValue
+}
+
 // MARK: - 신호 (Control-C 등)
 
 /// 받은 신호 번호 (신호 처리기에서 바꿔요)
@@ -408,25 +439,35 @@ func restore(_ smc: SMC, reason: String) -> Bool {
 
 // MARK: - control
 
+/// 기록이 끝난 까닭
+enum SampleEnd: String {
+    case done = "시간 다 됨"
+    case condition = "조건 충족"
+    case hot = "온도 한도"
+    case signal = "신호 받음"
+}
+
 struct Recorder {
     let smc: SMC
     let fanList: [Fan]
     let start = Date()
+    let pressure = ThermalPressure()
 
     func header() {
         var columns = ["초", "단계"]
         for fan in fanList {
             columns += ["F\(fan.index)Md", "F\(fan.index)Tg", "F\(fan.index)Ac"]
         }
-        columns += ["CPU최고", "GPU최고", "Ftst"]
+        columns += ["CPU최고", "GPU최고", "Ftst", "열압력", "열상태"]
         out(columns.joined(separator: "\t"))
     }
 
-    /// 1초마다 기록해요. 신호를 받았거나 너무 뜨거우면 false
-    func sample(_ label: String, seconds: Int) -> Bool {
+    /// 1초마다 기록해요. 온도가 limit 이상이거나 조건이 맞거나 신호를 받으면 일찍 끝나요.
+    func sampleUntil(_ label: String, seconds: Int, limit: Double = failsafeCelsius,
+                     until condition: (() -> Bool)? = nil) -> SampleEnd {
         for _ in 0..<seconds {
             for _ in 0..<4 {
-                if stopSignal != 0 { return false }
+                if stopSignal != 0 { return .signal }
                 usleep(250_000)
             }
             var row = [fmt(Date().timeIntervalSince(start), 1), label]
@@ -435,14 +476,24 @@ struct Recorder {
             }
             let cpu = highest(smc, cpuTemperatureKeys)
             let gpu = highest(smc, gpuTemperatureKeys)
-            row += [fmt(cpu, 1), fmt(gpu, 1), fmt(smc.number("Ftst"))]
+            row += [fmt(cpu, 1), fmt(gpu, 1), fmt(smc.number("Ftst")),
+                    pressure.level.map { String($0) } ?? "-", String(processThermalState())]
             out(row.joined(separator: "\t"))
-            if max(cpu ?? 0, gpu ?? 0) >= failsafeCelsius {
-                out("# 온도가 \(Int(failsafeCelsius)) °C 이상이라 멈춰요")
-                return false
+            let hottest = max(cpu ?? 0, gpu ?? 0)
+            if hottest >= limit {
+                out("# 온도 \(fmt(hottest, 1)) °C가 이 단계 한도 \(Int(limit)) °C 이상이라 단계를 끝내요")
+                return .hot
+            }
+            if let condition, condition() {
+                return .condition
             }
         }
-        return true
+        return .done
+    }
+
+    /// 끝까지 기록했으면 true
+    func sample(_ label: String, seconds: Int) -> Bool {
+        sampleUntil(label, seconds: seconds) == .done
     }
 }
 
@@ -461,6 +512,15 @@ func setTarget(_ smc: SMC, _ fanList: [Fan], rpm: Double) {
         let clamped = min(max(rpm, fan.minimum), fan.maximum)
         let result = smc.write(fan.target, clamped)
         out("# 쓰기 \(fan.target)=\(fmt(clamped)) → \(describe(result)), 다시 읽은 값 \(fmt(smc.number(fan.target)))")
+    }
+}
+
+/// 팬마다 목표를 줘요. 0은 정지로 그대로 쓰고, 나머지는 그 팬의 최소~최대 안으로 맞춰요.
+func setTargets(_ smc: SMC, _ fanList: [Fan], rpms: [Double]) {
+    for (fan, rpm) in zip(fanList, rpms) {
+        let value = rpm <= 0 ? 0 : min(max(rpm, fan.minimum), fan.maximum)
+        let result = smc.write(fan.target, value)
+        out("# 쓰기 \(fan.target)=\(fmt(value)) → \(describe(result)), 다시 읽은 값 \(fmt(smc.number(fan.target)))")
     }
 }
 
@@ -519,6 +579,77 @@ func runControl(_ smc: SMC) -> Int32 {
     return 0
 }
 
+// MARK: - stress (부하는 measure-stress.sh가 미리 켜 둬요)
+
+func runStress(_ smc: SMC, systemSeconds: Int, spinSeconds: Int) -> Int32 {
+    guard getuid() == 0 else {
+        log("stress는 관리자 권한(sudo)으로 실행해야 해요.")
+        return 1
+    }
+    installSignalHandlers()
+    let fanList = fans(smc)
+    guard fanList.count >= 2, fanList.allSatisfy({ $0.minimum > 0 && $0.maximum > $0.minimum }) else {
+        out("# 팬 정보를 읽지 못해 시험하지 않아요: FNum=\(fmt(smc.number("FNum")))")
+        return 1
+    }
+    out("# 부하 중 시험. 팬 \(fanList.count)개: " + fanList.map { "F\($0.index) \(fmt($0.minimum))~\(fmt($0.maximum)) RPM" }.joined(separator: ", "))
+    let recorder = Recorder(smc: smc, fanList: fanList)
+    recorder.header()
+
+    var finished = false
+    defer {
+        restore(smc, reason: finished ? "시험 끝" : "중단")
+    }
+
+    // S: 시스템 제어 그대로. 두 팬이 spinSeconds초 이어서 돌면(또는 systemSeconds초가 지나면) 다음으로.
+    var spinningSeconds = 0
+    let system = recorder.sampleUntil("S-시스템부하", seconds: systemSeconds, limit: 105) {
+        let spinning = fanList.allSatisfy { (smc.number($0.actual) ?? 0) > 0 }
+        spinningSeconds = spinning ? spinningSeconds + 1 : 0
+        return spinningSeconds >= spinSeconds
+    }
+    out("# S 끝: \(system.rawValue)")
+    guard system == .done || system == .condition else { return 2 }
+
+    // M: 수동, 팬마다 다른 목표 (F0 2,000 · F1 2,300)
+    guard setMode(smc, fanList, manual: true) else {
+        out("# 수동 모드로 바꾸지 못했어요")
+        finished = true
+        return 3
+    }
+    setTargets(smc, fanList, rpms: [2000, 2300])
+    let manualEnd = recorder.sampleUntil("M-수동따로", seconds: 25, limit: 100)
+    out("# M 끝: \(manualEnd.rawValue)")
+    guard manualEnd != .signal else { return 2 }
+
+    // Z: 돌고 있는 팬에 정지(0). 칩이 뜨거우니 98 °C면 바로 끝내고, M에서 이미 한도에 닿았으면 건너뛰어요.
+    if manualEnd == .done {
+        setTargets(smc, fanList, rpms: [0, 0])
+        let stopEnd = recorder.sampleUntil("Z-정지", seconds: 15, limit: 98)
+        out("# Z 끝: \(stopEnd.rawValue)")
+        guard stopEnd != .signal else { return 2 }
+    } else {
+        out("# M에서 온도 한도에 닿아 정지 시험(Z)을 건너뛰어요")
+    }
+
+    // R: 부하가 있는 채로 시스템 제어로
+    _ = setMode(smc, fanList, manual: false)
+    let backEnd = recorder.sampleUntil("R-복원", seconds: 20, limit: 105)
+    out("# R 끝: \(backEnd.rawValue)")
+    finished = true
+    return backEnd == .signal ? 2 : 0
+}
+
+/// 읽기만 하면서 기록해요 (부하를 끈 뒤 식는 모습)
+func runWatch(_ smc: SMC, seconds: Int, label: String) -> Int32 {
+    installSignalHandlers()
+    let recorder = Recorder(smc: smc, fanList: fans(smc))
+    recorder.header()
+    let end = recorder.sampleUntil(label, seconds: seconds, limit: 200)
+    out("# \(label) 끝: \(end.rawValue)")
+    return 0
+}
+
 // MARK: - 시작
 
 guard let smc = SMC() else { exit(1) }
@@ -530,6 +661,13 @@ case "unpriv-write":
     exit(runUnprivilegedWrite(smc))
 case "control":
     exit(runControl(smc))
+case "stress":
+    // stress [시스템 단계 최대 초] [팬이 이어서 돌면 끝낼 초] (기본 300 · 45)
+    let systemSeconds = arguments.count >= 3 ? (Int(arguments[2]) ?? 300) : 300
+    let spinSeconds = arguments.count >= 4 ? (Int(arguments[3]) ?? 45) : 45
+    exit(runStress(smc, systemSeconds: systemSeconds, spinSeconds: spinSeconds))
+case "watch" where arguments.count >= 4:
+    exit(runWatch(smc, seconds: Int(arguments[2]) ?? 30, label: arguments[3]))
 case "restore":
     guard getuid() == 0 else {
         log("restore는 관리자 권한(sudo)으로 실행해야 해요.")
@@ -537,6 +675,6 @@ case "restore":
     }
     exit(restore(smc, reason: "restore 명령") ? 0 : 1)
 default:
-    log("사용법: fan_probe info | unpriv-write | control | restore")
+    log("사용법: fan_probe info | unpriv-write | control | stress | watch <초> <이름표> | restore")
     exit(1)
 }

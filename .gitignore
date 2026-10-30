@@ -14,3 +14,6 @@ build/
 
 # 진단 결과 중 큰 표본 원본(.tsv)은 압축본(.tsv.gz)만 저장
 Diagnostics/**/*.tsv
+
+# FanProbe의 powermetrics 원본은 압축본(.txt.gz)만 저장
+Diagnostics/FanProbe/results/*-pm.txt
