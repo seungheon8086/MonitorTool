@@ -155,21 +155,23 @@ struct MediumSummary: View {
     var body: some View {
         VStack(spacing: 6) {
             WidgetProcessorCard(snapshot: snapshot, colors: colors, compact: true)
+            // 배터리 잔량은 메뉴 막대에서도 보여서 빼고, 순전력과 네트워크 ↓·↑를 보여줘요. (2026-10-30 사용자 요청)
             HStack(spacing: 6) {
                 chip("메모리", snapshot.memory.usagePercent, ValueFormat.percent)
-                chip("CPU", snapshot.thermal.cpuMax, ValueFormat.celsius)
-                chip("배터리", snapshot.battery.level, ValueFormat.percent)
-                chip("↓", snapshot.network.download, ValueFormat.rate)
+                chip("순전력", snapshot.battery.netPower, ValueFormat.signedWatts)
+                chip("↓", snapshot.network.download, ValueFormat.rate, labelColor: colors(.network).color)
+                chip("↑", snapshot.network.upload, ValueFormat.rate, labelColor: colors(.network).secondaryColor)
             }
             .frame(height: 20)
         }
     }
 
-    private func chip(_ label: String, _ reading: Reading<Double>, _ format: @escaping (Double) -> String) -> some View {
+    private func chip(_ label: String, _ reading: Reading<Double>, _ format: @escaping (Double) -> String,
+                      labelColor: Color? = nil) -> some View {
         HStack(spacing: 3) {
             Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+                .font(.system(size: labelColor == nil ? 10 : 11, weight: labelColor == nil ? .regular : .semibold))
+                .foregroundStyle(labelColor.map { AnyShapeStyle($0) } ?? AnyShapeStyle(HierarchicalShapeStyle.secondary))
             WidgetValueText(reading: reading, format: format, font: .system(size: 11, weight: .semibold))
         }
         .lineLimit(1)
@@ -192,10 +194,10 @@ struct LargeSummary: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 6) {
                 thermalCard
-                batteryCard
+                networkCard
             }
             .fixedSize(horizontal: false, vertical: true)
-            networkCard
+            batteryCard
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -204,11 +206,21 @@ struct LargeSummary: View {
         let memory = snapshot.memory
         return WidgetCard {
             VStack(alignment: .leading, spacing: 5) {
-                HStack {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     WidgetCardTitle(title: "메모리")
                     Spacer(minLength: 4)
+                    // 지금 쓰는 메모리 대역폭 (패널의 'DRAM 트래픽'과 같은 값)
+                    Text("TRAFFIC")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    WidgetValueText(reading: memory.trafficTotal, format: ValueFormat.gigabytesPerSecond,
+                                    font: .system(size: 11, weight: .semibold))
+                    Text("·")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
                     WidgetPressureLabel(reading: memory.pressure)
                 }
+                .lineLimit(1)
                 HStack(spacing: 6) {
                     if let used = memory.used.okValue, let total = memory.total.okValue {
                         Text("\(ValueFormat.memoryNumber(used)) / \(ValueFormat.memoryNumber(total)) GB")
@@ -232,10 +244,13 @@ struct LargeSummary: View {
         return WidgetCard {
             VStack(alignment: .leading, spacing: 4) {
                 WidgetCardTitle(title: "온도·팬")
-                HStack(spacing: 8) {
-                    WidgetValueRow(label: "CPU", reading: thermal.cpuMax, format: ValueFormat.celsius)
-                    WidgetValueRow(label: "GPU", reading: thermal.gpuMax, format: ValueFormat.celsius)
+                // 이름과 값을 붙여 두고 사이만 늘려요. (반 폭 카드에서 'GPU 71…'처럼 잘리던 문제)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    temperature("CPU", thermal.cpuMax)
+                    Spacer(minLength: 4)
+                    temperature("GPU", thermal.gpuMax)
                 }
+                .minimumScaleFactor(0.85)
                 if let fans = thermal.fans.okValue {
                     ForEach(fans) { fan in
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -266,60 +281,77 @@ struct LargeSummary: View {
         }
     }
 
+    private func temperature(_ label: String, _ reading: Reading<Double>) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 3) {
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+            WidgetValueText(reading: reading, format: ValueFormat.celsius, font: .system(size: 12, weight: .semibold))
+        }
+        .fixedSize()
+    }
+
+    /// 긴 배터리 카드: 잔량 막대, 충전·방전과 남은 시간, 순전력
     private var batteryCard: some View {
         let battery = snapshot.battery
         return WidgetCard {
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline) {
+                HStack(spacing: 8) {
                     WidgetCardTitle(title: "배터리")
-                    Spacer(minLength: 4)
+                    WidgetUsageBar(fraction: battery.level.okValue.map { $0 / 100 }, color: colors(.battery).color)
                     WidgetValueText(reading: battery.level, format: ValueFormat.percent)
+                        .frame(minWidth: 32, alignment: .trailing)
                 }
-                WidgetUsageBar(fraction: battery.level.okValue.map { $0 / 100 }, color: colors(.battery).color)
-                Text(chargeText(battery))
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                WidgetValueRow(label: "순전력", reading: battery.netPower, format: ValueFormat.signedWatts)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(chargeText(battery))
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 8)
+                    Text("순전력")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    WidgetValueText(reading: battery.netPower, format: ValueFormat.signedWatts,
+                                    font: .system(size: 12, weight: .semibold))
+                }
             }
         }
     }
 
+    /// 반 폭 네트워크 카드: 줄마다 지금 속도와 오늘 누적 (좌·우 팬처럼 ↓·↑ 짝)
     private var networkCard: some View {
         let network = snapshot.network
         let color = colors(.network)
         return WidgetCard {
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
+                HStack(alignment: .firstTextBaseline) {
                     WidgetCardTitle(title: "네트워크")
                     Spacer(minLength: 4)
                     Text(todayLabel(network.todayDate))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
-                    WidgetValueText(reading: network.todayDownloaded, format: { "↓ \(ValueFormat.byteCount($0))" },
-                                    font: .system(size: 11, weight: .semibold))
-                    WidgetValueText(reading: network.todayUploaded, format: { "↑ \(ValueFormat.byteCount($0))" },
-                                    font: .system(size: 11, weight: .semibold))
                 }
-                .lineLimit(1)
-                HStack(spacing: 10) {
-                    rateRow("↓", network.download, color.color)
-                    rateRow("↑", network.upload, color.secondaryColor)
-                }
+                rateRow("↓", network.download, network.todayDownloaded, color.color)
+                rateRow("↑", network.upload, network.todayUploaded, color.secondaryColor)
             }
         }
     }
 
-    private func rateRow(_ arrow: String, _ reading: Reading<Double>, _ color: Color) -> some View {
-        HStack(spacing: 4) {
+    /// '↓ 168 KB/s ⋯ 17 GB'
+    private func rateRow(_ arrow: String, _ rate: Reading<Double>, _ total: Reading<Double>,
+                         _ color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
             Text(arrow)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(color)
-            WidgetValueText(reading: reading, format: ValueFormat.rate)
-            Spacer(minLength: 0)
+            WidgetValueText(reading: rate, format: ValueFormat.rate, font: .system(size: 12, weight: .semibold))
+            Spacer(minLength: 4)
+            WidgetValueText(reading: total, format: ValueFormat.byteCount, font: .system(size: 10))
+                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity)
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
     }
 
     /// 기준 날짜가 오늘이 아니면 '오늘' 대신 날짜 (docs/WIDGET_V2.md 3장)
