@@ -77,7 +77,8 @@ final class WidgetPublisher {
         do {
             try WidgetSharedFile.write(payload)
             reportedFailure = false
-            WidgetCenter.shared.reloadTimelines(ofKind: WidgetSharedFile.widgetKind)
+            // 요약 위젯과 그래프 위젯 모두 같은 파일을 읽어서 한 번에 갱신을 부탁해요.
+            WidgetCenter.shared.reloadAllTimelines()
         } catch {
             if !reportedFailure {
                 reportedFailure = true
@@ -101,7 +102,19 @@ final class WidgetPublisher {
                 sums[index] += value
                 counts[index] += 1
             }
-            result[key.rawValue] = (0..<count).map { counts[$0] > 0 ? sums[$0] / Double(counts[$0]) : nil }
+            var values: [Double?] = (0..<count).map { counts[$0] > 0 ? sums[$0] / Double(counts[$0]) : nil }
+            // 재는 간격이 칸보다 긴 계열(배터리는 약 30초)이 점으로 흩어지지 않게, 패널 그래프와 같은 기준
+            // (가장 느린 수집 간격의 2.5배) 안의 빈 칸은 앞 값으로 이어요. 그보다 긴 공백은 그대로 비워요.
+            let maxGap = metric(for: key).slowestInterval * 2.5
+            var lastFilled: Int?
+            for index in 0..<count {
+                if values[index] != nil {
+                    lastFilled = index
+                } else if let last = lastFilled, Double(index - last) * length <= maxGap {
+                    values[index] = values[last]
+                }
+            }
+            result[key.rawValue] = values
         }
         return result
     }
@@ -118,6 +131,9 @@ final class WidgetPublisher {
         case .gpuTemperature: .gpuTemperature
         case .networkDownload: .networkDownload
         case .networkUpload: .networkUpload
+        case .fan0: .fan(0)
+        case .fan1: .fan(1)
+        case .batteryNetPower: .batteryNetPower
         }
     }
 }

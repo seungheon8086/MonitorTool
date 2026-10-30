@@ -1,11 +1,17 @@
 import SwiftUI
 import WidgetKit
 
-/// 위젯 확장의 시작점이에요. 위젯은 하나, 크기는 중간·큰이에요. (docs/WIDGET_V2.md)
+/// 위젯 확장의 시작점이에요. 요약 위젯(중간·큰) 하나와 항목별 그래프 위젯(작은) 넷이에요. (docs/WIDGET_V2.md)
 @main
 struct MonitorToolWidgetBundle: WidgetBundle {
     var body: some Widget {
         MonitorToolWidget()
+        UsageGraphWidget()
+        PowerGraphWidget()
+        TemperatureGraphWidget()
+        FanGraphWidget()
+        NetworkGraphWidget()
+        BatteryGraphWidget()
     }
 }
 

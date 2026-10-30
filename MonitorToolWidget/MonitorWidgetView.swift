@@ -387,7 +387,7 @@ struct LargeSummary: View {
     }
 }
 
-// MARK: - 그래프 카드 (2단계 그래프 전용 위젯에서 쓸 예정)
+// MARK: - 그래프 카드 (그래프 위젯 GraphWidgets.swift가 써요)
 
 /// 그래프 카드 하나: 제목 · 범례(지금 값) · 꺾은선
 struct WidgetGraphCard: View {
@@ -404,6 +404,10 @@ struct WidgetGraphCard: View {
     let lines: [WidgetLine]
     var fixedMaximum: Double?
     var minimumMaximum: Double = 1
+    /// 0을 가운데 둘지 (배터리 순전력)
+    var symmetric = false
+    /// 왼쪽 눈금 글자
+    var axisFormat: ((Double) -> String)?
 
     var body: some View {
         WidgetCard {
@@ -423,7 +427,8 @@ struct WidgetGraphCard: View {
                     Spacer(minLength: 0)
                 }
                 .minimumScaleFactor(0.8)
-                WidgetSparkline(lines: lines, fixedMaximum: fixedMaximum, minimumMaximum: minimumMaximum)
+                WidgetSparkline(lines: lines, fixedMaximum: fixedMaximum, minimumMaximum: minimumMaximum,
+                                symmetric: symmetric, axisFormat: axisFormat)
                     .frame(maxHeight: .infinity)
             }
         }
@@ -462,7 +467,8 @@ enum WidgetGraphs {
             lines: [WidgetLine(label: "E", values: payload.values(.cpuEfficiency), color: cpu.secondaryColor, dashed: true),
                     WidgetLine(label: "P", values: payload.values(.cpuPerformance), color: cpu.color),
                     WidgetLine(label: "GPU", values: payload.values(.gpuUsage), color: gpu)],
-            fixedMaximum: 100)
+            fixedMaximum: 100,
+            axisFormat: { "\(ValueFormat.compact($0))%" })
     }
 
     static func power(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
@@ -476,7 +482,8 @@ enum WidgetGraphs {
             lines: [WidgetLine(label: "CPU", values: payload.values(.cpuPower), color: cpu),
                     WidgetLine(label: "GPU", values: payload.values(.gpuPower), color: gpu),
                     WidgetLine(label: "ANE", values: payload.values(.anePower), color: ane)],
-            minimumMaximum: 1)
+            minimumMaximum: 1,
+            axisFormat: ValueFormat.wattsScale)
     }
 
     static func temperature(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
@@ -489,7 +496,8 @@ enum WidgetGraphs {
                             value: widgetLegendValue(s.thermal.gpuMax, ValueFormat.celsius))],
             lines: [WidgetLine(label: "GPU", values: payload.values(.gpuTemperature), color: thermal.secondaryColor, dashed: true),
                     WidgetLine(label: "CPU", values: payload.values(.cpuTemperature), color: thermal.color)],
-            fixedMaximum: 110)
+            fixedMaximum: 100,
+            axisFormat: { "\(ValueFormat.compact($0))°" })
     }
 
     static func network(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
@@ -502,6 +510,59 @@ enum WidgetGraphs {
                             value: widgetLegendValue(s.network.upload, ValueFormat.rate))],
             lines: [WidgetLine(label: "↑", values: payload.values(.networkUpload), color: network.secondaryColor, dashed: true),
                     WidgetLine(label: "↓", values: payload.values(.networkDownload), color: network.color)],
-            minimumMaximum: 10_000)
+            minimumMaximum: 10_000,
+            axisFormat: shortRate)
+    }
+
+    /// 팬 회전수: 오른쪽 진한 실선, 왼쪽 연한 점선 (docs/FAN_CONTROL.md '팬 이름')
+    static func fan(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
+        let thermal = colors(.thermal)
+        let fansReading = payload.snapshot.thermal.fans
+        let fans = fansReading.okValue ?? []
+        let count = fans.isEmpty ? 2 : fans.count
+        let keys: [WidgetSeriesKey] = [.fan0, .fan1]
+        var lines: [WidgetLine] = []
+        var legends: [WidgetGraphCard.Legend] = []
+        for (id, key) in keys.enumerated() where id < count {
+            let light = FanName.isLight(id: id, count: count)
+            let color = light ? thermal.secondaryColor : thermal.color
+            let name = FanName.short(id: id, count: count)
+            lines.append(WidgetLine(label: name, values: payload.values(key), color: color, dashed: light))
+            let value: String
+            if let rpm = fans.first(where: { $0.id == id })?.rpm {
+                value = rpm.okValue.map { $0 < 1 ? "정지" : ValueFormat.rpm($0) } ?? widgetLegendValue(rpm, ValueFormat.rpm)
+            } else {
+                value = widgetLegendValue(Reading<Double>(value: nil, state: fansReading.state, measuredAt: nil),
+                                          ValueFormat.rpm)
+            }
+            legends.append(.init(label: name, color: color, dashed: light, value: value))
+        }
+        // 진한 선이 위에 오게 연한 선을 먼저 그려요.
+        lines.sort { $0.dashed && !$1.dashed }
+        return WidgetGraphCard(title: "팬", legends: legends, lines: lines,
+                               minimumMaximum: 2_000,
+                               axisFormat: { ValueFormat.compact($0) })
+    }
+
+    /// 배터리 순전력: 0을 가운데 두고 + 충전 · − 방전
+    static func battery(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
+        let battery = colors(.battery).color
+        let netPower = payload.snapshot.battery.netPower
+        return WidgetGraphCard(
+            title: "배터리 순전력",
+            legends: [.init(label: "순전력", color: battery, value: widgetLegendValue(netPower, ValueFormat.signedWatts))],
+            lines: [WidgetLine(label: "순전력", values: payload.values(.batteryNetPower), color: battery)],
+            minimumMaximum: 5,
+            symmetric: true,
+            axisFormat: { value in
+                if abs(value) < 0.001 { return "0" }
+                return "\(value > 0 ? "+" : "−")\(ValueFormat.compact(abs(value))) W"
+            })
+    }
+
+    /// 눈금용 짧은 속도: 500 KB, 4 MB ('/s'는 범례에 있어서 빼요)
+    static func shortRate(_ bytesPerSecond: Double) -> String {
+        let text = ValueFormat.rateScale(bytesPerSecond)
+        return text.hasSuffix("/s") ? String(text.dropLast(2)) : text
     }
 }

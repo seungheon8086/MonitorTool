@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import WidgetKit
 
@@ -237,44 +238,83 @@ struct WidgetLine: Identifiable {
 }
 
 /// 칸 값으로 그린 꺾은선 그래프예요. 값이 없는 칸에서는 선을 끊어요(0으로 잇지 않아요).
+/// 왼쪽에 위·가운데·아래 눈금 숫자를 적어 지금 값이 어느 정도인지 바로 보이게 해요.
 struct WidgetSparkline: View {
     let lines: [WidgetLine]
-    /// 세로 축 최댓값. nil이면 값에 맞춰요.
+    /// 세로 축 맨 위 값. nil이면 값에 맞춰 보기 좋은 수(1·2·2.5·5 × 10ⁿ)로 올려요.
     var fixedMaximum: Double?
     /// 값이 작아도 이 높이까지는 축을 잡아요. (조금만 흔들려도 꽉 차 보이지 않게)
     var minimumMaximum: Double = 1
+    /// 0을 가운데 두고 위아래를 같은 폭으로 (배터리 순전력처럼 부호가 있는 값)
+    var symmetric = false
+    /// 왼쪽 눈금 글자. nil이면 눈금을 그리지 않아요.
+    var axisFormat: ((Double) -> String)?
 
     var body: some View {
-        GeometryReader { proxy in
-            let size = proxy.size
-            let maximum = scaleMaximum
-            ZStack {
-                // 가운데와 바닥 기준선
-                Path { path in
-                    path.move(to: CGPoint(x: 0, y: size.height))
-                    path.addLine(to: CGPoint(x: size.width, y: size.height))
-                    path.move(to: CGPoint(x: 0, y: size.height / 2))
-                    path.addLine(to: CGPoint(x: size.width, y: size.height / 2))
+        let top = scaleTop
+        let bottom = symmetric ? -top : 0
+        HStack(spacing: 3) {
+            if let axisFormat {
+                GeometryReader { proxy in
+                    let height = proxy.size.height
+                    ZStack(alignment: .trailing) {
+                        axisLabel(axisFormat(top), y: 4, width: proxy.size.width)
+                        axisLabel(axisFormat((top + bottom) / 2), y: height / 2, width: proxy.size.width)
+                        axisLabel(axisFormat(bottom), y: height - 4, width: proxy.size.width)
+                    }
                 }
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                ForEach(lines) { line in
-                    path(for: line.values, in: size, maximum: maximum)
-                        .stroke(line.color, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round,
-                                                               dash: line.dashed ? [3, 2] : []))
+                .frame(width: 26)
+            }
+            GeometryReader { proxy in
+                let size = proxy.size
+                ZStack {
+                    // 위·가운데·아래 기준선 (부호가 있는 값이면 가운데가 0)
+                    Path { path in
+                        for y in [0, size.height / 2, size.height] {
+                            path.move(to: CGPoint(x: 0, y: y))
+                            path.addLine(to: CGPoint(x: size.width, y: y))
+                        }
+                    }
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                    ForEach(lines) { line in
+                        path(for: line.values, in: size, top: top, bottom: bottom)
+                            .stroke(line.color, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round,
+                                                                   dash: line.dashed ? [3, 2] : []))
+                    }
                 }
             }
         }
     }
 
-    private var scaleMaximum: Double {
-        if let fixedMaximum { return fixedMaximum }
-        let largest = lines.flatMap(\.values).compactMap { $0 }.filter(\.isFinite).max() ?? 0
-        return max(largest * 1.15, minimumMaximum)
+    private func axisLabel(_ text: String, y: CGFloat, width: CGFloat) -> some View {
+        Text(text)
+            .font(.system(size: 8))
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(width: width, alignment: .trailing)
+            .position(x: width / 2, y: y)
     }
 
-    private func path(for values: [Double?], in size: CGSize, maximum: Double) -> Path {
+    private var scaleTop: Double {
+        if let fixedMaximum { return fixedMaximum }
+        let largest = lines.flatMap(\.values).compactMap { $0 }.filter(\.isFinite).map(abs).max() ?? 0
+        return WidgetSparkline.niceCeiling(max(largest * 1.1, minimumMaximum))
+    }
+
+    /// 1·2·2.5·5 × 10ⁿ 중 x 이상인 가장 작은 수 (눈금 글자가 깔끔하게)
+    static func niceCeiling(_ x: Double) -> Double {
+        guard x.isFinite, x > 0 else { return 1 }
+        let base = pow(10, floor(log10(x)))
+        let fraction = x / base
+        let nice: Double = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10
+        return nice * base
+    }
+
+    private func path(for values: [Double?], in size: CGSize, top: Double, bottom: Double) -> Path {
         Path { path in
-            guard values.count > 1, maximum > 0 else { return }
+            guard values.count > 1, top > bottom else { return }
             let step = size.width / CGFloat(values.count - 1)
             var drawing = false
             for (index, value) in values.enumerated() {
@@ -282,7 +322,7 @@ struct WidgetSparkline: View {
                     drawing = false
                     continue
                 }
-                let ratio = min(max(value / maximum, 0), 1)
+                let ratio = min(max((value - bottom) / (top - bottom), 0), 1)
                 let point = CGPoint(x: CGFloat(index) * step, y: size.height * (1 - CGFloat(ratio)))
                 if drawing {
                     path.addLine(to: point)

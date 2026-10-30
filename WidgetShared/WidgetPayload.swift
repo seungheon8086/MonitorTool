@@ -18,6 +18,10 @@ nonisolated enum WidgetSeriesKey: String, Codable, Sendable, CaseIterable {
     case cpuPower, gpuPower, anePower
     case cpuTemperature, gpuTemperature
     case networkDownload, networkUpload
+    /// 팬 회전수 (SMC 0번 = 왼쪽, 1번 = 오른쪽)
+    case fan0, fan1
+    /// 배터리 순전력 (+ 충전, − 방전)
+    case batteryNetPower
 }
 
 /// 위젯 공유 파일 하나의 내용이에요.
@@ -56,7 +60,7 @@ nonisolated struct WidgetPayload: Codable, Sendable {
 nonisolated enum WidgetSharedFile {
     /// 개인 팀 접두어 방식의 App Group (앱·위젯 entitlements와 같아야 해요)
     static let appGroupID = "47C8XKJT3X.com.seungheon.MonitorTool"
-    /// 위젯 종류 이름 (갱신 요청에 써요)
+    /// 요약 위젯 종류 이름 (그래프 위젯은 MonitorToolGraph.<항목>)
     static let widgetKind = "MonitorToolWidget"
 
     static var fileURL: URL? {
