@@ -10,6 +10,8 @@ final class MonitorStore {
     private var revision = 0
     @ObservationIgnored private var currentSnapshot: MonitorSnapshot
     @ObservationIgnored private var currentHistory: MetricHistory
+    /// 값이 바뀔 때마다 불러요. 화면에 보이는지와 상관없어요. (위젯 공유 파일을 쓰는 WidgetPublisher)
+    @ObservationIgnored var onUpdate: (() -> Void)?
 
     /// 화면에 보이는지예요. false인 동안 바뀐 값은 다시 true가 될 때 한 번에 알려요.
     /// 사이드 패널(PanelController)이 열고 닫을 때 바꿔요. 미리보기에서는 늘 true예요.
@@ -64,6 +66,7 @@ final class MonitorStore {
 
     /// 화면에 보일 때만 바뀐 것을 알려요.
     private func announce() {
+        onUpdate?()
         if isDisplayed {
             revision &+= 1
         }

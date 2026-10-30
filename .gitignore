@@ -17,3 +17,6 @@ Diagnostics/**/*.tsv
 
 # FanProbe의 powermetrics 원본은 압축본(.txt.gz)만 저장
 Diagnostics/FanProbe/results/*-pm.txt
+
+# 위젯 2판 진단 결과 (스크립트만 커밋)
+Diagnostics/WidgetV2/*.txt

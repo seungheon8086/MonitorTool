@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		000000000000000151000000 /* MonitorToolHelper in Embed Helper */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* MonitorToolHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		000000000000000161000000 /* com.seungheon.MonitorTool.helper.plist in Embed LaunchDaemon plist */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* com.seungheon.MonitorTool.helper.plist */; };
+		6A000000000000000000000002 /* MonitorToolWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000001 /* MonitorToolWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6A0000000000000000000000C8 /* MonitorTool/Model/ValueState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000064 /* MonitorTool/Model/ValueState.swift */; };
+		6A0000000000000000000000C9 /* MonitorTool/Model/MonitorSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000065 /* MonitorTool/Model/MonitorSnapshot.swift */; };
+		6A0000000000000000000000CA /* MonitorTool/Model/FanName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000066 /* MonitorTool/Model/FanName.swift */; };
+		6A0000000000000000000000CC /* MonitorTool/Appearance/MonitorItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000068 /* MonitorTool/Appearance/MonitorItem.swift */; };
+		6A0000000000000000000000CD /* MonitorTool/Appearance/ItemColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A000000000000000000000069 /* MonitorTool/Appearance/ItemColor.swift */; };
+		6A0000000000000000000000CE /* MonitorTool/Support/ValueFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A00000000000000000000006A /* MonitorTool/Support/ValueFormat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -18,6 +25,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 000000000000000200000000;
 			remoteInfo = MonitorToolHelper;
+		};
+		6A000000000000000000000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A00000000000000000000000A;
+			remoteInfo = MonitorToolWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -44,12 +58,30 @@
 			name = "Embed LaunchDaemon plist";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6A000000000000000000000004 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6A000000000000000000000002 /* MonitorToolWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* MonitorTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MonitorTool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000121 /* MonitorToolHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MonitorToolHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000122 /* com.seungheon.MonitorTool.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.seungheon.MonitorTool.helper.plist; sourceTree = "<group>"; };
+		6A000000000000000000000001 /* MonitorToolWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MonitorToolWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A000000000000000000000064 /* MonitorTool/Model/ValueState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Model/ValueState.swift; sourceTree = "<group>"; };
+		6A000000000000000000000065 /* MonitorTool/Model/MonitorSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Model/MonitorSnapshot.swift; sourceTree = "<group>"; };
+		6A000000000000000000000066 /* MonitorTool/Model/FanName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Model/FanName.swift; sourceTree = "<group>"; };
+		6A000000000000000000000068 /* MonitorTool/Appearance/MonitorItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Appearance/MonitorItem.swift; sourceTree = "<group>"; };
+		6A000000000000000000000069 /* MonitorTool/Appearance/ItemColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Appearance/ItemColor.swift; sourceTree = "<group>"; };
+		6A00000000000000000000006A /* MonitorTool/Support/ValueFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorTool/Support/ValueFormat.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -66,6 +98,16 @@
 		000000000000000000000012 /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		6A000000000000000000000006 /* WidgetShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WidgetShared;
+			sourceTree = "<group>";
+		};
+		6A000000000000000000000007 /* MonitorToolWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MonitorToolWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -85,6 +127,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6A00000000000000000000000C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -95,6 +144,9 @@
 				000000000000000000000011 /* MonitorToolHelper */,
 				000000000000000000000012 /* Shared */,
 				000000000000000000000013 /* LaunchDaemons */,
+				6A000000000000000000000006 /* WidgetShared */,
+				6A000000000000000000000007 /* MonitorToolWidget */,
+				6A000000000000000000000008 /* WidgetCommonSources */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,8 +164,22 @@
 			children = (
 				000000000000000000000120 /* MonitorTool.app */,
 				000000000000000000000121 /* MonitorToolHelper */,
+				6A000000000000000000000001 /* MonitorToolWidget.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6A000000000000000000000008 /* WidgetCommonSources */ = {
+			isa = PBXGroup;
+			children = (
+				6A000000000000000000000064 /* MonitorTool/Model/ValueState.swift */,
+				6A000000000000000000000065 /* MonitorTool/Model/MonitorSnapshot.swift */,
+				6A000000000000000000000066 /* MonitorTool/Model/FanName.swift */,
+				6A000000000000000000000068 /* MonitorTool/Appearance/MonitorItem.swift */,
+				6A000000000000000000000069 /* MonitorTool/Appearance/ItemColor.swift */,
+				6A00000000000000000000006A /* MonitorTool/Support/ValueFormat.swift */,
+			);
+			name = WidgetCommonSources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -128,15 +194,18 @@
 				000000000000000140000000 /* Resources */,
 				000000000000000150000000 /* Embed Helper */,
 				000000000000000160000000 /* Embed LaunchDaemon plist */,
+				6A000000000000000000000004 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				000000000000000171000000 /* PBXTargetDependency */,
+				6A000000000000000000000005 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* MonitorTool */,
 				000000000000000000000012 /* Shared */,
+				6A000000000000000000000006 /* WidgetShared */,
 			);
 			name = MonitorTool;
 			packageProductDependencies = (
@@ -167,6 +236,29 @@
 			productReference = 000000000000000000000121 /* MonitorToolHelper */;
 			productType = "com.apple.product-type.tool";
 		};
+		6A00000000000000000000000A /* MonitorToolWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6A00000000000000000000000E /* Build configuration list for PBXNativeTarget "MonitorToolWidget" */;
+			buildPhases = (
+				6A00000000000000000000000B /* Sources */,
+				6A00000000000000000000000C /* Frameworks */,
+				6A00000000000000000000000D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6A000000000000000000000006 /* WidgetShared */,
+				6A000000000000000000000007 /* MonitorToolWidget */,
+			);
+			name = MonitorToolWidget;
+			packageProductDependencies = (
+			);
+			productName = MonitorToolWidget;
+			productReference = 6A000000000000000000000001 /* MonitorToolWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -179,9 +271,22 @@
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+						};
 					};
 					000000000000000200000000 = {
 						CreatedOnToolsVersion = 27.1;
+					};
+					6A00000000000000000000000A = {
+						CreatedOnToolsVersion = 27.1;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -201,12 +306,20 @@
 			targets = (
 				000000000000000100000000 /* MonitorTool */,
 				000000000000000200000000 /* MonitorToolHelper */,
+				6A00000000000000000000000A /* MonitorToolWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		000000000000000140000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6A00000000000000000000000D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -230,6 +343,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6A00000000000000000000000B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6A0000000000000000000000C8 /* MonitorTool/Model/ValueState.swift in Sources */,
+				6A0000000000000000000000C9 /* MonitorTool/Model/MonitorSnapshot.swift in Sources */,
+				6A0000000000000000000000CA /* MonitorTool/Model/FanName.swift in Sources */,
+				6A0000000000000000000000CC /* MonitorTool/Appearance/MonitorItem.swift in Sources */,
+				6A0000000000000000000000CD /* MonitorTool/Appearance/ItemColor.swift in Sources */,
+				6A0000000000000000000000CE /* MonitorTool/Support/ValueFormat.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -237,6 +363,11 @@
 			isa = PBXTargetDependency;
 			target = 000000000000000200000000 /* MonitorToolHelper */;
 			targetProxy = 000000000000000170000000 /* PBXContainerItemProxy */;
+		};
+		6A000000000000000000000005 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A00000000000000000000000A /* MonitorToolWidget */;
+			targetProxy = 6A000000000000000000000003 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -378,12 +509,14 @@
 		000000000000000111000000 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = MonitorTool.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_MonitorToolAppGroup = "$(TeamIdentifierPrefix)com.seungheon.MonitorTool";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.seungheon.MonitorTool;
@@ -403,12 +536,14 @@
 		000000000000000112000000 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = MonitorTool.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_MonitorToolAppGroup = "$(TeamIdentifierPrefix)com.seungheon.MonitorTool";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.seungheon.MonitorTool;
@@ -453,6 +588,68 @@
 			};
 			name = Release;
 		};
+		6A00000000000000000000000F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MonitorToolWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "MonitorToolWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MonitorTool;
+				INFOPLIST_KEY_MonitorToolAppGroup = "$(TeamIdentifierPrefix)com.seungheon.MonitorTool";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seungheon.MonitorTool.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		6A000000000000000000000010 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MonitorToolWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "MonitorToolWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MonitorTool;
+				INFOPLIST_KEY_MonitorToolAppGroup = "$(TeamIdentifierPrefix)com.seungheon.MonitorTool";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seungheon.MonitorTool.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -479,6 +676,15 @@
 			buildConfigurations = (
 				000000000000000211000000 /* Debug */,
 				000000000000000212000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6A00000000000000000000000E /* Build configuration list for PBXNativeTarget "MonitorToolWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6A00000000000000000000000F /* Debug */,
+				6A000000000000000000000010 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

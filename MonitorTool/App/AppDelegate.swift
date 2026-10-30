@@ -18,6 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var settingsWindowController: SettingsWindowController?
     private var collectionScheduler: CollectionScheduler?
+    /// 위젯이 읽을 공유 파일을 써요. (docs/WIDGET_V2.md)
+    private var widgetPublisher: WidgetPublisher?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 단축키(기본 fn + Space)로 어디서든 패널을 열고 닫아요.
@@ -61,6 +63,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         collectionScheduler.start()
         self.collectionScheduler = collectionScheduler
 
+        // 값이 바뀌거나 색을 바꾸면 위젯 공유 파일을 써요. (10초에 한 번까지)
+        let widgetPublisher = WidgetPublisher(store: store, appearance: appearance)
+        store.onUpdate = { [weak widgetPublisher] in widgetPublisher?.storeDidUpdate() }
+        appearance.onChange = { [weak widgetPublisher] in widgetPublisher?.publish() }
+        widgetPublisher.start()
+        self.widgetPublisher = widgetPublisher
+
         #if DEBUG
         // 개발 중에는 실행하자마자 패널을 띄워서 바로 확인할 수 있게 해요.
         Task {
@@ -74,6 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Xcode의 정지 단추로 끝내면 불리지 않아서, 마지막 저장(30초마다) 뒤의 양은 남지 않아요.
     func applicationWillTerminate(_ notification: Notification) {
         collectionScheduler?.stop()
+        widgetPublisher?.stop()
     }
 
     /// 설정 창을 열어요. 처음 열 때 만들고, 그다음부터는 같은 창을 다시 보여줘요.

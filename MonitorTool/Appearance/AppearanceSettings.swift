@@ -5,6 +5,8 @@ import Observation
 @Observable
 final class AppearanceSettings {
     private(set) var colors: [MonitorItem: ItemColor] = [:]
+    /// 색을 바꿀 때마다 불러요. (위젯도 같은 색을 쓰도록 공유 파일을 다시 써요)
+    @ObservationIgnored var onChange: (() -> Void)?
 
     /// 고른 색을 저장하는 곳 (let이라 화면 갱신 추적 대상이 아니에요)
     private let defaults: UserDefaults
@@ -26,6 +28,7 @@ final class AppearanceSettings {
     func setColor(_ color: ItemColor, for item: MonitorItem) {
         colors[item] = color
         defaults.set(color.rawValue, forKey: Self.key(for: item))
+        onChange?()
     }
 
     func resetToDefaults() {
@@ -33,6 +36,7 @@ final class AppearanceSettings {
             colors[item] = item.defaultColor
             defaults.removeObject(forKey: Self.key(for: item))
         }
+        onChange?()
     }
 
     /// CPU·GPU·ANE 중 같은 색을 고른 항목이 있는지예요. 메모리 트래픽 그래프에 셋이 함께 나와서 구분이 어려워져요.
