@@ -102,6 +102,9 @@ nonisolated enum ChartScale: Hashable, Sendable {
     case symmetric(minimum: Double)
     /// 바이트 값을 GB(1024³) 단위로 보기 좋은 위쪽 선에 맞춰요. 적어도 minimum(바이트)은 둬요. (GPU 메모리)
     case automaticGigabytes(minimum: Double)
+    /// 바닥도 0에 묶지 않고 보이는 값의 범위에 맞춰요. 위·아래 선은 step 단위로 끊고, 폭은 적어도 minimumSpan이에요.
+    /// 바닥은 0 아래로 내려가지 않아요. (온도: 0–100 °C 고정이면 50 °C 안팎의 움직임이 납작하게 보여서)
+    case floating(step: Double, minimumSpan: Double)
 }
 
 /// 계산을 마친 세로 범위예요.
@@ -141,6 +144,24 @@ extension ChartScale {
             let gigabyte = 1_073_741_824.0
             let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum) / gigabyte) * gigabyte
             return ChartRange(lower: 0, upper: top, midline: nil)
+        case let .floating(step, minimumSpan):
+            let finite = values.filter(\.isFinite)
+            guard step > 0, let low = finite.min(), let high = finite.max() else {
+                return ChartRange(lower: 0, upper: max(minimumSpan, 1), midline: nil)
+            }
+            var lower = max(0, (low / step).rounded(.down) * step)
+            var upper = max((high / step).rounded(.up) * step, lower + step)
+            // 폭이 모자라면 위아래로 번갈아 한 칸씩 넓혀요. (바닥은 0에서 멈춰요)
+            var growUp = true
+            while upper - lower < minimumSpan - 0.000_001 {
+                if growUp || lower <= 0 {
+                    upper += step
+                } else {
+                    lower -= step
+                }
+                growUp.toggle()
+            }
+            return ChartRange(lower: lower, upper: upper, midline: nil)
         }
     }
 }

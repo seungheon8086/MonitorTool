@@ -153,7 +153,9 @@ enum ChartAxisText {
         let middleValue = (range.upper + range.lower) / 2
         let middle = split(format(middleValue))
         let middleText = middle.unit == top.unit || middle.unit.isEmpty ? middle.number : format(middleValue)
-        return Labels(top: format(range.upper), middle: middleText, bottom: "0")
+        // 바닥이 0이 아닌 그래프(온도)는 바닥 값을 그대로 적어요.
+        let bottomText = range.lower == 0 ? "0" : split(format(range.lower)).number
+        return Labels(top: format(range.upper), middle: middleText, bottom: bottomText)
     }
 
     /// '8 W' → ('8', 'W'), '100%' → ('100', '%'), '4' → ('4', '')

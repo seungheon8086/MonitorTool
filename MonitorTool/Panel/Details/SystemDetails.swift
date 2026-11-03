@@ -211,7 +211,7 @@ struct ThermalDetail: View {
                             lines: [ChartLine(metric: .cpuTemperature, label: "CPU 최고", color: cpuColor),
                                     ChartLine(metric: .gpuTemperature, label: "GPU 최고", color: gpuColor)],
                             period: period,
-                            scale: .fixed(100, midline: true),
+                            scale: .floating(step: 10, minimumSpan: 20),
                             height: 80,
                             emptyState: thermal.cpuMax.state,
                             scaleText: ValueFormat.celsius) {
