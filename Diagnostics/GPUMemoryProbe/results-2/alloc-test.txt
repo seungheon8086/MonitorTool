@@ -1,0 +1,11 @@
+GPU: Apple M1 Pro, 통합 메모리: true
+권장 최대치(recommendedMaxWorkingSetSize): 11.84 GiB = 12.713 GB
+한 버퍼 최대(maxBufferLength): 8.88 GiB
+
+시작 | 기대 증가 0.000 GB | Alloc 2.765 GB (시작 대비 +0.000 GB) | In use 0.206 GB | 이 프로그램 currentAllocatedSize 0.000 GB
+공유 1 GiB | 기대 증가 1.074 GB | Alloc 3.821 GB (시작 대비 +1.056 GB) | In use 0.196 GB | 이 프로그램 currentAllocatedSize 1.074 GB
+공유 + GPU 전용 2 GiB | 기대 증가 2.147 GB | Alloc 4.884 GB (시작 대비 +2.119 GB) | In use 0.014 GB | 이 프로그램 currentAllocatedSize 2.148 GB
+GPU 전용 놓음 | 기대 증가 1.074 GB | Alloc 3.816 GB (시작 대비 +1.051 GB) | In use 0.204 GB | 이 프로그램 currentAllocatedSize 1.074 GB
+모두 놓음 | 기대 증가 0.000 GB | Alloc 3.816 GB (시작 대비 +1.051 GB) | In use 0.266 GB | 이 프로그램 currentAllocatedSize 1.074 GB
+
+완료

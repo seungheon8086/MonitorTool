@@ -1,0 +1,6 @@
+ProductName:		macOS
+ProductVersion:		27.2
+BuildVersion:		26B123
+Apple M1 Pro
+17179869184
+2026년 11월  3일 화요일 12시 40분 43초 KST

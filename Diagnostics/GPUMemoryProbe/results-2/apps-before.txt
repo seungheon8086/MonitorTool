@@ -1,0 +1,33 @@
+   4 VTDecoderXPCServ
+   2 WindowServer
+   2 com.apple.WebKit
+   1 WallpaperMacinto
+   1 TextInputSwitche
+   1 TextInputMenuAge
+   1 Terminal
+   1 stickersd
+   1 Siri AI
+   1 ScreenTimeWidget
+   1 runningboardd
+   1 replayd
+   1 QuickLookUIServi
+   1 NotificationCent
+   1 MenuBarAgent
+   1 mediaanalysisd
+   1 loginwindow
+   1 iconservicesagen
+   1 HwpQLExtPreview
+   1 Finder
+   1 DockHelper
+   1 Dock
+   1 CursorUIViewServ
+   1 CoreDeviceServic
+   1 ControlCenter
+   1 com.apple.quickl
+   1 com.apple.dock.e
+   1 com.apple.CoreSi
+   1 Claude Helper
+   1 Claude
+   1 avconferenced
+   1 Adobe Desktop Se
+   1 AccessibilityVis
