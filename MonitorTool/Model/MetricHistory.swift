@@ -56,6 +56,7 @@ extension MetricHistory {
         append(snapshot.cpu.power.okValue, for: .cpuPower, at: date)
         append(snapshot.gpu.usage.okValue, for: .gpuUsage, at: date)
         append(snapshot.gpu.power.okValue, for: .gpuPower, at: date)
+        append(snapshot.gpu.memory.okValue, for: .gpuMemory, at: date)
         append(snapshot.ane.power.okValue, for: .anePower, at: date)
         append(snapshot.ane.dramTraffic.okValue, for: .aneTraffic, at: date)
         append(snapshot.memory.used.okValue, for: .memoryUsed, at: date)
@@ -113,6 +114,8 @@ extension MetricHistory {
             return snapshot.gpu.usage.okValue
         case .gpuPower:
             return snapshot.gpu.power.okValue
+        case .gpuMemory:
+            return snapshot.gpu.memory.okValue
         case .anePower:
             return snapshot.ane.power.okValue
         case .aneTraffic:

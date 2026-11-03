@@ -110,6 +110,7 @@ struct GPUDetail: View {
             PeriodPicker(period: $period)
         } content: {
             usageChart
+            memoryChart
             powerChart
         }
     }
@@ -123,6 +124,18 @@ struct GPUDetail: View {
                      emptyState: gpu.usage.state,
                      scaleText: ValueFormat.percent) {
             ValueText(reading: gpu.usage, format: ValueFormat.percent, font: .system(size: 12))
+        }
+    }
+
+    /// GPU 메모리 그래프 (GB)
+    private var memoryChart: some View {
+        HistoryChart(title: "메모리",
+                     lines: [ChartLine(metric: .gpuMemory, label: "메모리", color: color.color)],
+                     period: period,
+                     scale: .automaticGigabytes(minimum: 1_073_741_824),
+                     emptyState: gpu.memory.state,
+                     scaleText: ValueFormat.memory) {
+            ValueText(reading: gpu.memory, format: ValueFormat.memory, font: .system(size: 12))
         }
     }
 

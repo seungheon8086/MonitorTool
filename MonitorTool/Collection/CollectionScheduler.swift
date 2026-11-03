@@ -56,7 +56,7 @@ final class CollectionScheduler {
         panelVisible ? HelperConstants.panelOpenInterval : HelperConstants.panelClosedInterval
     }
 
-    private static let processorMetrics: [Metric] = [.cpuEfficiency, .cpuPerformance, .gpuUsage]
+    private static let processorMetrics: [Metric] = [.cpuEfficiency, .cpuPerformance, .gpuUsage, .gpuMemory]
     private static let memoryMetrics: [Metric] = [.memoryUsed]
     private static let batteryMetrics: [Metric] = [.batteryNetPower]
     private static let networkMetrics: [Metric] = [.networkDownload, .networkUpload]

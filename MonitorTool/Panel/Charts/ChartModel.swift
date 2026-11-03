@@ -100,6 +100,8 @@ nonisolated enum ChartScale: Hashable, Sendable {
     case automatic(minimum: Double)
     /// 0을 가운데 두고 위아래로 같은 폭이에요. (배터리 순전력: 위는 충전, 아래는 방전)
     case symmetric(minimum: Double)
+    /// 바이트 값을 GB(1024³) 단위로 보기 좋은 위쪽 선에 맞춰요. 적어도 minimum(바이트)은 둬요. (GPU 메모리)
+    case automaticGigabytes(minimum: Double)
 }
 
 /// 계산을 마친 세로 범위예요.
@@ -135,6 +137,10 @@ extension ChartScale {
             let largest = values.map { abs($0) }.max() ?? 0
             let top = ChartData.niceCeiling(max(largest, minimum))
             return ChartRange(lower: -top, upper: top, midline: 0)
+        case let .automaticGigabytes(minimum):
+            let gigabyte = 1_073_741_824.0
+            let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum) / gigabyte) * gigabyte
+            return ChartRange(lower: 0, upper: top, midline: nil)
         }
     }
 }

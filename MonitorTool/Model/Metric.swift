@@ -12,6 +12,8 @@ nonisolated enum Metric: Hashable, Sendable {
     case gpuUsage
     /// GPU 전력 (W)
     case gpuPower
+    /// GPU 메모리 (바이트)
+    case gpuMemory
     /// ANE 전력 (W)
     case anePower
     /// ANE의 DRAM 트래픽 (바이트/초)

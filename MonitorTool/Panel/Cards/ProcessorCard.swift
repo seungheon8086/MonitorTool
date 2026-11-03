@@ -98,7 +98,7 @@ private struct CPUColumn: View {
     }
 }
 
-/// GPU 열: 사용률과 전력
+/// GPU 열: 사용률, 메모리, 전력
 private struct GPUColumn: View {
     let gpu: GPUSnapshot
     let color: ItemColor
@@ -106,6 +106,7 @@ private struct GPUColumn: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             UsageLine(label: "사용률", reading: gpu.usage, color: color.color)
+            AmountLine(label: "메모리", reading: gpu.memory, format: ValueFormat.memory)
             Spacer(minLength: 0)
             PowerLine(reading: gpu.power)
         }
@@ -146,6 +147,24 @@ private struct UsageLine: View {
             }
             UsageBar(fraction: reading.okValue.map { $0 / 100 }, color: color, height: 4)
         }
+    }
+}
+
+/// 막대 없는 '메모리 4.1 GB' 줄 (GPU 열)
+private struct AmountLine: View {
+    let label: String
+    let reading: Reading<Double>
+    let format: (Double) -> String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 4)
+            ValueText(reading: reading, format: format, font: .system(size: 13, weight: .semibold))
+        }
+        .lineLimit(1)
     }
 }
 

@@ -154,8 +154,9 @@ nonisolated struct CPUUsageMeter {
     }
 }
 
-/// CPU 사용률(코어별, E·P 묶음별)과 GPU 사용률을 재요.
+/// CPU 사용률(코어별, E·P 묶음별)과 GPU 사용률·메모리를 재요.
 /// E/P는 OS가 집계한 CPU 시간의 묶음별 평균, GPU는 IORegistry의 'Device Utilization %'예요. (설계 문서 1·3장)
+/// GPU 메모리는 같은 사전의 'Alloc system memory'예요. (Diagnostics/GPUMemoryProbe)
 final class ProcessorCollector {
     private let layouts: [CoreLayout]
     private var usageMeter = CPUUsageMeter()
@@ -171,7 +172,7 @@ final class ProcessorCollector {
         layouts = CoreLayoutReader.read()
     }
 
-    /// 스냅숏의 CPU 사용률·코어별 값과 GPU 사용률을 채워요. (전력은 다른 곳에서 넣어요)
+    /// 스냅숏의 CPU 사용률·코어별 값과 GPU 사용률·메모리를 채워요. (전력은 다른 곳에서 넣어요)
     /// 새로 쟀으면 true예요. 바로 앞에 재서 건너뛰었으면 false이고 스냅숏은 그대로예요.
     func update(_ snapshot: inout MonitorSnapshot, now: Date) -> Bool {
         let awake = clock_gettime_nsec_np(CLOCK_UPTIME_RAW)
@@ -180,7 +181,7 @@ final class ProcessorCollector {
         }
         lastMeasuredAt = awake
         updateCPU(&snapshot.cpu, now: now)
-        snapshot.gpu.usage = readGPUUsage(at: now)
+        readGPU(into: &snapshot.gpu, at: now)
         return true
     }
 
@@ -226,21 +227,33 @@ final class ProcessorCollector {
 
     // MARK: - GPU
 
-    /// GPU 사용률 (0–100 %)
-    private func readGPUUsage(at date: Date) -> Reading<Double> {
+    /// GPU 사용률(0–100 %)과 GPU 메모리(바이트). 한 번 읽은 PerformanceStatistics에서 둘 다 꺼내요.
+    private func readGPU(into gpu: inout GPUSnapshot, at date: Date) {
         if gpuService == 0 {
             gpuService = ProcessorCollector.findGPUService()
             guard gpuService != 0 else {
-                return .failed("사용률을 알려 주는 GPU를 찾지 못했어요.")
+                gpu.usage = .failed("사용률을 알려 주는 GPU를 찾지 못했어요.")
+                gpu.memory = .failed("GPU를 찾지 못했어요.")
+                return
             }
         }
-        guard let value = ProcessorCollector.deviceUtilization(of: gpuService) else {
+        guard let statistics = ProcessorCollector.performanceStatistics(of: gpuService),
+              let usage = (statistics["Device Utilization %"] as? NSNumber)?.doubleValue else {
             // GPU가 바뀌었거나 사라졌을 수 있어요. 다음에 다시 찾아요.
             IOObjectRelease(gpuService)
             gpuService = 0
-            return .failed("GPU 사용률을 읽지 못했어요.")
+            gpu.usage = .failed("GPU 사용률을 읽지 못했어요.")
+            gpu.memory = .failed("GPU 메모리를 읽지 못했어요.")
+            return
         }
-        return .ok(min(max(value, 0), 100), at: date)
+        gpu.usage = .ok(min(max(usage, 0), 100), at: date)
+        // 이 키가 없는 GPU면 '미지원'이에요. (지어낸 0을 넣지 않아요)
+        if let allocated = (statistics["Alloc system memory"] as? NSNumber)?.doubleValue,
+           allocated.isFinite, allocated >= 0 {
+            gpu.memory = .ok(allocated, at: date)
+        } else {
+            gpu.memory = .unsupported
+        }
     }
 
     /// 'Device Utilization %'를 알려 주는 첫 GPU를 찾아요. 찾은 서비스는 부른 쪽이 갖고 있다가 놓아요.
@@ -262,11 +275,12 @@ final class ProcessorCollector {
     }
 
     private static func deviceUtilization(of service: io_object_t) -> Double? {
-        guard let statistics = IORegistryEntryCreateCFProperty(service, "PerformanceStatistics" as CFString,
-                                                               kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any],
-              let value = statistics["Device Utilization %"] as? NSNumber else {
-            return nil
-        }
-        return value.doubleValue
+        (performanceStatistics(of: service)?["Device Utilization %"] as? NSNumber)?.doubleValue
+    }
+
+    /// GPU의 PerformanceStatistics 사전 (사용률·메모리 등)
+    private static func performanceStatistics(of service: io_object_t) -> [String: Any]? {
+        IORegistryEntryCreateCFProperty(service, "PerformanceStatistics" as CFString,
+                                        kCFAllocatorDefault, 0)?.takeRetainedValue() as? [String: Any]
     }
 }

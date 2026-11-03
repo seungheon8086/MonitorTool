@@ -36,7 +36,7 @@ extension MonitorSnapshot {
         snapshot.ane.dramTraffic = .ok(2.7e9, at: now)
         snapshot.ane.temperature = .ok(54, at: now)
 
-        snapshot.gpu = GPUSnapshot(usage: .ok(9, at: now), power: .ok(0.4, at: now))
+        snapshot.gpu = GPUSnapshot(usage: .ok(9, at: now), power: .ok(0.4, at: now), memory: .ok(2.6 * gigabyte, at: now))
 
         snapshot.memory = MemorySnapshot(
             used: .ok(11.4 * gigabyte, at: now),
@@ -192,6 +192,7 @@ extension MetricHistory {
                            for: .cpuPower, at: date)
             history.append(isLast ? 9 : wave(10, 10, 5, 1, 100), for: .gpuUsage, at: date)
             history.append(isLast ? 0.4 : wave(0.5, 0.4, 6, 0.05, 4), for: .gpuPower, at: date)
+            history.append((isLast ? 2.6 : wave(2.6, 0.3, 90, 2, 6)) * gigabyte, for: .gpuMemory, at: date)
             history.append(helperAllowed ? (aneOn ? (isLast ? 1.4 : wave(1.3, 0.5, 4, 0.2, 4)) : 0) : nil,
                            for: .anePower, at: date)
             history.append(aneTraffic, for: .aneTraffic, at: date)

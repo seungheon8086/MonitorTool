@@ -96,7 +96,7 @@ struct HistoryChart<Trailing: View>: View {
             "100% 기준"
         case .symmetric:
             "가운데 선 \(scaleText(0)) · 위아래 ±\(scaleText(range.upper))"
-        case .fixed, .automatic:
+        case .fixed, .automatic, .automaticGigabytes:
             "위쪽 선 \(scaleText(range.upper))"
         }
     }

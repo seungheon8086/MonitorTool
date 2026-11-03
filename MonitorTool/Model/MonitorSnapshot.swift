@@ -111,6 +111,23 @@ nonisolated struct GPUSnapshot: Hashable, Sendable, Codable {
     var usage: Reading<Double> = .preparing
     /// GPU 전력 (W)
     var power: Reading<Double> = .preparing
+    /// GPU 메모리 (바이트): GPU 드라이버가 앱들을 위해 할당한 통합 메모리의 합계 ('Alloc system memory').
+    /// 메모리 칸의 사용량에 이미 들어 있는 값이에요. (Diagnostics/GPUMemoryProbe)
+    var memory: Reading<Double> = .preparing
+}
+
+extension GPUSnapshot {
+    nonisolated private enum CodingKeys: String, CodingKey {
+        case usage, power, memory
+    }
+
+    /// GPU 메모리가 없던 때 저장한 값(위젯 공유 파일)도 읽을 수 있게, 없으면 '준비 중'으로 둬요.
+    nonisolated init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        usage = try container.decode(Reading<Double>.self, forKey: .usage)
+        power = try container.decode(Reading<Double>.self, forKey: .power)
+        memory = try container.decodeIfPresent(Reading<Double>.self, forKey: .memory) ?? .preparing
+    }
 }
 
 // MARK: - 메모리
