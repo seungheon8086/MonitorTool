@@ -90,6 +90,28 @@ nonisolated enum ValueFormat {
         return "\(byteCount(bytesPerSecond))/s"
     }
 
+    /// 평균 동시 요청 수: 1.6 (소수 한 자리)
+    static func queueDepth(_ value: Double) -> String {
+        guard value.isFinite else { return unavailable }
+        return oneDecimal(max(value, 0))
+    }
+
+    /// 응답 시간(초)을 ms로: 0.28 ms, 4.80 ms, 12 ms
+    static func milliseconds(_ seconds: Double) -> String {
+        guard seconds.isFinite else { return unavailable }
+        let value = max(seconds, 0) * 1000
+        if value >= 10, let number = whole(value) {
+            return "\(number.formatted()) ms"
+        }
+        return String(format: "%.2f ms", value)
+    }
+
+    /// 개수: 1,180
+    static func count(_ value: Double) -> String {
+        guard let number = whole(max(value, 0)) else { return unavailable }
+        return number.formatted()
+    }
+
     /// 그래프 눈금용 짧은 숫자: 8, 1.5, 0.75, 5,000 (정수면 소수점 없이, 가운데 눈금 0.75처럼 필요하면 소수 둘째 자리까지)
     static func compact(_ value: Double) -> String {
         guard let number = whole(value) else { return unavailable }

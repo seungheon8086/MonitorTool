@@ -53,6 +53,7 @@ struct PanelView: View {
         case .memory: memorySection
         case .thermal: thermalSection
         case .battery: batterySection
+        case .disk: diskSection
         case .network: networkSection
         }
     }
@@ -100,6 +101,14 @@ struct PanelView: View {
         BatteryCard(expanded: $expanded)
         if expanded.contains(.battery) {
             BatteryDetail()
+        }
+    }
+
+    @ViewBuilder
+    private var diskSection: some View {
+        DiskCard(expanded: $expanded)
+        if expanded.contains(.disk) {
+            DiskDetail()
         }
     }
 

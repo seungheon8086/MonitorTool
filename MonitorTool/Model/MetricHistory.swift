@@ -87,6 +87,11 @@ extension MetricHistory {
         append(snapshot.battery.netPower.okValue, for: .batteryNetPower, at: date)
         append(snapshot.network.download.okValue, for: .networkDownload, at: date)
         append(snapshot.network.upload.okValue, for: .networkUpload, at: date)
+        for disk in snapshot.disk.disks.okValue ?? [] {
+            append(disk.read.okValue, for: .diskRead(disk.id), at: date)
+            append(disk.write.okValue, for: .diskWrite(disk.id), at: date)
+            append(disk.queueDepth.okValue, for: .diskQueue(disk.id), at: date)
+        }
 
         removeExpired(now: date)
     }
@@ -147,6 +152,12 @@ extension MetricHistory {
             return snapshot.network.download.okValue
         case .networkUpload:
             return snapshot.network.upload.okValue
+        case .diskRead(let id):
+            return snapshot.disk.disks.okValue?.first { $0.id == id }?.read.okValue
+        case .diskWrite(let id):
+            return snapshot.disk.disks.okValue?.first { $0.id == id }?.write.okValue
+        case .diskQueue(let id):
+            return snapshot.disk.disks.okValue?.first { $0.id == id }?.queueDepth.okValue
         }
     }
 

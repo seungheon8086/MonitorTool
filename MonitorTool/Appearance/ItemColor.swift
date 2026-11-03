@@ -1,9 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// 설정에서 고를 수 있는 일곱 가지 색이에요. (빨강·주황·노랑·초록·파랑·남색·보라)
+/// 설정에서 고를 수 있는 여덟 가지 색이에요. (빨강·주황·노랑·초록·청록·파랑·남색·보라)
+/// 청록은 디스크 항목을 더하면서 넣었어요. (2026-11-03 사용자 결정)
 nonisolated enum ItemColor: String, CaseIterable, Identifiable, Hashable, Sendable {
-    case red, orange, yellow, green, blue, indigo, purple
+    case red, orange, yellow, green, teal, blue, indigo, purple
 
     var id: Self { self }
 
@@ -13,6 +14,7 @@ nonisolated enum ItemColor: String, CaseIterable, Identifiable, Hashable, Sendab
         case .orange: "주황"
         case .yellow: "노랑"
         case .green: "초록"
+        case .teal: "청록"
         case .blue: "파랑"
         case .indigo: "남색"
         case .purple: "보라"
@@ -36,6 +38,7 @@ nonisolated enum ItemColor: String, CaseIterable, Identifiable, Hashable, Sendab
         case .orange: 0xC96A00
         case .yellow: 0xAD8600
         case .green: 0x2E9E4F
+        case .teal: 0x0B8793
         case .blue: 0x1F5FD0
         case .indigo: 0x4338CA
         case .purple: 0x9B3CC8
@@ -49,6 +52,7 @@ nonisolated enum ItemColor: String, CaseIterable, Identifiable, Hashable, Sendab
         case .orange: 0xFF9F0A
         case .yellow: 0xFFD60A
         case .green: 0x32D74B
+        case .teal: 0x40CDD6
         case .blue: 0x4D8DFF
         case .indigo: 0x7D7AFF
         case .purple: 0xBF5AF2

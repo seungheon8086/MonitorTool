@@ -3,7 +3,7 @@ import Foundation
 /// 패널에 보이는 항목이에요. 펼치기와 색 설정도 이 단위로 해요.
 /// 순서는 패널과 설정 창에 보이는 순서예요. (맨 위 카드는 CPU·GPU·ANE, 2026-10-24 사용자 결정)
 nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Sendable {
-    case cpu, gpu, ane, memory, thermal, battery, network
+    case cpu, gpu, ane, memory, thermal, battery, disk, network
 
     var id: Self { self }
 
@@ -15,6 +15,7 @@ nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Send
         case .memory: "메모리"
         case .thermal: "온도·팬"
         case .battery: "배터리"
+        case .disk: "디스크"
         case .network: "네트워크"
         }
     }
@@ -28,6 +29,7 @@ nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Send
         case .memory: .indigo
         case .thermal: .red
         case .battery: .green
+        case .disk: .teal
         case .network: .yellow
         }
     }
@@ -37,6 +39,7 @@ nonisolated enum MonitorItem: String, CaseIterable, Identifiable, Hashable, Send
         switch self {
         case .cpu: "P-core : 진하게, E-core : 연하게"
         case .thermal: "왼쪽 : 연하게, 오른쪽 : 진하게"
+        case .disk: "write : 연하게, read : 진하게"
         case .network: "up : 연하게, down : 진하게"
         default: nil
         }

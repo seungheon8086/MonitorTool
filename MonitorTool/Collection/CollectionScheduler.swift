@@ -4,7 +4,7 @@ import Foundation
 
 /// 값을 언제 모을지 정해요. (설계 문서 4장)
 /// 패널이 열려 있으면 모두 1초(배터리는 5초)마다 모아요.
-/// 닫혀 있으면 네트워크는 5초, CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬과
+/// 닫혀 있으면 네트워크는 5초, CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬·디스크와
 /// 보조 프로그램의 CPU·ANE 전력은 10초, 배터리는 30초마다 모아요. 깨어나면 바로 모두 다시 재요.
 final class CollectionScheduler {
     private let store: MonitorStore
@@ -15,6 +15,7 @@ final class CollectionScheduler {
     private let thermal = ThermalCollector()
     private let battery = BatteryCollector()
     private let network = NetworkCollector()
+    private let disks = DiskCollector()
     /// 시스템 값을 모을 때마다 불러요. (패널이 열려 있으면 1초, 닫혀 있으면 10초) 팬 제어 상태를 다시 물어요.
     var onSystemCollect: (() -> Void)?
     private var timer: Timer?
@@ -83,6 +84,7 @@ final class CollectionScheduler {
         timer?.invalidate()
         timer = nil
         network.save()
+        disks.save()
     }
 
     private func startTimer() {
@@ -109,6 +111,7 @@ final class CollectionScheduler {
             MainActor.assumeIsolated {
                 self?.collect()
                 self?.network.save()
+                self?.disks.save()
             }
         }
         // 깨어나면 바로 다시 재요. 잠든 구간은 NetworkMeter가 두 시계를 비교해서 알아채요.
@@ -167,6 +170,13 @@ final class CollectionScheduler {
                 // ANE 온도는 위에서 읽은 'ANE 사용 중'을 보고 정해요.
                 batches.append(MetricBatch(metrics: thermal.update(&snapshot, now: now), date: now))
             }
+            // 디스크는 열려 있으면 1초, 닫혀 있으면 다른 시스템 값과 같이 10초마다 재요.
+            // 오늘 누적은 누적 카운터의 차이라서 간격이 길어도 빠지지 않아요.
+            snapshot.disk = disks.collect(now: now)
+            let diskMetrics = (snapshot.disk.disks.okValue ?? []).flatMap { disk -> [Metric] in
+                [.diskRead(disk.id), .diskWrite(disk.id), .diskQueue(disk.id)]
+            }
+            batches.append(MetricBatch(metrics: diskMetrics, date: now))
         }
         // 배터리는 따로 5초(닫혀 있으면 30초)마다 재요. 잴 때가 아니어도 오래된 값은 '오래됨'으로 바꿔요.
         if battery.update(&snapshot.battery, now: now, panelVisible: panelVisible) {

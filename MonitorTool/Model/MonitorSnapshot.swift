@@ -11,8 +11,31 @@ nonisolated struct MonitorSnapshot: Hashable, Sendable, Codable {
     var thermal = ThermalSnapshot()
     var battery = BatterySnapshot()
     var network = NetworkSnapshot()
+    /// 물리 디스크별 I/O (2026-11-03, docs/DISK_IO.md)
+    var disk = DiskSnapshot()
     /// CPU·ANE 전력을 읽는 관리자 권한 보조 프로그램의 상태
     var helper: HelperStatus = .unknown
+}
+
+extension MonitorSnapshot {
+    nonisolated private enum CodingKeys: String, CodingKey {
+        case takenAt, cpu, ane, gpu, memory, thermal, battery, network, disk, helper
+    }
+
+    /// 디스크가 없던 때 저장한 값(위젯 공유 파일)도 읽을 수 있게, 없으면 '준비 중'으로 둬요.
+    nonisolated init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        takenAt = try container.decodeIfPresent(Date.self, forKey: .takenAt)
+        cpu = try container.decode(CPUSnapshot.self, forKey: .cpu)
+        ane = try container.decode(ANESnapshot.self, forKey: .ane)
+        gpu = try container.decode(GPUSnapshot.self, forKey: .gpu)
+        memory = try container.decode(MemorySnapshot.self, forKey: .memory)
+        thermal = try container.decode(ThermalSnapshot.self, forKey: .thermal)
+        battery = try container.decode(BatterySnapshot.self, forKey: .battery)
+        network = try container.decode(NetworkSnapshot.self, forKey: .network)
+        disk = try container.decodeIfPresent(DiskSnapshot.self, forKey: .disk) ?? DiskSnapshot()
+        helper = try container.decode(HelperStatus.self, forKey: .helper)
+    }
 }
 
 // MARK: - CPU
@@ -276,6 +299,87 @@ nonisolated struct InterfaceRate: Hashable, Sendable, Codable, Identifiable {
     var download: Double
     /// 보내는 속도 (바이트/초)
     var upload: Double
+}
+
+// MARK: - 디스크
+
+nonisolated struct DiskSnapshot: Hashable, Sendable, Codable {
+    /// 물리 디스크 목록 (내장 먼저, 그다음 이름 순서). 디스크 이미지는 빼요. (docs/DISK_IO.md)
+    var disks: Reading<[DiskReading]> = .preparing
+}
+
+/// 디스크 하나의 I/O예요. 출처는 IORegistry `IOBlockStorageDriver`의 `Statistics` (관리자 권한 없이)
+nonisolated struct DiskReading: Hashable, Sendable, Codable, Identifiable {
+    /// IORegistry 항목 ID. 같은 BSD 이름이 다른 디스크에 다시 쓰일 수 있어서 이걸로 구분해요.
+    var id: UInt64
+    /// 오늘 누적 저장과 고른 디스크 기억에 쓰는 고정 키 (기기 이름 + 일련번호의 해시)
+    var key: String
+    /// 보여줄 이름 (예: 내장 SSD, SD 카드, 기기 이름)
+    var name: String
+    /// 기기 이름 (예: APPLE SSD AP1024R)
+    var model: String
+    /// BSD 이름 (예: disk0)
+    var bsdName: String
+    var isInternal: Bool
+    /// 읽기·쓰기 속도 (바이트/초)
+    var read: Reading<Double> = .preparing
+    var write: Reading<Double> = .preparing
+    /// 평균 동시 요청 수: 읽기·쓰기에 걸린 시간의 합 ÷ 구간. 활성 시간 %가 아니에요(1을 넘을 수 있어요).
+    var queueDepth: Reading<Double> = .preparing
+    /// 작업 하나의 평균 응답 시간 (초). 그 구간 작업이 적으면 '측정 불가'예요.
+    var readLatency: Reading<Double> = .preparing
+    var writeLatency: Reading<Double> = .preparing
+    /// 초당 작업 수
+    var readOperations: Reading<Double> = .preparing
+    var writeOperations: Reading<Double> = .preparing
+    /// 오늘 읽은·쓴 양 (바이트)
+    var todayRead: Reading<Double> = .preparing
+    var todayWritten: Reading<Double> = .preparing
+    /// '오늘'의 기준 날짜
+    var todayDate: Date?
+    /// 오늘 누적에서 빠진 양이 있는지 (자정을 넘겨 잠든 동안처럼)
+    var todayHasGap = false
+    /// 디스크가 연결된 뒤의 오류·재시도 횟수 (0이면 화면에 보이지 않아요)
+    var readErrors: UInt64 = 0
+    var writeErrors: UInt64 = 0
+    var readRetries: UInt64 = 0
+    var writeRetries: UInt64 = 0
+    /// SMART. 지원하지 않는 디스크면 nil이에요.
+    var smart: Reading<SMARTInfo>?
+}
+
+/// NVMe SMART 로그에서 화면에 쓰는 값이에요. (Diagnostics/DiskProbe)
+nonisolated struct SMARTInfo: Hashable, Sendable, Codable {
+    /// 위험 경고 비트 (0이면 없음)
+    var criticalWarning: UInt8
+    /// 수명 사용 % (100을 넘을 수 있어요)
+    var percentageUsed: Int
+    /// 예비 공간 %와 그 기준 %
+    var availableSpare: Int
+    var spareThreshold: Int
+    /// 총 읽기·쓰기 (바이트)
+    var totalRead: Double
+    var totalWritten: Double
+    var powerOnHours: UInt64
+    var powerCycles: UInt64
+    var unsafeShutdowns: UInt64
+    var mediaErrors: UInt64
+    var errorLogEntries: UInt64
+    /// 경고·위험 온도를 넘긴 시간 (분)
+    var warningTemperatureMinutes: UInt32
+    var criticalTemperatureMinutes: UInt32
+
+    /// 위험 경고 비트를 글로 (NVMe 규격 순서)
+    var warningTexts: [String] {
+        let names = ["예비 공간 부족", "온도 기준 초과", "신뢰성 저하", "읽기 전용 전환", "백업 전원 실패"]
+        return names.indices.filter { criticalWarning & (1 << UInt8($0)) != 0 }.map { names[$0] }
+    }
+
+    /// 문제 상자를 보여줘야 하는지
+    var hasProblem: Bool {
+        criticalWarning != 0 || mediaErrors > 0 || errorLogEntries > 0
+            || warningTemperatureMinutes > 0 || criticalTemperatureMinutes > 0
+    }
 }
 
 // MARK: - 보조 프로그램
