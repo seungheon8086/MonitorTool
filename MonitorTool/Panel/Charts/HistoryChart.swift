@@ -1,3 +1,4 @@
+import Foundation
 import Charts
 import SwiftUI
 
@@ -103,28 +104,29 @@ struct HistoryChart<Trailing: View>: View {
     }
 }
 
-/// 그래프 왼쪽 눈금 세 개 (위쪽 선·가운데 선·바닥 선 높이에 맞춰요)
+/// 그래프 왼쪽 눈금 세 개 (위쪽 선·가운데 선(또는 0 선)·바닥 선 높이에 맞춰요)
 private struct ChartAxisLabels: View {
     let labels: ChartAxisText.Labels
     let height: CGFloat
 
-    /// 눈금 글 한 줄의 높이. 글 가운데가 선 높이에 오도록 위아래로 이 절반만큼 내밀어요.
+    /// 눈금 글 한 줄의 높이. 글 가운데가 선 높이에 오도록 이 절반만큼 올려요.
     private static let lineHeight: CGFloat = 12
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 0) {
-            label(labels.top)
-            Spacer(minLength: 0)
-            label(labels.middle)
-            Spacer(minLength: 0)
-            label(labels.bottom)
+        ZStack(alignment: .topTrailing) {
+            label(labels.top, at: 0)
+            // 가운데 눈금이 위·아래 눈금과 겹칠 만큼 가까우면 (0 선이 끝에 붙은 경우) 빼요.
+            if labels.middleFraction * height >= Self.lineHeight,
+               (1 - labels.middleFraction) * height >= Self.lineHeight {
+                label(labels.middle, at: labels.middleFraction * height)
+            }
+            label(labels.bottom, at: height)
         }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .frame(height: height + Self.lineHeight)
-        .padding(.vertical, -Self.lineHeight / 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        .frame(height: height)
     }
 
-    private func label(_ text: String) -> some View {
+    private func label(_ text: String, at y: CGFloat) -> some View {
         Text(text)
             .font(.system(size: 10))
             .foregroundStyle(.secondary)
@@ -132,6 +134,7 @@ private struct ChartAxisLabels: View {
             .lineLimit(1)
             .minimumScaleFactor(0.75)
             .frame(height: Self.lineHeight)
+            .offset(y: y - Self.lineHeight / 2)
     }
 }
 
@@ -142,20 +145,33 @@ enum ChartAxisText {
         var top: String
         var middle: String
         var bottom: String
+        /// 가운데 눈금 높이 (0 = 위쪽 선, 1 = 바닥 선)
+        var middleFraction: CGFloat
     }
 
     static func labels(for range: ChartRange, format: (Double) -> String) -> Labels {
         let top = split(format(range.upper))
-        if range.isSymmetric {
-            // 배터리 순전력: 위 '10 W', 가운데 '0', 아래 '−10'
-            return Labels(top: format(range.upper), middle: "0", bottom: "−\(top.number)")
+        let middleText: String
+        if range.crossesZero {
+            // 배터리 순전력: 0 선 높이에 '0'
+            middleText = "0"
+        } else {
+            let middle = split(format(range.middleValue))
+            let text = middle.unit == top.unit || middle.unit.isEmpty ? middle.number : format(range.middleValue)
+            // 방전만 하는 구간(−15 ~ 0 W)의 가운데 '−7.5'도 빼기 기호로 맞춰요.
+            middleText = text.replacingOccurrences(of: "-", with: "−")
         }
-        let middleValue = (range.upper + range.lower) / 2
-        let middle = split(format(middleValue))
-        let middleText = middle.unit == top.unit || middle.unit.isEmpty ? middle.number : format(middleValue)
-        // 바닥이 0이 아닌 그래프(온도)는 바닥 값을 그대로 적어요.
-        let bottomText = range.lower == 0 ? "0" : split(format(range.lower)).number
-        return Labels(top: format(range.upper), middle: middleText, bottom: bottomText)
+        // 바닥이 0이 아닌 그래프(온도, 방전)는 바닥 값을 그대로 적어요. 음수는 '−15'처럼 써요.
+        let bottomText: String
+        if range.lower == 0 {
+            bottomText = "0"
+        } else if range.lower < 0 {
+            bottomText = "−" + split(format(-range.lower)).number
+        } else {
+            bottomText = split(format(range.lower)).number
+        }
+        return Labels(top: format(range.upper), middle: middleText, bottom: bottomText,
+                      middleFraction: CGFloat(range.middleFraction))
     }
 
     /// '8 W' → ('8', 'W'), '100%' → ('100', '%'), '4' → ('4', '')
@@ -281,17 +297,18 @@ private struct HistoryChartCanvas: View {
         .chartLegend(.hidden)
     }
 
-    /// 위쪽 선, 가운데 선(점선, 대칭 그래프에서는 0 선), 바닥 선. 가운데 선은 모든 그래프에 그려요. (왼쪽 가운데 눈금과 짝)
+    /// 위쪽 선, 가운데 선(점선. 0이 범위 안이면 그 높이의 진한 0 선), 바닥 선. 가운데 선은 모든 그래프에 그려요. (왼쪽 가운데 눈금과 짝)
     @ChartContentBuilder
     private var guideMarks: some ChartContent {
-        RuleMark(y: .value("위쪽 선", plot.range.upper))
+        let range = plot.range
+        RuleMark(y: .value("위쪽 선", range.upper))
             .foregroundStyle(Color.primary.opacity(0.08))
             .lineStyle(StrokeStyle(lineWidth: 1))
-        RuleMark(y: .value("가운데 선", (plot.range.upper + plot.range.lower) / 2))
-            .foregroundStyle(Color.primary.opacity(plot.range.isSymmetric ? 0.22 : 0.10))
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: plot.range.isSymmetric ? [] : [2, 3]))
-        RuleMark(y: .value("바닥 선", plot.range.lower))
-            .foregroundStyle(Color.primary.opacity(plot.range.isSymmetric ? 0.08 : 0.14))
+        RuleMark(y: .value("가운데 선", range.middleValue))
+            .foregroundStyle(Color.primary.opacity(range.crossesZero ? 0.22 : 0.10))
+            .lineStyle(StrokeStyle(lineWidth: 1, dash: range.crossesZero ? [] : [2, 3]))
+        RuleMark(y: .value("바닥 선", range.lower))
+            .foregroundStyle(Color.primary.opacity(range.lower < 0 ? 0.08 : 0.14))
             .lineStyle(StrokeStyle(lineWidth: 1))
     }
 

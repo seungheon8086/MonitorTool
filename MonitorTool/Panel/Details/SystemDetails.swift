@@ -380,7 +380,7 @@ struct BatteryDetail: View {
                      lines: [ChartLine(metric: .batteryNetPower, label: "순전력",
                                        color: appearance.color(for: .battery).color)],
                      period: period,
-                     scale: .symmetric(minimum: 10),
+                     scale: .zeroAnchored(step: 5, minimumSpan: 10),
                      height: 64,
                      emptyState: battery.netPower.state,
                      scaleText: ValueFormat.wattsScale) {

@@ -105,6 +105,9 @@ nonisolated enum ChartScale: Hashable, Sendable {
     /// 바닥도 0에 묶지 않고 보이는 값의 범위에 맞춰요. 위·아래 선은 step 단위로 끊고, 폭은 적어도 minimumSpan이에요.
     /// 바닥은 0 아래로 내려가지 않아요. (온도: 0–100 °C 고정이면 50 °C 안팎의 움직임이 납작하게 보여서)
     case floating(step: Double, minimumSpan: Double)
+    /// 0 선은 늘 보이게 두고, 위·아래는 보이는 값까지만 step 단위로 넓혀요. 폭은 적어도 minimumSpan이에요.
+    /// (배터리 순전력: 방전만 하면 0 ~ −15 W, 충전도 하면 −15 ~ +35 W처럼. 위아래를 같은 폭으로 두지 않아요)
+    case zeroAnchored(step: Double, minimumSpan: Double)
 }
 
 /// 계산을 마친 세로 범위예요.
@@ -116,6 +119,21 @@ nonisolated struct ChartRange: Hashable, Sendable {
 
     var isSymmetric: Bool {
         lower < 0
+    }
+
+    /// 0이 위·아래 선 사이에 있는지 (배터리 순전력처럼 +·−가 함께 있는 그래프)
+    var crossesZero: Bool {
+        lower < 0 && upper > 0
+    }
+
+    /// 가운데 눈금·선의 값. 0이 범위 안에 있으면 0 선, 아니면 위아래 한가운데예요.
+    var middleValue: Double {
+        crossesZero ? 0 : (upper + lower) / 2
+    }
+
+    /// 가운데 선이 위쪽 선에서 얼마나 내려와 있는지 (0 = 위, 1 = 바닥)
+    var middleFraction: Double {
+        upper > lower ? (upper - middleValue) / (upper - lower) : 0.5
     }
 
     /// 범위 밖으로 나간 값은 경계에 맞춰요.
@@ -160,6 +178,24 @@ extension ChartScale {
                     lower -= step
                 }
                 growUp.toggle()
+            }
+            return ChartRange(lower: lower, upper: upper, midline: nil)
+        case let .zeroAnchored(step, minimumSpan):
+            let finite = values.filter(\.isFinite)
+            let low = min(finite.min() ?? 0, 0)
+            let high = max(finite.max() ?? 0, 0)
+            guard step > 0 else {
+                return ChartRange(lower: low, upper: max(high, low + 1), midline: nil)
+            }
+            var lower = (low / step).rounded(.down) * step
+            var upper = (high / step).rounded(.up) * step
+            // 폭이 모자라면 값이 있는 쪽으로 넓혀요. (방전만 하면 아래로, 그 밖에는 위로)
+            while upper - lower < minimumSpan - 0.000_001 {
+                if high <= 0 && low < 0 {
+                    lower -= step
+                } else {
+                    upper += step
+                }
             }
             return ChartRange(lower: lower, upper: upper, midline: nil)
         }
