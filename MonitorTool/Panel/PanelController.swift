@@ -6,8 +6,12 @@ import SwiftUI
 /// 사이드 패널을 만들고, 화면 오른쪽에서 미끄러져 나오고 들어가게 해요.
 final class PanelController {
     private let panel: SidePanel
+    /// 배경 유리 (패널 배경 설정: 유리 종류와 색조)
+    private let glassView: NSGlassEffectView
     /// 고정 단추 상태 (머리글 오른쪽 위)
     let pin = PanelPin()
+    /// 패널 배경 설정 (유리 종류·색조·배경 흐림)
+    private weak var appearance: AppearanceSettings?
     /// 패널이 보여주는 값. 패널을 숨긴 동안에는 화면을 다시 그리지 않게 알려 줘요.
     private let store: MonitorStore
     private(set) var isShown = false
@@ -40,8 +44,10 @@ final class PanelController {
         store.isDisplayed = false
 
         // Liquid Glass 위에 SwiftUI 화면(PanelView)을 올려요.
-        let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: panelWidth, height: 600))
-        glassView.cornerRadius = 24
+        // 처음 크기는 아무 값이어도 돼요. 보일 때 화면에 맞춰 바뀌어요. (모든 속성을 채우기 전이라 panelWidth는 못 읽어요)
+        let glassView = NSGlassEffectView(frame: NSRect(x: 0, y: 0, width: 380, height: 600))
+        glassView.cornerRadius = SidePanel.cornerRadius
+        self.glassView = glassView
 
         let rootView = PanelView(openSettings: openSettings, allowHelper: allowHelper,
                                  openFanSettings: openFanSettings)
@@ -66,6 +72,34 @@ final class PanelController {
             guard let self, !self.pin.isPinned else { return }
             self.hide()
         }
+
+        self.appearance = appearance
+        applyBackground()
+        appearance.onPanelBackgroundChange = { [weak self] in
+            self?.applyBackground()
+        }
+    }
+
+    /// 패널 배경: macOS Liquid Glass의 유리 종류(투명·기본)와 색조, 창 뒤 배경 흐림. 투명도를 직접 바꾸지 않아요.
+    private func applyBackground() {
+        guard let appearance else { return }
+        let tint = appearance.panelTint
+        glassView.style = appearance.panelGlass == .clear ? .clear : .regular
+        // 색조: 음수면 검정, 양수면 흰색을 그 크기만큼 입혀요. 0이면 입히지 않아요.
+        if tint < 0 {
+            glassView.tintColor = NSColor.black.withAlphaComponent(CGFloat(-tint) * 0.85)
+        } else if tint > 0 {
+            glassView.tintColor = NSColor.white.withAlphaComponent(CGFloat(tint) * 0.85)
+        } else {
+            glassView.tintColor = nil
+        }
+        WindowBlur.apply(radius: Self.blurRadius(for: appearance.panelBlur), to: panel)
+        panel.invalidateShadow()
+    }
+
+    /// 배경 흐림 설정(0…1)을 흐림 반지름으로 (0 ~ 40)
+    private static func blurRadius(for level: Double) -> Int {
+        Int((min(max(level, 0), 1) * 40).rounded())
     }
 
     func toggle() {
@@ -93,6 +127,10 @@ final class PanelController {
         panel.setFrame(finalFrame.offsetBy(dx: slideDistance, dy: 0), display: false)
         panel.alphaValue = 0
         panel.makeKeyAndOrderFront(nil)  // 키 창이 돼야 Esc와 바깥 클릭을 알아챌 수 있어요.
+        // 창이 화면에 올라온 뒤 배경 흐림을 다시 걸어요. (숨긴 동안 풀렸을 수 있어서)
+        if let appearance, appearance.panelBlur > 0 {
+            WindowBlur.apply(radius: Self.blurRadius(for: appearance.panelBlur), to: panel)
+        }
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.22
