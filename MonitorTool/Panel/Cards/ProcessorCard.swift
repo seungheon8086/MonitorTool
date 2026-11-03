@@ -3,6 +3,7 @@ import SwiftUI
 /// 패널 맨 위 카드예요. CPU·GPU·ANE를 한 칸에 왼쪽부터 3열로 보여줘요.
 /// (화면 시안 '패널 · 기본 (확정)'에서 순서만 CPU·GPU·ANE로 바꿨어요. 2026-10-24 사용자 결정)
 /// 열을 누르면 카드 아래로 그 항목의 상세가 펼쳐져요.
+/// 열 순서는 설정 창 '모양 > 항목 순서'에서 바꿀 수 있어요. (2026-11-03 사용자 요청)
 struct ProcessorCard: View {
     @Environment(MonitorStore.self) private var store
     @Environment(AppearanceSettings.self) private var appearance
@@ -10,24 +11,41 @@ struct ProcessorCard: View {
 
     var body: some View {
         let snapshot = store.snapshot
+        let order = appearance.processorOrder
         HStack(spacing: 0) {
-            column(.cpu, shape: UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14,
-                                                       style: .continuous)) {
-                CPUColumn(cpu: snapshot.cpu, color: appearance.color(for: .cpu))
-            }
-            ColumnDivider()
-            column(.gpu, shape: Rectangle()) {
-                GPUColumn(gpu: snapshot.gpu, color: appearance.color(for: .gpu))
-            }
-            ColumnDivider()
-            column(.ane, shape: UnevenRoundedRectangle(bottomTrailingRadius: 14, topTrailingRadius: 14,
-                                                       style: .continuous)) {
-                ANEColumn(ane: snapshot.ane)
+            ForEach(Array(order.enumerated()), id: \.element) { index, item in
+                if index > 0 {
+                    ColumnDivider()
+                }
+                column(item, shape: Self.columnShape(index: index, count: order.count)) {
+                    columnContent(item, snapshot: snapshot)
+                }
             }
         }
         // 세 열의 높이를 맞춰서 맨 아래 '전력' 줄이 같은 높이에 오게 해요.
         .fixedSize(horizontal: false, vertical: true)
         .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func columnContent(_ item: MonitorItem, snapshot: MonitorSnapshot) -> some View {
+        switch item {
+        case .cpu: CPUColumn(cpu: snapshot.cpu, color: appearance.color(for: .cpu))
+        case .gpu: GPUColumn(gpu: snapshot.gpu, color: appearance.color(for: .gpu))
+        case .ane: ANEColumn(ane: snapshot.ane)
+        default: EmptyView()
+        }
+    }
+
+    /// 강조색을 칠할 모양: 맨 왼쪽 열은 왼쪽 모서리만, 맨 오른쪽 열은 오른쪽 모서리만 둥글게 해요.
+    private static func columnShape(index: Int, count: Int) -> AnyShape {
+        if index == 0 {
+            AnyShape(UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14, style: .continuous))
+        } else if index == count - 1 {
+            AnyShape(UnevenRoundedRectangle(bottomTrailingRadius: 14, topTrailingRadius: 14, style: .continuous))
+        } else {
+            AnyShape(Rectangle())
+        }
     }
 
     /// 열 하나를 누를 수 있는 버튼으로 만들어요. 펼친 열은 강조색으로 칠해요.

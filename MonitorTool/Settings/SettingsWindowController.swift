@@ -1,12 +1,15 @@
 import AppKit
+import QuartzCore
 import SwiftUI
 
 /// 설정 창이에요. 메뉴 막대 앱이라 SwiftUI의 Settings 장면 대신 직접 만든 창을 써요.
-/// 위쪽 도구 막대의 탭(일반·모양·보조 프로그램·팬)으로 화면을 바꿔요. 위젯 탭은 위젯을 다시 만들 때 더해요.
+/// 위쪽 도구 막대의 탭(일반·패널·모양·보조 프로그램·팬)으로 화면을 바꿔요. 위젯 탭은 위젯을 다시 만들 때 더해요.
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// 설정 창의 탭 (왼쪽부터 차례대로)
     enum Tab: Int {
         case general
+        /// 패널 배경·항목 순서 (2026-11-03 사용자 요청으로 '모양'에서 나눔)
+        case panel
         case appearance
         case helper
         case fan
@@ -25,6 +28,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                                                          content: GeneralSettingsView()
                                                             .environment(shortcut)
                                                             .environment(loginItem)))
+        tabs.addTabViewItem(SettingsWindowController.tab(title: "패널", symbol: "sidebar.right",
+                                                         content: PanelSettingsView()
+                                                            .environment(appearance)))
         tabs.addTabViewItem(SettingsWindowController.tab(title: "모양", symbol: "paintpalette",
                                                          content: AppearanceSettingsView()
                                                             .environment(appearance)))
@@ -77,6 +83,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 }
 
 /// 탭을 바꾸거나 내용 높이가 바뀌면 창 크기를 그 탭에 맞춰요. 창 위쪽 끝은 그대로 둬요.
+/// 창이 보이는 동안에는 늘었다 줄어드는 애니메이션을 넣어요. 시간은 macOS가 그 크기 변화에 쓰는 기본 시간
+/// (`animationResizeTime`, 바뀌는 높이에 비례)을 그대로 써요. (Safari·Finder 설정 창과 같은 시간, 2026-11-03 사용자 요청)
+/// `setFrame(_:display:animate:)`는 SwiftUI 배치 도중에 불리면 애니메이션이 보이지 않아서 animator로 움직여요.
 private final class SettingsTabViewController: NSTabViewController {
     override func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
         super.tabView(tabView, didSelect: tabViewItem)
@@ -86,7 +95,7 @@ private final class SettingsTabViewController: NSTabViewController {
     override func preferredContentSizeDidChange(for viewController: NSViewController) {
         super.preferredContentSizeDidChange(for: viewController)
         if viewController === selectedController {
-            fitWindowToSelectedTab(animated: false)
+            fitWindowToSelectedTab(animated: true)
         }
     }
 
@@ -100,9 +109,29 @@ private final class SettingsTabViewController: NSTabViewController {
 
         var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
         frame.origin = NSPoint(x: window.frame.minX, y: window.frame.maxY - frame.height)
-        guard frame != window.frame else { return }
-        window.setFrame(frame, display: true, animate: animated && window.isVisible)
+        guard frame != targetFrame ?? window.frame else { return }
+        guard animated && window.isVisible else {
+            targetFrame = nil
+            window.setFrame(frame, display: true)
+            return
+        }
+        // 같은 크기로 가는 중이면 다시 시작하지 않아요. (탭을 고를 때 두 번 불릴 수 있어요)
+        targetFrame = frame
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = window.animationResizeTime(frame)
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            window.animator().setFrame(frame, display: true)
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                if self?.targetFrame == frame {
+                    self?.targetFrame = nil
+                }
+            }
+        }
     }
+
+    /// 지금 움직이고 있는 창 크기의 목표
+    private var targetFrame: NSRect?
 
     private var selectedController: NSViewController? {
         guard tabViewItems.indices.contains(selectedTabViewItemIndex) else { return nil }

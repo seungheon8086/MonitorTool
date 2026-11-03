@@ -3,10 +3,12 @@ import SwiftUI
 
 /// 사이드 패널 안에 보이는 화면이에요. (화면 시안 '패널 · 기본 (확정)', docs/PROJECT_DESIGN.md 1·2·3장)
 /// 맨 위 카드에 CPU·GPU·ANE를 3열로 두고, 그 아래로 메모리 → 온도·팬 → 배터리 → 네트워크 순서로 보여줘요.
+/// 덩어리 순서와 맨 위 카드 안 열 순서는 설정 창 '모양 > 항목 순서'에서 바꿀 수 있어요. (2026-11-03 사용자 요청)
 /// 카드를 누르면 바로 아래에 상세가 펼쳐지고, 여러 항목을 함께 펼칠 수 있어요.
 struct PanelView: View {
     @Environment(MonitorStore.self) private var store
     @Environment(PanelShortcut.self) private var shortcut
+    @Environment(AppearanceSettings.self) private var appearance
     /// 펼친 항목이에요. 패널을 닫았다 열어도 앱이 켜져 있는 동안은 그대로예요.
     @State private var expanded: Set<MonitorItem>
     /// 아래 톱니 단추를 눌렀을 때 할 일 (설정 창 열기)
@@ -32,11 +34,9 @@ struct PanelView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     PanelHeader(takenAt: store.snapshot.takenAt, shortcutText: shortcut.displayText,
                                 shortcutNeedsAttention: shortcut.needsAttention)
-                    processorSection
-                    memorySection
-                    thermalSection
-                    batterySection
-                    networkSection
+                    ForEach(appearance.sectionOrder) { section in
+                        sectionView(section)
+                    }
                 }
                 .padding(16)
             }
@@ -47,16 +47,34 @@ struct PanelView: View {
     }
 
     @ViewBuilder
+    private func sectionView(_ section: PanelSection) -> some View {
+        switch section {
+        case .processor: processorSection
+        case .memory: memorySection
+        case .thermal: thermalSection
+        case .battery: batterySection
+        case .network: networkSection
+        }
+    }
+
+    /// 맨 위 카드와 그 아래 상세. 상세도 카드의 열 순서를 따라요.
+    @ViewBuilder
     private var processorSection: some View {
         ProcessorCard(expanded: $expanded)
-        if expanded.contains(.cpu) {
-            CPUDetail()
+        ForEach(appearance.processorOrder) { item in
+            if expanded.contains(item) {
+                processorDetail(item)
+            }
         }
-        if expanded.contains(.gpu) {
-            GPUDetail()
-        }
-        if expanded.contains(.ane) {
-            ANEDetail()
+    }
+
+    @ViewBuilder
+    private func processorDetail(_ item: MonitorItem) -> some View {
+        switch item {
+        case .cpu: CPUDetail()
+        case .gpu: GPUDetail()
+        case .ane: ANEDetail()
+        default: EmptyView()
         }
     }
 

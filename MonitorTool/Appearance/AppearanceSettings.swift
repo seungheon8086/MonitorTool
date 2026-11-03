@@ -19,6 +19,15 @@ final class AppearanceSettings {
     /// 패널 배경을 바꿀 때마다 불러요. (패널 창이 바로 반영해요)
     @ObservationIgnored var onPanelBackgroundChange: (() -> Void)?
 
+    /// 패널 카드 덩어리 순서 (설정 창 '모양 > 항목 순서', 2026-11-03 사용자 요청)
+    private(set) var sectionOrder: [PanelSection] = PanelSection.allCases
+    /// 맨 위 카드 안의 열 순서
+    private(set) var processorOrder: [MonitorItem] = PanelSection.processorItems
+
+    var panelOrderIsDefault: Bool {
+        sectionOrder == PanelSection.allCases && processorOrder == PanelSection.processorItems
+    }
+
     var panelBackgroundIsDefault: Bool {
         panelGlass == .regular && panelTint == 0 && panelBlur == 0 && panelText == .automatic
     }
@@ -45,6 +54,14 @@ final class AppearanceSettings {
         }
         if let saved = defaults.object(forKey: Self.panelBlurKey) as? Double, saved.isFinite {
             panelBlur = min(max(saved, 0), 1)
+        }
+        if let saved = defaults.stringArray(forKey: Self.sectionOrderKey) {
+            sectionOrder = PanelSection.normalized(saved.compactMap(PanelSection.init(rawValue:)),
+                                                   all: PanelSection.allCases)
+        }
+        if let saved = defaults.stringArray(forKey: Self.processorOrderKey) {
+            processorOrder = PanelSection.normalized(saved.compactMap(MonitorItem.init(rawValue:)),
+                                                     all: PanelSection.processorItems)
         }
         // 처음 만든 투명도 슬라이더(알파값 방식, 커밋 전에 바꿈)의 값은 지워요.
         defaults.removeObject(forKey: "panelBackground")
@@ -87,6 +104,44 @@ final class AppearanceSettings {
         defaults.removeObject(forKey: Self.panelBlurKey)
         onPanelBackgroundChange?()
     }
+
+    func moveSection(_ section: PanelSection, onto target: PanelSection) {
+        setSectionOrder(PanelSection.moving(section, onto: target, in: sectionOrder))
+    }
+
+    func shiftSection(_ section: PanelSection, by offset: Int) {
+        setSectionOrder(PanelSection.shifting(section, by: offset, in: sectionOrder))
+    }
+
+    func moveProcessorItem(_ item: MonitorItem, onto target: MonitorItem) {
+        setProcessorOrder(PanelSection.moving(item, onto: target, in: processorOrder))
+    }
+
+    func shiftProcessorItem(_ item: MonitorItem, by offset: Int) {
+        setProcessorOrder(PanelSection.shifting(item, by: offset, in: processorOrder))
+    }
+
+    func resetPanelOrder() {
+        sectionOrder = PanelSection.allCases
+        processorOrder = PanelSection.processorItems
+        defaults.removeObject(forKey: Self.sectionOrderKey)
+        defaults.removeObject(forKey: Self.processorOrderKey)
+    }
+
+    private func setSectionOrder(_ order: [PanelSection]) {
+        guard order != sectionOrder else { return }
+        sectionOrder = order
+        defaults.set(order.map(\.rawValue), forKey: Self.sectionOrderKey)
+    }
+
+    private func setProcessorOrder(_ order: [MonitorItem]) {
+        guard order != processorOrder else { return }
+        processorOrder = order
+        defaults.set(order.map(\.rawValue), forKey: Self.processorOrderKey)
+    }
+
+    private static let sectionOrderKey = "panelSectionOrder"
+    private static let processorOrderKey = "panelProcessorOrder"
 
     /// −1…1로 자르고, 가운데 근처는 0(색조 없음)에 붙여요. (슬라이더로 정확히 0을 맞추기 어려워서)
     private static func clampedTint(_ value: Double) -> Double {
