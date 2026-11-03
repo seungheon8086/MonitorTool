@@ -94,6 +94,23 @@ struct PanelView: View {
     }
 }
 
+/// 패널 글자 색 설정을 화면에 적용해요. 흰색이면 어두운 모양, 검은색이면 밝은 모양으로 고정해요. (유리는 그대로)
+struct PanelTextColorScheme<Content: View>: View {
+    @Environment(AppearanceSettings.self) private var appearance
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        switch appearance.panelText {
+        case .automatic:
+            content
+        case .white:
+            content.environment(\.colorScheme, .dark)
+        case .black:
+            content.environment(\.colorScheme, .light)
+        }
+    }
+}
+
 /// 패널 맨 위: 앱 이름, 단축키, 고정 단추, 마지막 측정 시각
 private struct PanelHeader: View {
     @Environment(PanelPin.self) private var pin

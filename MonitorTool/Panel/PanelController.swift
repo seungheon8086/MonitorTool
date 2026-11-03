@@ -49,8 +49,10 @@ final class PanelController {
         glassView.cornerRadius = SidePanel.cornerRadius
         self.glassView = glassView
 
-        let rootView = PanelView(openSettings: openSettings, allowHelper: allowHelper,
-                                 openFanSettings: openFanSettings)
+        let rootView = PanelTextColorScheme {
+            PanelView(openSettings: openSettings, allowHelper: allowHelper,
+                      openFanSettings: openFanSettings)
+        }
             .environment(store)
             .environment(appearance)
             .environment(shortcut)

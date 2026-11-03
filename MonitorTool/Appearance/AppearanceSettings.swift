@@ -14,11 +14,13 @@ final class AppearanceSettings {
     private(set) var panelTint: Double = 0
     /// 패널 뒤 배경 흐림: 0 = 유리 자체 흐림만, 1 = 가장 흐리게
     private(set) var panelBlur: Double = 0
+    /// 패널 글자 색: 자동(시스템 모양을 따름) · 흰색 · 검은색
+    private(set) var panelText: PanelTextColor = .automatic
     /// 패널 배경을 바꿀 때마다 불러요. (패널 창이 바로 반영해요)
     @ObservationIgnored var onPanelBackgroundChange: (() -> Void)?
 
     var panelBackgroundIsDefault: Bool {
-        panelGlass == .regular && panelTint == 0 && panelBlur == 0
+        panelGlass == .regular && panelTint == 0 && panelBlur == 0 && panelText == .automatic
     }
 
     /// 고른 색을 저장하는 곳 (let이라 화면 갱신 추적 대상이 아니에요)
@@ -37,6 +39,9 @@ final class AppearanceSettings {
         }
         if let saved = defaults.object(forKey: Self.panelTintKey) as? Double, saved.isFinite {
             panelTint = Self.clampedTint(saved)
+        }
+        if let saved = defaults.string(forKey: Self.panelTextKey).flatMap(PanelTextColor.init(rawValue:)) {
+            panelText = saved
         }
         if let saved = defaults.object(forKey: Self.panelBlurKey) as? Double, saved.isFinite {
             panelBlur = min(max(saved, 0), 1)
@@ -58,6 +63,11 @@ final class AppearanceSettings {
         onPanelBackgroundChange?()
     }
 
+    func setPanelText(_ color: PanelTextColor) {
+        panelText = color
+        defaults.set(color.rawValue, forKey: Self.panelTextKey)
+    }
+
     func setPanelBlur(_ value: Double) {
         guard value.isFinite else { return }
         let clamped = min(max(value, 0), 1)
@@ -70,6 +80,8 @@ final class AppearanceSettings {
         panelGlass = .regular
         panelTint = 0
         panelBlur = 0
+        panelText = .automatic
+        defaults.removeObject(forKey: Self.panelTextKey)
         defaults.removeObject(forKey: Self.panelGlassKey)
         defaults.removeObject(forKey: Self.panelTintKey)
         defaults.removeObject(forKey: Self.panelBlurKey)
@@ -85,6 +97,7 @@ final class AppearanceSettings {
     private static let panelGlassKey = "panelGlass"
     private static let panelTintKey = "panelTint"
     private static let panelBlurKey = "panelBlur"
+    private static let panelTextKey = "panelText"
 
     func color(for item: MonitorItem) -> ItemColor {
         colors[item] ?? item.defaultColor
@@ -132,3 +145,19 @@ enum PanelGlass: String, CaseIterable, Identifiable {
     }
 }
 
+/// 패널 글자 색. 흰색·검은색은 패널 화면을 어두운·밝은 모양으로 고정해서 보조 글자·카드·항목 색도 함께 맞춰요.
+enum PanelTextColor: String, CaseIterable, Identifiable {
+    case automatic
+    case white
+    case black
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .automatic: "자동"
+        case .white: "흰색"
+        case .black: "검은색"
+        }
+    }
+}

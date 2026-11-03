@@ -69,6 +69,23 @@ private struct PanelBackgroundRow: View {
             .padding(.vertical, 8)
             Divider()
             HStack(spacing: 10) {
+                Text("글자")
+                    .font(.system(size: 13))
+                Spacer(minLength: 8)
+                Picker("글자", selection: text) {
+                    ForEach(PanelTextColor.allCases) { color in
+                        Text(color.title)
+                            .tag(color)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 200)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            Divider()
+            HStack(spacing: 10) {
                 Text("색조")
                     .font(.system(size: 13))
                 Spacer(minLength: 8)
@@ -118,6 +135,11 @@ private struct PanelBackgroundRow: View {
     private var glass: Binding<PanelGlass> {
         Binding(get: { appearance.panelGlass },
                 set: { appearance.setPanelGlass($0) })
+    }
+
+    private var text: Binding<PanelTextColor> {
+        Binding(get: { appearance.panelText },
+                set: { appearance.setPanelText($0) })
     }
 
     private var blur: Binding<Double> {
