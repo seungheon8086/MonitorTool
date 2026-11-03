@@ -90,13 +90,17 @@ nonisolated enum ValueFormat {
         return "\(byteCount(bytesPerSecond))/s"
     }
 
-    /// 그래프 눈금용 짧은 숫자: 8, 1.5, 5,000 (정수면 소수점 없이)
+    /// 그래프 눈금용 짧은 숫자: 8, 1.5, 0.75, 5,000 (정수면 소수점 없이, 가운데 눈금 0.75처럼 필요하면 소수 둘째 자리까지)
     static func compact(_ value: Double) -> String {
         guard let number = whole(value) else { return unavailable }
         if Double(number) == value {
             return number.formatted()
         }
-        return oneDecimal(value)
+        let tenths = (value * 10).rounded() / 10
+        if abs(value - tenths) < 0.000_001 {
+            return oneDecimal(value)
+        }
+        return String(format: "%.2f", value)
     }
 
     /// 그래프 눈금: 8 W
