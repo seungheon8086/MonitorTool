@@ -25,6 +25,10 @@
 11. CPU 번호와 E/P 묶음의 대응을 IODeviceTree(`cluster-type`)에서 읽을 수 있는지
 12. powermetrics `--show-extra-power-info`에 ANE 활성 비율이 있는지
 
+**4차 (macOS 27.2): ANE 값이 아직 나오는지**
+
+13. macOS 27.2(26B123)에서 ANE에 실제로 일을 시켰을 때 powermetrics ANE 전력과, MonitorTool이 권한 없이 읽는 IOReport 값(ANE0 전원 상태, ANE DRAM 트래픽)이 여전히 반응하는지. LM Studio로 시험했을 때 ANE가 아니라 GPU 사용으로 잡혀서 다시 확인
+
 ## 구성
 
 - `ane_load.swift`: Vision 이미지 분류 요청을 지정한 장치(ANE·GPU·CPU)로 고정해서 반복 실행하는 부하 생성기. Core ML의 `MLComputeDevice`와 `VNRequest.setComputeDevice(_:for:)`로 장치를 지정하고, 실제로 그 장치가 쓰였는지는 powermetrics 수치로 확인. 세 번째 인자로 초당 요청 수를 제한할 수 있음(3차)
@@ -32,8 +36,9 @@
 - `ioreport_probe.swift`: 2차. 관리자 권한 없이 IOReport(비공개 라이브러리)와 OS 통계를 1초마다 읽어 기록하는 진단 도구. 앱에 넣을 코드가 아니라 확인용
 - `measure2.sh`: 2차. 아래 순서로 기록
 - `measure3.sh`: 3차. CPU 묶음 대응 출력 → 가만히 → ANE 부하를 초당 최대·48·24·12·4회로 바꿔 가며 IOReport 기록 → ANE 부하 중 `--show-extra-power-info`
+- `measure4.sh`: 4차. 부하 시험 실행 → 가만히 → ANE 부하 → GPU 부하마다 IOReport 12초 + powermetrics 6초 → ANE 부하 40초(그동안 MonitorTool 패널 확인) → `summary.txt`에 요약
 - `results/`: 1차 결과 원본
-- `results-2/`, `results-3/`: 2차·3차 결과 원본
+- `results-2/`, `results-3/`, `results-4/`: 2차·3차·4차 결과 원본
 
 `measure2.sh`의 측정 순서:
 
@@ -243,3 +248,20 @@ ANE는 `ANE Power` 줄뿐이었어요. 기본 출력, `--show-all`, `--show-extr
 - 3차 측정 때는 다른 프로그램이 GPU를 쓰고 있어서, 가만히 단계의 전체 DRAM 트래픽이 27 GB/s였어요. 이런 백그라운드 사용도 이 값에 드러나요.
 
 판정: 메모리 트래픽은 관리자 권한 없이 1초마다 읽을 수 있다. 메모리 항목에는 `DCS` 기준의 DRAM 트래픽(합계와 기기별)을 쓰고, ANE 상세의 메모리 트래픽도 같은 기준(`ANE0 DCS RD·WR`)으로 맞춘다.
+
+### 4차 (2026-11-03, macOS 27.2 26B123): ANE 값 다시 확인
+
+`measure4.sh`로 MonitorTool을 켜 둔 채 기록했어요. 원본은 [`results-4/`](results-4), 요약은 [`results-4/summary.txt`](results-4/summary.txt)예요. 부하 생성기는 27.2에서도 이미지 분류를 ANE로 지정할 수 있었고, 초당 ANE 84.2회(1차 82.6회), GPU 59.9회 처리했어요.
+
+| 단계 | powermetrics ANE 전력 | IOReport ANE0 ACT | ANE DRAM 트래픽 (`ANE0 DCS RD+WR`) | GPU Device Utilization | GPU 전력 (IOReport) |
+|---|---|---|---|---|---|
+| 가만히 | 0 mW | 0% | 0 | 17.5% | 0.25 W |
+| ANE 부하 | 352~427 mW | 100% | 2.26 GB/s | 2.0% | 0.06 W |
+| GPU 부하 | 0 mW | 2.3% (한 표본 22%) | 0 | 69.2% | 7.38 W |
+
+- **27.2에서도 ANE 값은 그대로 나와요.** ANE 전력은 ANE 부하에서만 0이 아니었고, MonitorTool이 쓰는 IOReport ANE0 전원 상태와 ANE DRAM 트래픽도 ANE 부하에서만 반응했어요. 패널의 ANE 칸도 '사용 중'으로 바뀌는 것을 사용자가 확인했어요.
+- ANE에 일을 시킬 때 GPU는 거의 놀았어요(Device Utilization 2%, 0.06 W). ANE 작업이 GPU 사용으로 잡히지는 않아요.
+- 이번에는 권한 없이 읽은 IOReport `Energy Model / ANE0`도 갱신됐어요(평균 0.42 W). MonitorTool 보조 프로그램이 powermetrics를 계속 돌리고 있어서예요(2차 결과와 같은 이유).
+- GPU 부하 중에도 ANE0가 1초 표본 하나에서 22% 켜졌어요. 시스템이 잠깐 ANE를 쓴 것으로 보이고, 패널의 ANE 칸이 드물게 1~2초 '사용 중'이 될 수 있어요.
+
+판정: macOS 27.2에서도 ANE 측정은 정상이다. LM Studio 시험에서 GPU로 잡힌 것은 LM Studio가 언어 모델을 GPU(Metal·MLX)로 돌리기 때문이고, 앱의 ANE 항목은 고치거나 빼지 않는다.

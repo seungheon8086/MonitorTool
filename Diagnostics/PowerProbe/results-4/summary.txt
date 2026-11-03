@@ -1,0 +1,60 @@
+# PowerProbe 4차 요약
+ProductName:		macOS
+ProductVersion:		27.2
+BuildVersion:		26B123
+Apple M1 Pro
+2026년 11월  3일 화요일 11시 58분 54초 KST
+MonitorTool: 5408 MonitorTool
+
+## idle
+[powermetrics]
+  ANE Power: 0 mW 0 mW 0 mW 0 mW 0 mW 0 mW
+  CPU Power: 36 mW 501 mW 347 mW 275 mW 32 mW 195 mW
+  GPU HW active residency: 1.54% (389 MHz 0.54% (389 MHz 1.26% (389 MHz 1.36% (389 MHz 0.75% (389 MHz 1.39% (389 MHz
+  GPU Power: 15 mW 15 mW 1 mW 1 mW 39 mW 39 mW 51 mW 51 mW 13 mW 13 mW 41 mW 41 mW
+[IOReport, 권한 없이]
+  Energy Model / - / ANE0 | mJ | 갱신 0/12 | 평균 0.000 W | 최대 0.000 W
+  Energy Model / - / GPU Energy | nJ | 갱신 12/12 | 평균 0.252 W | 최대 1.138 W
+  SoC Stats / Cluster Power States / ANE0 | 활성 0.0% (0.0~0.0) | 상태 2개: INACT,ACT
+  [ANE 바이트 카운터] 평균 MB/s = 구간 총 바이트 ÷ 측정 시간
+  AMC Stats / Perf Counters / ANE0 DCS RD | 갱신 0/12 | 평균 0.0 MB/s
+  AMC Stats / Perf Counters / ANE0 DCS WR | 갱신 0/12 | 평균 0.0 MB/s
+  AMC Stats / Perf Counters / ANE0 RD | 갱신 0/12 | 평균 0.0 MB/s
+  AMC Stats / Perf Counters / ANE0 WR | 갱신 0/12 | 평균 0.0 MB/s
+  [IORegistry GPU] Device Utilization %: 평균 17.5 (최소 0~최대 59, 12회)
+
+## ane
+부하: 완료: 2444회, 초당 84.2회 (이미지 분류, ane)
+[powermetrics]
+  ANE Power: 392 mW 384 mW 371 mW 352 mW 375 mW 427 mW
+  CPU Power: 724 mW 1093 mW 945 mW 949 mW 944 mW 8638 mW
+  GPU HW active residency: 21.60% (389 MHz 22.20% (389 MHz 20.90% (389 MHz 20.64% (389 MHz 21.31% (389 MHz 23.19% (389 MHz
+  GPU Power: 45 mW 45 mW 60 mW 60 mW 59 mW 59 mW 43 mW 43 mW 45 mW 45 mW 77 mW 77 mW
+[IOReport, 권한 없이]
+  Energy Model / - / ANE0 | mJ | 갱신 12/12 | 평균 0.421 W | 최대 0.480 W
+  Energy Model / - / GPU Energy | nJ | 갱신 12/12 | 평균 0.057 W | 최대 0.084 W
+  SoC Stats / Cluster Power States / ANE0 | 활성 100.0% (100.0~100.0) | 상태 2개: INACT,ACT
+  [ANE 바이트 카운터] 평균 MB/s = 구간 총 바이트 ÷ 측정 시간
+  AMC Stats / Perf Counters / ANE0 DCS RD | 갱신 12/12 | 평균 2060.2 MB/s
+  AMC Stats / Perf Counters / ANE0 DCS WR | 갱신 12/12 | 평균 201.3 MB/s
+  AMC Stats / Perf Counters / ANE0 RD | 갱신 12/12 | 평균 5125.8 MB/s
+  AMC Stats / Perf Counters / ANE0 WR | 갱신 12/12 | 평균 2373.7 MB/s
+  [IORegistry GPU] Device Utilization %: 평균 2.0 (최소 0~최대 3, 12회)
+
+## gpu
+부하: 완료: 1737회, 초당 59.9회 (이미지 분류, gpu)
+[powermetrics]
+  ANE Power: 0 mW 0 mW 0 mW 0 mW 0 mW 0 mW
+  CPU Power: 1374 mW 1507 mW 1708 mW 1242 mW 1794 mW 1085 mW
+  GPU HW active residency: 98.52% (389 MHz 98.69% (389 MHz 98.71% (389 MHz 98.61% (389 MHz 98.75% (389 MHz 99.27% (389 MHz
+  GPU Power: 8621 mW 8621 mW 7405 mW 7405 mW 7366 mW 7454 mW 7337 mW 7317 mW 9373 mW 9382 mW 7444 mW 7416 mW
+[IOReport, 권한 없이]
+  Energy Model / - / ANE0 | mJ | 갱신 0/12 | 평균 0.000 W | 최대 0.000 W
+  Energy Model / - / GPU Energy | nJ | 갱신 12/12 | 평균 7.378 W | 최대 7.648 W
+  SoC Stats / Cluster Power States / ANE0 | 활성 2.3% (0.0~22.3) | 상태 2개: INACT,ACT
+  [ANE 바이트 카운터] 평균 MB/s = 구간 총 바이트 ÷ 측정 시간
+  AMC Stats / Perf Counters / ANE0 DCS RD | 갱신 1/12 | 평균 0.0 MB/s
+  AMC Stats / Perf Counters / ANE0 DCS WR | 갱신 1/12 | 평균 0.0 MB/s
+  AMC Stats / Perf Counters / ANE0 RD | 갱신 1/12 | 평균 0.1 MB/s
+  AMC Stats / Perf Counters / ANE0 WR | 갱신 1/12 | 평균 0.0 MB/s
+  [IORegistry GPU] Device Utilization %: 평균 69.2 (최소 66~최대 71, 12회)
