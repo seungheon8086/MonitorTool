@@ -1,10 +1,13 @@
 import AppKit
+import Observation
 import QuartzCore
 import SwiftUI
 
 /// 사이드 패널을 만들고, 화면 오른쪽에서 미끄러져 나오고 들어가게 해요.
 final class PanelController {
     private let panel: SidePanel
+    /// 고정 단추 상태 (머리글 오른쪽 위)
+    let pin = PanelPin()
     /// 패널이 보여주는 값. 패널을 숨긴 동안에는 화면을 다시 그리지 않게 알려 줘요.
     private let store: MonitorStore
     private(set) var isShown = false
@@ -46,6 +49,7 @@ final class PanelController {
             .environment(appearance)
             .environment(shortcut)
             .environment(fanControl)
+            .environment(pin)
         let hostingView = NSHostingView(rootView: rootView)
         hostingView.sizingOptions = []  // SwiftUI 내용 크기가 패널 크기를 바꾸지 않게 해요.
         hostingView.frame = glassView.bounds
@@ -56,6 +60,11 @@ final class PanelController {
 
         panel.onDismissRequest = { [weak self] in
             self?.hide()
+        }
+        // 고정 중이면 바깥을 눌러도 닫지 않아요.
+        panel.onFocusLost = { [weak self] in
+            guard let self, !self.pin.isPinned else { return }
+            self.hide()
         }
     }
 
@@ -134,4 +143,23 @@ final class PanelController {
                       width: panelWidth,
                       height: area.height - edgeInset * 2)
     }
+}
+
+/// 패널 고정 단추의 상태예요. 켜 두면 바깥을 눌러도 패널이 닫히지 않아요. 앱을 다시 켜도 남아요. (2026-11-03 사용자 요청)
+@Observable
+final class PanelPin {
+    private(set) var isPinned: Bool
+    @ObservationIgnored private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        isPinned = defaults.bool(forKey: PanelPin.key)
+    }
+
+    func toggle() {
+        isPinned.toggle()
+        defaults.set(isPinned, forKey: PanelPin.key)
+    }
+
+    private static let key = "panelPinned"
 }

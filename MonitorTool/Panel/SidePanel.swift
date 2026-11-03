@@ -5,8 +5,10 @@ import AppKit
 /// - 그래도 키 입력은 받을 수 있어서 Esc로 닫을 수 있어요
 /// - 모든 데스크톱(Space)과 전체 화면 앱 위에도 나타나요
 final class SidePanel: NSPanel {
-    /// Esc를 누르거나 패널 바깥을 클릭했을 때 불려요.
+    /// Esc를 눌렀을 때 불려요.
     var onDismissRequest: (() -> Void)?
+    /// 패널 바깥을 클릭해서 키 창 자리를 잃었을 때 불려요. (고정 중이면 닫지 않아요)
+    var onFocusLost: (() -> Void)?
 
     static func make() -> SidePanel {
         let panel = SidePanel(contentRect: .zero,
@@ -38,10 +40,10 @@ final class SidePanel: NSPanel {
         super.sendEvent(event)
     }
 
-    // 다른 앱이나 바탕화면을 클릭하면 키 창 자리를 잃어요. 그때 패널을 닫아요.
+    // 다른 앱이나 바탕화면을 클릭하면 키 창 자리를 잃어요. 그때 패널을 닫아요. (고정 중이 아니면)
     override func resignKey() {
         super.resignKey()
-        onDismissRequest?()
+        onFocusLost?()
     }
 
     private static let escapeKeyCode: UInt16 = 53

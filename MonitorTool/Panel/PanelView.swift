@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// 사이드 패널 안에 보이는 화면이에요. (화면 시안 '패널 · 기본 (확정)', docs/PROJECT_DESIGN.md 1·2·3장)
@@ -93,8 +94,9 @@ struct PanelView: View {
     }
 }
 
-/// 패널 맨 위: 앱 이름, 단축키, 마지막 측정 시각
+/// 패널 맨 위: 앱 이름, 단축키, 고정 단추, 마지막 측정 시각
 private struct PanelHeader: View {
+    @Environment(PanelPin.self) private var pin
     let takenAt: Date?
     /// 지금 단축키 (예: fn Space, ⌃⌥M). 단축키를 껐으면 nil이에요.
     let shortcutText: String?
@@ -103,7 +105,7 @@ private struct PanelHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center, spacing: 8) {
                 Text("MonitorTool")
                     .font(.title2.weight(.semibold))
                 Spacer()
@@ -115,6 +117,7 @@ private struct PanelHeader: View {
                               ? "단축키 작동 불가. MonitorTool 설정 > 일반에서 확인 필요"
                               : "전역 접근 단축키(fn + Space는 손쉬운 사용 허용 필요)")
                 }
+                pinButton
             }
             if let takenAt {
                 Text("\(ValueFormat.clock(takenAt)) 측정 · 1초마다 갱신")
@@ -128,6 +131,27 @@ private struct PanelHeader: View {
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
+    }
+
+    /// 고정 단추: 켜면 바깥을 눌러도 패널이 닫히지 않아요.
+    private var pinButton: some View {
+        Button {
+            pin.toggle()
+        } label: {
+            Image(systemName: pin.isPinned ? "pin.fill" : "pin")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(pin.isPinned ? Color.accentColor : Color.secondary)
+                .frame(width: 24, height: 24)
+                .background {
+                    if pin.isPinned {
+                        Circle().fill(Color.accentColor.opacity(0.15))
+                    }
+                }
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(pin.isPinned ? "고정 해제" : "고정 · 바깥 클릭에도 유지")
+        .accessibilityLabel(Text(pin.isPinned ? "패널 고정 해제" : "패널 고정"))
     }
 }
 
@@ -179,6 +203,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }
@@ -189,6 +214,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 2700)
         .background(.regularMaterial)
 }
@@ -199,6 +225,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
@@ -209,6 +236,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 1500)
         .background(.regularMaterial)
 }
@@ -219,6 +247,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 1300)
         .background(.regularMaterial)
 }
@@ -229,6 +258,7 @@ private struct PanelFooter: View {
         .environment(AppearanceSettings())
         .environment(PanelShortcut(action: {}))
         .environment(FanControlModel.preview())
+        .environment(PanelPin(defaults: UserDefaults(suiteName: "preview") ?? .standard))
         .frame(width: 380, height: 900)
         .background(.regularMaterial)
 }
