@@ -1,0 +1,108 @@
+IOBlockStorageDriver 5개
+
+== disk0
+  Protocol Characteristics > Physical Interconnect: Apple Fabric
+  Protocol Characteristics > Physical Interconnect Location: Internal
+  Device Characteristics > Medium Type: Solid State
+  Device Characteristics > Product Name: APPLE SSD AP1024R
+  Device Characteristics > Product Revision Level: 591.40.3
+  Device Characteristics > Vendor Name: 
+  NVMe SMART Capable: 1
+  부모: IOBlockStorageDriver < IOEmbeddedNVMeBlockDevice < AppleANS3CGv2Controller < RTBuddyService < RTBuddy < AppleA7IOPNub < AppleASCWrapV4 < AppleARMIODevice < AppleT600xIO < IOPlatformDevice
+  Statistics > Bytes (Read): 268546203648
+  Statistics > Bytes (Write): 72930373632
+  Statistics > Errors (Read): 0
+  Statistics > Errors (Write): 0
+  Statistics > Latency Time (Read): 0
+  Statistics > Latency Time (Write): 0
+  Statistics > Operations (Read): 5173432
+  Statistics > Operations (Write): 3382135
+  Statistics > Retries (Read): 0
+  Statistics > Retries (Write): 0
+  Statistics > Total Time (Read): 2036290917973
+  Statistics > Total Time (Write): 216007834858
+  읽는 데 걸린 시간: 41.2 µs
+
+== disk10
+  Protocol Characteristics > Physical Interconnect: Secure Digital
+  Protocol Characteristics > Physical Interconnect Location: Internal
+  Device Characteristics > Product Name: Built In SDXC Reader
+  Device Characteristics > Vendor Name: Apple
+  부모: IOBlockStorageDriver < AppleSDXCBlockStorageDevice < AppleSDXCSlot < AppleSDXC < IOPCIDevice < ApplePCIEHostBridge < IOPCIDevice < AppleT6000PCIe < AppleARMIODevice < AppleT600xIO
+  Statistics > Bytes (Read): 13019267072
+  Statistics > Bytes (Write): 103222041088
+  Statistics > Errors (Read): 0
+  Statistics > Errors (Write): 0
+  Statistics > Latency Time (Read): 0
+  Statistics > Latency Time (Write): 0
+  Statistics > Operations (Read): 258824
+  Statistics > Operations (Write): 390544
+  Statistics > Retries (Read): 0
+  Statistics > Retries (Write): 0
+  Statistics > Total Time (Read): 948209673122
+  Statistics > Total Time (Write): 3305161898461
+  읽는 데 걸린 시간: 26.6 µs
+
+== disk6
+  Protocol Characteristics > Physical Interconnect: Virtual Interface
+  Protocol Characteristics > Physical Interconnect Location: File
+  Device Characteristics > Medium Type: Solid State
+  Device Characteristics > Product Name: Disk Image
+  Device Characteristics > Product Revision Level: 598.40.4
+  Device Characteristics > Vendor Name: Apple
+  부모: IOBlockStorageDriver < AppleDiskImageDevice < AppleDiskImagesController < IOResources < IOPlatformExpertDevice < IORegistryEntry
+  Statistics > Bytes (Read): 5195264
+  Statistics > Bytes (Write): 0
+  Statistics > Errors (Read): 0
+  Statistics > Errors (Write): 0
+  Statistics > Latency Time (Read): 0
+  Statistics > Latency Time (Write): 0
+  Statistics > Operations (Read): 1000
+  Statistics > Operations (Write): 0
+  Statistics > Retries (Read): 0
+  Statistics > Retries (Write): 0
+  Statistics > Total Time (Read): 573890963
+  Statistics > Total Time (Write): 0
+  읽는 데 걸린 시간: 22.0 µs
+
+== disk8
+  Protocol Characteristics > Physical Interconnect: Virtual Interface
+  Protocol Characteristics > Physical Interconnect Location: File
+  Device Characteristics > Medium Type: Solid State
+  Device Characteristics > Product Name: Disk Image
+  Device Characteristics > Product Revision Level: 598.40.4
+  Device Characteristics > Vendor Name: Apple
+  부모: IOBlockStorageDriver < AppleDiskImageDevice < AppleDiskImagesController < IOResources < IOPlatformExpertDevice < IORegistryEntry
+  Statistics > Bytes (Read): 4675072
+  Statistics > Bytes (Write): 0
+  Statistics > Errors (Read): 0
+  Statistics > Errors (Write): 0
+  Statistics > Latency Time (Read): 0
+  Statistics > Latency Time (Write): 0
+  Statistics > Operations (Read): 884
+  Statistics > Operations (Write): 0
+  Statistics > Retries (Read): 0
+  Statistics > Retries (Write): 0
+  Statistics > Total Time (Read): 489353663
+  Statistics > Total Time (Write): 0
+  읽는 데 걸린 시간: 21.7 µs
+
+== disk4
+  Protocol Characteristics > Physical Interconnect: Virtual Interface
+  Device Characteristics > Product Name: Disk Image
+  Device Characteristics > Product Revision Level: 710
+  Device Characteristics > Vendor Name: Apple
+  부모: IOBlockStorageDriver < IODiskImageBlockStorageDeviceInKernel < IOHDIXHDDriveInKernel < KDIDiskImageNub < KDIUDIFDiskImage < KDIUDIFEncoding < KDIFileBackingStore < KDIURL < IOHDIXController < IOResources
+  Statistics > Bytes (Read): 4589056
+  Statistics > Bytes (Write): 0
+  Statistics > Errors (Read): 0
+  Statistics > Errors (Write): 0
+  Statistics > Latency Time (Read): 0
+  Statistics > Latency Time (Write): 0
+  Statistics > Operations (Read): 849
+  Statistics > Operations (Write): 0
+  Statistics > Retries (Read): 0
+  Statistics > Retries (Write): 0
+  Statistics > Total Time (Read): 482255942
+  Statistics > Total Time (Write): 0
+  읽는 데 걸린 시간: 21.3 µs
