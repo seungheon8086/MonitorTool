@@ -226,15 +226,15 @@ struct ThermalDetail: View {
     private var sensorList: some View {
         let ane = store.snapshot.ane
         return VStack(spacing: 0) {
-            ListRow(title: "CPU 최고", note: "코어 센서 10개") {
+            ListRow(title: "CPU 최고") {
                 ValueText(reading: thermal.cpuMax, format: ValueFormat.celsius, font: Self.valueFont)
             }
             Divider()
-            ListRow(title: "GPU 최고", note: "센서 2개") {
+            ListRow(title: "GPU 최고") {
                 ValueText(reading: thermal.gpuMax, format: ValueFormat.celsius, font: Self.valueFont)
             }
             Divider()
-            ListRow(title: "ANE", note: "켜져 있을 때만") {
+            ListRow(title: "ANE") {
                 ValueText(reading: ane.temperature, format: ValueFormat.celsius, font: Self.valueFont)
             }
             Divider()
@@ -289,7 +289,7 @@ struct ThermalDetail: View {
     private static let valueFont = Font.system(size: 12, weight: .semibold)
 }
 
-/// 팬마다 회전수, 범위, 모드를 보여줘요.
+/// 팬마다 회전수와 모드를 보여줘요. (범위는 팬 제어의 입력 칸에만 보여줘요)
 struct FanCards: View {
     @Environment(FanControlModel.self) private var fanControl
     let fans: Reading<[FanReading]>
@@ -305,10 +305,6 @@ struct FanCards: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title(for: fan, count: list.count))
                             .font(.system(size: 12, weight: .semibold))
-                        Text(rangeText(for: fan))
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
                         Text("모드: \(modeText(for: fan))")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
@@ -334,13 +330,6 @@ struct FanCards: View {
         let name = FanName.short(id: fan.id, count: count)
         guard let rpm = fan.rpm.okValue else { return "\(name) · 읽지 못함" }
         return rpm < 1 ? "\(name) · 정지" : "\(name) · \(ValueFormat.rpm(rpm))"
-    }
-
-    /// '0 RPM · 범위 1,499–4,296'
-    private func rangeText(for fan: FanReading) -> String {
-        let current = fan.rpm.okValue.map(ValueFormat.rpm) ?? "—"
-        guard let minimum = fan.minimumRPM, let maximum = fan.maximumRPM else { return current }
-        return "\(current) · 범위 \(ValueFormat.compact(minimum.rounded()))–\(ValueFormat.compact(maximum.rounded()))"
     }
 
     /// '시스템 자동', '고정 · 목표 2,000', 다른 프로그램이 수동으로 둔 경우 '수동'

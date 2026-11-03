@@ -113,17 +113,13 @@ private struct GPUColumn: View {
     }
 }
 
-/// ANE 열: 사용 중 여부와 전력. 사용률은 잴 수 없어서 이유를 적어 둬요.
+/// ANE 열: 사용 중 여부와 전력 (사용률은 macOS가 알려 주지 않아서 두지 않아요)
 private struct ANEColumn: View {
     let ane: ANESnapshot
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ANEActivityLabel(reading: ane.isActive)
-            Text("사용률은\n측정 불가")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             PowerLine(reading: ane.power)
         }

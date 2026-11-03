@@ -99,11 +99,6 @@ struct WidgetProcessorCard: View {
             divider
             column("ANE", power: snapshot.ane.power) {
                 WidgetANEActivity(reading: snapshot.ane.isActive)
-                Text("사용률 측정 불가")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

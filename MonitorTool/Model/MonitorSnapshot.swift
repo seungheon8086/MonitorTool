@@ -94,14 +94,11 @@ nonisolated struct ANESnapshot: Hashable, Sendable, Codable {
     var activeSince: Date?
     /// ANE 전력 (W)
     var power: Reading<Double> = .preparing
-    /// 사용률은 macOS가 알려 주지 않아서 늘 '측정 불가'예요.
-    var usage: Reading<Double> = .notMeasurable(ANESnapshot.usageReason)
     /// ANE가 DRAM과 주고받은 양 (바이트/초)
     var dramTraffic: Reading<Double> = .preparing
     /// ANE 온도 (°C). ANE가 쉬는 동안은 '꺼짐'이에요.
     var temperature: Reading<Double> = .preparing
-
-    static let usageReason = "macOS가 ANE가 일한 시간의 비율을 알려 주지 않아요."
+    // 사용률(%)은 macOS가 알려 주지 않아서 값을 두지 않아요. (Diagnostics/PowerProbe)
 }
 
 // MARK: - GPU
