@@ -311,6 +311,8 @@ final class Session {
     private var diskNames: [UInt64: PhysicalDisk] = [:]
     private let workGroup = DispatchGroup()
     private var started: UInt64 = 0
+    /// IOReport 표본을 만드는 데 쓴 CPU (ns). 붙일 때의 비용에서 뺄 몫
+    private(set) var ioreportCPU: UInt64 = 0
 
     init(mode: Mode, directory: String, phases: [Phase], totalSeconds: Int?, report: Report, engine: Engine) {
         self.mode = mode
@@ -380,7 +382,7 @@ final class Session {
     }
 
     private func startWork(_ index: Int, start: UInt64) {
-        guard let work = phases[index].work else { return }
+        guard index >= 0, index < phases.count, let work = phases[index].work else { return }
         let until = start + UInt64(phases[index].seconds) * 1_000_000_000
         let name = phases[index].name
         let report = self.report
@@ -397,9 +399,16 @@ final class Session {
     private func tick(second k: Int, phase index: Int) {
         let now = Timebase.now()
         let stats = engine.map.allStats()
+        let c0 = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
         let io = sampleIOReport()
+        ioreportCPU += clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) - c0
         let ssdBefore = engine.ssdEvents
-        let wantSSD = mode == .load && index >= 0 && phases[index].ssd
+        let wantSSD: Bool
+        if mode == .load {
+            wantSSD = index >= 0 && index < phases.count && phases[index].ssd
+        } else {
+            wantSSD = true
+        }
         if wantSSD != engine.ssdEvents {
             do { try engine.setFilter(ssd: wantSSD) } catch { report.line("  SSD 이벤트 \(wantSSD ? "켜기" : "끄기") 실패: \(error)") }
         }
@@ -466,6 +475,10 @@ final class Session {
                 emit(from: prev.record, prevTotals: prev.totals, to: record, totals: item.totals)
             }
             previous = (record: record, totals: item.totals)
+            if record.second % 10 == 0 {
+                samplesFile.flush()
+                ioreportFile.flush()
+            }
         }
     }
 
@@ -492,6 +505,7 @@ final class Session {
                 var text = "\(disk.bsd) 활성 \(String(format: "%5.1f", sample.active))% · 동시 \(f2(sample.concurrency))"
                     + " · 읽기 \(String(format: "%6.1f", Double(sample.driver.bytesRead) / 1e6)) · 쓰기 \(String(format: "%6.1f", Double(sample.driver.bytesWritten) / 1e6)) MB/s"
                 if !latency.isEmpty { text += " · 응답 \(latency) ms" }
+                if let f = flush, f > 0 { text += " · 캐시 비우기 \(ms(f)) ms" }
                 live.append(text)
             }
         }
@@ -654,6 +668,15 @@ final class Session {
             let mean = sorted.reduce(0, +) / Double(sorted.count)
             report.line("  활성 평균 \(f1(mean))% · 중앙 \(f1(sorted[sorted.count / 2]))% · 90% \(f1(sorted[sorted.count * 9 / 10]))% · 최대 \(f1(sorted[sorted.count - 1]))%")
         }
+        let withFlush = rows.compactMap { r -> Double? in
+            guard let f = r.flush, r.length > 0 else { return nil }
+            return Double(r.busy + f) / Double(r.length) * 100
+        }.sorted()
+        if !withFlush.isEmpty {
+            let mean = withFlush.reduce(0, +) / Double(withFlush.count)
+            let changed = rows.filter { ($0.flush ?? 0) > 0 }.count
+            report.line("  캐시 비우기를 넣은 활성: 평균 \(f1(mean))% · 90% \(f1(withFlush[withFlush.count * 9 / 10]))% · 최대 \(f1(withFlush[withFlush.count - 1]))% · 캐시 비우기가 있던 1초 \(changed)번")
+        }
         let gaps = rows.map { $0.clipped - $0.active }
         let over5 = gaps.filter { abs($0) > 5 }.count
         let over20 = gaps.filter { abs($0) > 20 }.count
@@ -731,6 +754,7 @@ func runSession(mode: Session.Mode, directory: String, minutes: Int?, sdPath: St
         return 2
     }
     installSignalHandlers()
+    installCrashRelease()
     if let i = try? Kdebug.info() {
         Timebase.continuous = i.flags & KD.flagContinuous != 0
         report.line("▶ 추적 켜기: 성공 · 커널 버퍼 \(comma(Int(i.events)))개 (\(String(format: "%.1f", Double(i.events) * 64 / 1_048_576)) MiB)"
@@ -766,6 +790,7 @@ func runSession(mode: Session.Mode, directory: String, minutes: Int?, sdPath: St
     report.line("짝 못 맞춤: 시작 못 본 끝 \(comma(engine.unmatchedDone)) · 같은 열쇠 다시 시작 \(comma(engine.replacedStart)) · 버린 요청 \(comma(engine.dropped))")
     report.line("읽기 CPU \(ms(engine.readerCPU)) ms · 처리 CPU \(ms(engine.processCPU)) ms · 도구 전체 CPU \(String(format: "%.2f", usage))초 / \(String(format: "%.0f", wall))초"
         + (mode == .load ? " (부하 스레드 포함)" : " (\(String(format: "%.2f", wall == 0 ? 0 : usage / wall * 100))%)"))
+    report.line("IOReport 표본 CPU \(ms(session.ioreportCPU)) ms (비교용이라 붙일 때는 뺄 몫)")
     report.line("powermetrics: \(powerBefore) → \(powermetricsState())")
     return 0
 }

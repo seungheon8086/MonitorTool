@@ -6,6 +6,9 @@ setvbuf(stdout, nil, _IOLBF, 0)
 signal(SIGPIPE, SIG_IGN)
 _ = stopRequested   // 신호 처리기보다 먼저 초기화
 
+/// 충돌 신호를 받았을 때 쓰는 글 (신호 처리기 안에서 힙을 쓰지 않으려고 미리 만든다)
+let crashNote: [UInt8] = Array("\n▶ 비정상 종료: 커널 추적을 끄고 해제함\n".utf8)
+
 // MARK: - 출력
 
 final class Report {
@@ -118,6 +121,30 @@ func installSignalHandlers() {
     signal(SIGHUP) { _ in stopRequested = 1 }
 }
 
+/// 커널 추적을 끄고 해제한다. 충돌 신호 처리기에서 부르므로 힙을 쓰지 않는다 (KERN_KDEBUG 24 > KDENABLE 3 · KDREMOVE 7)
+func emergencyRelease() {
+    var mib: (Int32, Int32, Int32, Int32) = (CTL_KERN, 24, 3, 0)
+    var length = 0
+    withUnsafeMutablePointer(to: &mib) { tuple in
+        tuple.withMemoryRebound(to: Int32.self, capacity: 4) { m in
+            _ = sysctl(m, 4, nil, &length, nil, 0)
+            m[2] = 7
+            _ = sysctl(m, 3, nil, &length, nil, 0)
+        }
+    }
+}
+
+/// 추적을 켠 뒤에 부른다: 충돌(배열 범위 밖 등)로 끝나도 추적이 켜진 채 남지 않게 한다
+func installCrashRelease() {
+    for s in [SIGTRAP, SIGSEGV, SIGBUS, SIGILL, SIGABRT, SIGFPE] {
+        signal(s) { _ in
+            emergencyRelease()
+            crashNote.withUnsafeBufferPointer { _ = write(2, $0.baseAddress, $0.count) }
+            _exit(70)
+        }
+    }
+}
+
 // MARK: - 1단계 check
 
 struct Snapshot {
@@ -167,6 +194,7 @@ func runCheck(directory: String) -> Int32 {
         return 2
     }
     installSignalHandlers()
+    installCrashRelease()
     var bufferText = ""
     if let i = try? Kdebug.info() {
         Timebase.continuous = i.flags & KD.flagContinuous != 0

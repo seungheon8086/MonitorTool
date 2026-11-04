@@ -80,5 +80,8 @@ set +e
 rc=$?
 set -e
 if [[ -n "$USER_NAME" ]]; then chown -R "$USER_NAME" "$OUT"; fi
+if (( rc == 70 || rc >= 128 )); then
+  echo "▶ 비정상 종료 (코드 $rc). 추적이 남았는지: sudo ./run.sh status · 정리: sudo ./run.sh reset"
+fi
 echo "▶ 결과: Diagnostics/DiskActiveProbe/$OUT"
 exit "$rc"

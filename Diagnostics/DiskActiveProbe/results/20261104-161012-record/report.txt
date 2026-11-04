@@ -1,0 +1,11 @@
+== DiskActiveProbe 2단계 record (실사용 기록 10분) · 11/4/26, 4:10:12 PM
+Version 27.2 (Build 26B123) · MacBookPro18,1
+추적 상태 (시작 전): 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+tailspin: tailspin has been disabled (default behavior)
+powermetrics (시작 전): 실행 중 (pid 10047)
+물리 디스크
+  disk0 · APPLE SSD AP1024R · Apple Fabric · Internal
+  disk10 · Built In SDXC Reader · Secure Digital · Internal
+IOReport: ANS2 13개 · NVMe 10개 · SDXC Controller 3개
+▶ 추적 켜기: 성공 · 커널 버퍼 368,640개 (22.5 MiB) · 절대 시각
+▶ 기록 10분 (평소처럼 쓰면 됨, Ctrl-C로 일찍 끝낼 수 있음)

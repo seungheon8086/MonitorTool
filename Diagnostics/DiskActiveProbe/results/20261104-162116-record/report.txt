@@ -1,0 +1,66 @@
+== DiskActiveProbe 2단계 record (실사용 기록 10분) · 11/4/26, 4:21:16 PM
+Version 27.2 (Build 26B123) · MacBookPro18,1
+추적 상태 (시작 전): 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+tailspin: tailspin has been disabled (default behavior)
+powermetrics (시작 전): 실행 중 (pid 10047)
+물리 디스크
+  disk0 · APPLE SSD AP1024R · Apple Fabric · Internal
+  disk10 · Built In SDXC Reader · Secure Digital · Internal
+IOReport: ANS2 13개 · NVMe 10개 · SDXC Controller 3개
+▶ 추적 켜기: 성공 · 커널 버퍼 368,640개 (22.5 MiB) · 절대 시각
+▶ 기록 10분 (평소처럼 쓰면 됨, Ctrl-C로 일찍 끝낼 수 있음)
+▶ 추적 해제: 성공 · 2초 뒤 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+
+== 단계별 · disk0 APPLE SSD AP1024R
+  단계 | 길이 | 활성 | 1초 동시 자른 평균 | 평균 동시 | 읽기·쓰기 MB/s | 응답 ms | 작업 추적·드라이버 | 캐시 비우기 ms
+  기록 | 600초 | 4.5% | 6.8% | 0.19 | 29.3·55.1 | 0.380 | 297,036·297,036 | 554.23
+  모두: 작업 추적 297,036 · 드라이버 297,036 (100.0%) · 바이트 추적 50648.1 MB · 드라이버 50648.1 MB (100.0%)
+  1초 활성 분포 (600초): 0% 54 · ~1% 260 · 1~5% 177 · 5~20% 69 · 20~50% 30 · 50~90% 8 · 90%~ 2
+  활성 평균 4.5% · 중앙 0.9% · 90% 13.0% · 최대 100.0%
+  캐시 비우기를 넣은 활성: 평균 4.6% · 90% 13.4% · 최대 100.0% · 캐시 비우기가 있던 1초 205번
+  자른 동시 − 활성: 5%p 넘게 다른 1초 47번 · 20%p 넘게 17번 · 가장 큰 차이 90.0%p
+
+== 단계별 · disk10 Built In SDXC Reader
+  단계 | 길이 | 활성 | 1초 동시 자른 평균 | 평균 동시 | 읽기·쓰기 MB/s | 응답 ms | 작업 추적·드라이버 | 캐시 비우기 ms
+  기록 | 600초 | 1.0% | 0.3% | 0.01 | 0.0·0.0 | 182.963 | 32·32 | 0.00
+  모두: 작업 추적 32 · 드라이버 32 (100.0%) · 바이트 추적 0.3 MB · 드라이버 0.3 MB (100.0%)
+  1초 활성 분포 (600초): 0% 585 · ~1% 7 · 1~5% 0 · 5~20% 0 · 20~50% 3 · 50~90% 1 · 90%~ 4
+  활성 평균 1.0% · 중앙 0.0% · 90% 0.0% · 최대 100.0%
+  캐시 비우기를 넣은 활성: 평균 1.0% · 90% 0.0% · 최대 100.0% · 캐시 비우기가 있던 1초 0번
+  자른 동시 − 활성: 5%p 넘게 다른 1초 8번 · 20%p 넘게 8번 · 가장 큰 차이 100.0%p
+
+== 캐시 비우기 (SSD 드라이버 이벤트를 받은 600초, 내장 SSD)
+  캐시 비우기 1,244번 · 합 1033.50 ms · 디스크 I/O 밖으로 더해지는 바쁜 시간 554.23 ms
+  같은 1초들의 디스크 I/O 바쁜 시간 27261.04 ms → 캐시 비우기를 넣으면 2.0% 늘어남
+
+== 디스크 명령·장치
+  동기화 요청 1,349개 (옵션 0 158 · 옵션 2 1,191) · TRIM 범위 26,252개 27232.0 MB
+  디스크가 아닌 장치: /dev/null 1,297
+  모르는 장치: 없음 · 디스크 목록 다시 만듦 19번
+
+== IOReport와 활성 %의 상관 · disk0 (1초 표본, |r| 큰 순)
+  r = +0.846 · ANS2 / Performance / Thread time · PreNand (n=600)
+  r = +0.819 · ANS2 / Performance / Thread time · PostNand (n=600)
+  r = -0.710 · ANS2 / Performance / Thread time · Null (n=600)
+  r = +0.658 · ANS2 / BW Monitor / VLane Read (n=600)
+  r = +0.658 · ANS2 / BW Monitor / AES H2F (n=600)
+  r = -0.635 · ANS2 / Performance / Thread time · power (n=600)
+  r = +0.628 · ANS2 / Performance / Thread time · IRQ (n=600)
+  r = +0.603 · ANS2 / BW Monitor / Raid Write (n=600)
+
+== IOReport와 활성 %의 상관 · disk10 (1초 표본, |r| 큰 순)
+  r = +0.355 · SDXC Controller / - / AppleSDXCBlockStorageDevice Power State · PWRLOW (n=600)
+  r = +0.175 · ANS2 / BW Monitor / VLane Write (n=600)
+  r = +0.169 · ANS2 / Performance / Thread time · Cmd (n=600)
+  r = +0.148 · ANS2 / Performance / Thread time · PostNand (n=600)
+  r = +0.144 · ANS2 / Performance / Thread time · SVC (n=600)
+  r = -0.142 · ANS2 / Performance / Thread time · rtk_ep_w (n=600)
+  r = -0.129 · ANS2 / Performance / Thread time · Null (n=600)
+  r = -0.123 · ANS2 / Performance / Thread time · power (n=600)
+
+== 요약
+이벤트 1,585,710개 · 읽기 6,001번 · 잃음 0번 · 늦게 온 이벤트 0
+짝 못 맞춤: 시작 못 본 끝 0 · 같은 열쇠 다시 시작 0 · 버린 요청 0
+읽기 CPU 1546.29 ms · 처리 CPU 363.84 ms · 도구 전체 CPU 6.85초 / 600초 (1.14%)
+IOReport 표본 CPU 3462.18 ms (비교용이라 붙일 때는 뺄 몫)
+powermetrics: 실행 중 (pid 10047) → 실행 중 (pid 10465)
