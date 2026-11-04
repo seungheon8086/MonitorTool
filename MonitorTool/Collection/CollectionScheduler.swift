@@ -7,6 +7,7 @@ import Foundation
 /// 닫혀 있으면 네트워크·CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬·디스크와
 /// 보조 프로그램의 CPU·ANE 전력을 10초마다 한 번에 모으고, 배터리는 30초마다 모아요. 깨어나면 바로 모두 다시 재요.
 /// (2026-11-04 자원 사용 측정 뒤 네트워크 5초 → 10초: 닫혀 있을 때 앱이 깨는 횟수를 절반으로)
+/// 화면이 꺼져 있으면 패널이 열려 있어도 30초마다만 모으고 CPU·ANE 전력은 묻지 않아요. 화면이 켜지면 바로 다시 재요.
 final class CollectionScheduler {
     private let store: MonitorStore
     private let helper: HelperController
@@ -26,6 +27,13 @@ final class CollectionScheduler {
     private var wakeObserver: (any NSObjectProtocol)?
     // periphery:ignore - 알림 관찰을 붙잡아 둬요.
     private var dayObserver: (any NSObjectProtocol)?
+    // periphery:ignore - 알림 관찰을 붙잡아 둬요.
+    private var screenSleepObserver: (any NSObjectProtocol)?
+    // periphery:ignore - 알림 관찰을 붙잡아 둬요.
+    private var screenWakeObserver: (any NSObjectProtocol)?
+    /// 화면이 꺼져 있는지예요. 꺼져 있으면 아무도 보지 않아서 30초마다만 모으고,
+    /// CPU·ANE 전력은 묻지 않아요. (보조 프로그램이 15초 뒤 powermetrics를 멈춰요)
+    private var screensAsleep = false
     /// 마지막으로 그래프 기록에 더한 전력 표본의 측정 시각 (같은 표본을 두 번 더하지 않으려고)
     private var lastRecordedSampleDate: Date?
     /// 네트워크 말고 나머지 시스템 값(CPU·GPU·메모리·온도·팬·전력)을 마지막으로 잰 때예요.
@@ -46,9 +54,17 @@ final class CollectionScheduler {
         }
     }
 
-    /// 타이머 간격 (초). 패널이 열려 있으면 1초, 닫혀 있으면 10초예요.
+    /// 패널을 보고 있는지예요. 패널이 열려 있어도 화면이 꺼져 있으면 보지 않는 거예요.
+    private var panelShown: Bool {
+        panelVisible && !screensAsleep
+    }
+
+    /// 타이머 간격 (초). 패널을 보고 있으면 1초, 닫혀 있으면 10초, 화면이 꺼져 있으면 30초예요.
     private var interval: TimeInterval {
-        panelVisible ? 1 : 10
+        if screensAsleep {
+            return 30
+        }
+        return panelVisible ? 1 : 10
     }
 
     /// 닫혀 있을 때 시스템 값을 재는 간격이에요. 10초인데, 타이머가 조금 일찍 와도 되게 0.5초 여유를 둬요.
@@ -58,7 +74,7 @@ final class CollectionScheduler {
 
     /// 보조 프로그램이 powermetrics를 돌리는 간격 (밀리초)
     private var helperIntervalMilliseconds: Int {
-        panelVisible ? HelperConstants.panelOpenInterval : HelperConstants.panelClosedInterval
+        panelShown ? HelperConstants.panelOpenInterval : HelperConstants.panelClosedInterval
     }
 
     private static let processorMetrics: [Metric] = [.cpuEfficiency, .cpuPerformance, .gpuUsage, .gpuMemory]
@@ -132,26 +148,51 @@ final class CollectionScheduler {
                 self?.collect()
             }
         }
+        // 화면이 꺼지면 아무도 보지 않으니 쉬고, 켜지면 바로 다시 재요.
+        screenSleepObserver = workspace.addObserver(forName: NSWorkspace.screensDidSleepNotification,
+                                                    object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.setScreensAsleep(true)
+            }
+        }
+        screenWakeObserver = workspace.addObserver(forName: NSWorkspace.screensDidWakeNotification,
+                                                   object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.setScreensAsleep(false)
+            }
+        }
+    }
+
+    private func setScreensAsleep(_ asleep: Bool) {
+        guard asleep != screensAsleep else { return }
+        screensAsleep = asleep
+        startTimer()
+        if !asleep {
+            collect()
+        }
     }
 
     /// 한 번 모아요.
     private func collect() {
-        helper.refreshStatusIfDue(panelVisible: panelVisible)
+        helper.refreshStatusIfDue(panelVisible: panelShown)
         // 닫혀 있으면 타이머(10초)마다 모두 재요. 타이머가 조금 일찍 와도 되게 9.5초를 기준으로 봐요.
         let clock = clock_gettime_nsec_np(CLOCK_MONOTONIC)
-        let systemDue = panelVisible || lastSystemCollectAt == 0
+        let systemDue = panelShown || lastSystemCollectAt == 0
             || clock &- lastSystemCollectAt >= CollectionScheduler.hiddenSystemInterval
         // 온도·팬은 SMC에 키를 20개쯤 묻느라 한 번에 5 ms쯤 걸려요(2026-10-25 이 Mac에서 잼).
         // 그래서 패널이 열려 있어도 2초마다 재요. (설계 문서 4장: 1–2초)
         let thermalDue = systemDue
-            && (!panelVisible || clock &- lastThermalCollectAt >= CollectionScheduler.openThermalInterval)
+            && (!panelShown || clock &- lastThermalCollectAt >= CollectionScheduler.openThermalInterval)
         if systemDue {
             lastSystemCollectAt = clock
-            if helper.status == .enabled || helper.status == .failed {
-                // 답이 오면 helper.onChange → publishPower()가 불려요.
-                helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
+            // 화면이 꺼져 있으면 CPU·ANE 전력과 팬 제어 상태를 묻지 않아요.
+            if !screensAsleep {
+                if helper.status == .enabled || helper.status == .failed {
+                    // 답이 오면 helper.onChange → publishPower()가 불려요.
+                    helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
+                }
+                onSystemCollect?()
             }
-            onSystemCollect?()
         }
 
         let now = Date()
@@ -183,7 +224,7 @@ final class CollectionScheduler {
             batches.append(MetricBatch(metrics: diskMetrics, date: now))
         }
         // 배터리는 따로 5초(닫혀 있으면 30초)마다 재요. 잴 때가 아니어도 오래된 값은 '오래됨'으로 바꿔요.
-        if battery.update(&snapshot.battery, now: now, panelVisible: panelVisible) {
+        if battery.update(&snapshot.battery, now: now, panelVisible: panelShown) {
             batches.append(MetricBatch(metrics: CollectionScheduler.batteryMetrics, date: now))
         }
         snapshot.network = network.collect(now: now)

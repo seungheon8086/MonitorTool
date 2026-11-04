@@ -4,6 +4,7 @@ import WidgetKit
 
 /// 위젯이 읽을 값을 App Group 공유 파일에 쓰고 위젯에 다시 그려 달라고 부탁해요. (docs/WIDGET_V2.md 4장)
 /// 값이 바뀌어도 10초에 한 번까지만 써요. 색을 바꿀 때·잠들기 직전·앱이 끝날 때는 바로 써요.
+/// 화면이 꺼져 있는 동안은 위젯을 볼 수 없어서 쓰지 않아요.
 final class WidgetPublisher {
     private let store: MonitorStore
     private let appearance: AppearanceSettings
@@ -14,6 +15,10 @@ final class WidgetPublisher {
     private var appState: WidgetAppState = .running
     private var sleepObserver: (any NSObjectProtocol)?
     private var wakeObserver: (any NSObjectProtocol)?
+    private var screenSleepObserver: (any NSObjectProtocol)?
+    private var screenWakeObserver: (any NSObjectProtocol)?
+    /// 화면이 꺼져 있는지 (꺼져 있으면 쓰지 않아요)
+    private var screensAsleep = false
     /// 같은 실패를 출력 창에 계속 찍지 않으려고 기억해요.
     private var reportedFailure = false
 
@@ -41,6 +46,21 @@ final class WidgetPublisher {
                 self.lastWrite = .distantPast
             }
         }
+        screenSleepObserver = workspace.addObserver(forName: NSWorkspace.screensDidSleepNotification,
+                                                    object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.screensAsleep = true
+            }
+        }
+        screenWakeObserver = workspace.addObserver(forName: NSWorkspace.screensDidWakeNotification,
+                                                   object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.screensAsleep = false
+                // 화면이 켜진 뒤 첫 값은 기다리지 않고 바로 써요.
+                self.lastWrite = .distantPast
+            }
+        }
         publish()
     }
 
@@ -48,14 +68,15 @@ final class WidgetPublisher {
     func stop() {
         appState = .quit
         publish()
-        for observer in [sleepObserver, wakeObserver].compactMap({ $0 }) {
+        for observer in [sleepObserver, wakeObserver, screenSleepObserver, screenWakeObserver].compactMap({ $0 }) {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
         }
     }
 
-    /// 값이 바뀔 때마다 불려요. 마지막으로 쓴 뒤 10초가 지났을 때만 써요.
+    /// 값이 바뀔 때마다 불려요. 마지막으로 쓴 뒤 10초가 지났을 때만 써요. 화면이 꺼져 있으면 쓰지 않아요.
     func storeDidUpdate() {
-        guard Date().timeIntervalSince(lastWrite) >= WidgetPublisher.minimumInterval else { return }
+        guard !screensAsleep,
+              Date().timeIntervalSince(lastWrite) >= WidgetPublisher.minimumInterval else { return }
         publish()
     }
 

@@ -56,7 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("⚠️ \(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
         }
 
-        // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 10초(배터리 30초)마다 모아요.
+        // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 10초(배터리 30초), 화면이 꺼져 있으면 30초마다 모아요.
         let collectionScheduler = CollectionScheduler(store: store, helper: helper)
         panelController.onVisibilityChange = { [weak self, weak collectionScheduler] isShown in
             // 먼저 기억해야 패널을 열자마자 모을 때 팬 제어 상태도 함께 물어요.
