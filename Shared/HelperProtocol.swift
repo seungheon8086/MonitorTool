@@ -60,8 +60,6 @@ nonisolated enum HelperConstants {
 nonisolated struct PowerSample: Codable, Hashable, Sendable {
     /// CPU 전체 전력 (mW)
     var cpuMilliwatts: Double?
-    /// GPU 전력 (mW). 앱은 GPU 전력을 권한 없이 IOReport로 읽어서 이 값은 쓰지 않아요. (5-2에서 비교했을 때 5% 안팎 차이)
-    var gpuMilliwatts: Double?
     /// ANE 전력 (mW)
     var aneMilliwatts: Double?
     /// 표본 구간의 길이 (초)

@@ -78,6 +78,9 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 - [x] GPU 메모리: 앱들이 GPU용으로 할당한 합계(1·2 GiB 할당 시험으로 확인), GPU 카드와 상세 그래프 ([진단 도구](Diagnostics/GPUMemoryProbe))
 - [x] 패널 다듬기: 그래프 눈금 칸, 고정 단추, 패널 배경(유리·색조·흐림)·글자 색 설정, 고정 설명 문구 정리, Release 빌드·설치 스크립트(`Scripts/build-app.sh`)
 - [ ] 중간 정리와 최적화: 자원 사용 기준 측정([도구](Diagnostics/ResourceProbe)), 안 쓰는 코드·중복 정리, 측정을 바탕으로 한 경량화
+  - [x] 기준 측정: 패널 닫힘 때 가족 합계(앱·보조 프로그램·powermetrics·위젯 확장) CPU 0.52%·0.47 mW, 열림 6.31%·7.6 mW
+  - [x] 정리: 끝난 브랜치는 `archive/` 태그로, 안 쓰는 코드는 Periphery로 찾아 지우고(`Scripts/periphery.sh` 경고 0개 목표), 앱·보조 프로그램에 따로 있던 SMC 코드를 하나로
+  - [ ] 측정을 바탕으로 한 최적화
 - [ ] 실사용 점검
 - [ ] 선택 단계: 메뉴 막대 수치
 
@@ -103,10 +106,10 @@ MonitorTool/        앱 코드
   Support/          전역 단축키(fn + Space 이벤트 탭, 직접 정한 조합)와 단축키 설정, 숫자 표시 형식, 창 흐림
 MonitorToolHelper/  관리자 권한 보조 프로그램 (powermetrics로 CPU·ANE 전력, SMC 쓰기로 팬 제어와 안전장치)
 MonitorToolWidget/  알림 센터 위젯 확장 (요약 위젯, 그래프 위젯 6종)
-Shared/             앱과 보조 프로그램이 함께 쓰는 XPC 약속, 팬 제어 요청·상태
+Shared/             앱과 보조 프로그램이 함께 쓰는 XPC 약속, 팬 제어 요청·상태, SMC 연결
 WidgetShared/       앱과 위젯이 함께 쓰는 공유 파일 형식
 LaunchDaemons/      보조 프로그램의 launchd 설정 (빌드할 때 앱 안으로 복사)
-Scripts/            Release 빌드·설치 (build-app.sh)
+Scripts/            Release 빌드·설치(build-app.sh), 안 쓰는 코드 검사(periphery.sh)
 Diagnostics/        기술 검증용 진단 앱·도구와 측정 결과
 docs/               설계 문서
 ```
@@ -115,7 +118,7 @@ docs/               설계 문서
 
 - MacBook Pro (M1 Pro), macOS 27
 - Xcode 27, Swift, SwiftUI + AppKit
-- 외부 라이브러리 없음
+- 외부 라이브러리 없음 (안 쓰는 코드 검사에만 [Periphery](https://github.com/peripheryapp/periphery) 사용)
 
 ## 참고
 

@@ -49,14 +49,6 @@ nonisolated enum Metric: Hashable, Sendable {
         default: 10
         }
     }
-
-    /// 팬 회전수 계열인지
-    var isFan: Bool {
-        if case .fan = self {
-            return true
-        }
-        return false
-    }
 }
 
 /// 메모리 트래픽 누적 그래프의 층이에요. 아래에서부터 이 순서로 쌓아요.

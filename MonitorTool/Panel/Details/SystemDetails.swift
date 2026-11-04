@@ -42,7 +42,7 @@ struct MemoryDetail: View {
 
     private var usageScale: ChartScale {
         if let total = memory.total.okValue {
-            return .fixed(total, midline: false)
+            return .fixed(total)
         }
         return .automatic(minimum: 1_073_741_824)
     }
@@ -283,7 +283,7 @@ struct ThermalDetail: View {
         guard let largest = maximums.max() else {
             return .automatic(minimum: 1000)
         }
-        return .fixed(ChartData.niceCeiling(largest), midline: false)
+        return .fixed(ChartData.niceCeiling(largest))
     }
 
     private static let valueFont = Font.system(size: 12, weight: .semibold)

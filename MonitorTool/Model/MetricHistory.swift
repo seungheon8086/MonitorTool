@@ -47,55 +47,6 @@ nonisolated struct MetricHistory: Sendable {
 }
 
 extension MetricHistory {
-    /// 새로 잰 값들을 기록에 더해요. 정상이 아닌 값은 빈칸으로 남겨서 그래프에서 선이 끊기게 해요.
-    nonisolated mutating func record(_ snapshot: MonitorSnapshot) {
-        let date = snapshot.takenAt ?? Date()
-
-        append(snapshot.cpu.efficiencyUsage.okValue, for: .cpuEfficiency, at: date)
-        append(snapshot.cpu.performanceUsage.okValue, for: .cpuPerformance, at: date)
-        append(snapshot.cpu.power.okValue, for: .cpuPower, at: date)
-        append(snapshot.gpu.usage.okValue, for: .gpuUsage, at: date)
-        append(snapshot.gpu.power.okValue, for: .gpuPower, at: date)
-        append(snapshot.gpu.memory.okValue, for: .gpuMemory, at: date)
-        append(snapshot.ane.power.okValue, for: .anePower, at: date)
-        append(snapshot.ane.dramTraffic.okValue, for: .aneTraffic, at: date)
-        append(snapshot.memory.used.okValue, for: .memoryUsed, at: date)
-
-        // 기기별 트래픽은 합계를 읽었을 때만 남겨요.
-        let memory = snapshot.memory
-        let trafficRead = memory.trafficTotal.okValue != nil
-        append(trafficRead ? memory.traffic(of: .cpu) : nil, for: .traffic(.cpu), at: date)
-        append(trafficRead ? memory.traffic(of: .gpu) : nil, for: .traffic(.gpu), at: date)
-        append(trafficRead ? memory.traffic(of: .ane) : nil, for: .traffic(.ane), at: date)
-        let otherDevices: [TrafficDevice] = [.display, .storage, .other]
-        let otherTotal = otherDevices.compactMap { memory.traffic(of: $0) }.reduce(0, +)
-        append(trafficRead ? otherTotal : nil, for: .traffic(.other), at: date)
-
-        append(snapshot.thermal.cpuMax.okValue, for: .cpuTemperature, at: date)
-        append(snapshot.thermal.gpuMax.okValue, for: .gpuTemperature, at: date)
-        if let fans = snapshot.thermal.fans.okValue {
-            for fan in fans {
-                append(fan.rpm.okValue, for: .fan(fan.id), at: date)
-            }
-        } else {
-            // 팬 목록을 읽지 못하면, 지금까지 그린 팬 선을 여기서 끊어요.
-            for metric in series.keys.filter(\.isFan) {
-                append(nil, for: metric, at: date)
-            }
-        }
-
-        append(snapshot.battery.netPower.okValue, for: .batteryNetPower, at: date)
-        append(snapshot.network.download.okValue, for: .networkDownload, at: date)
-        append(snapshot.network.upload.okValue, for: .networkUpload, at: date)
-        for disk in snapshot.disk.disks.okValue ?? [] {
-            append(disk.read.okValue, for: .diskRead(disk.id), at: date)
-            append(disk.write.okValue, for: .diskWrite(disk.id), at: date)
-            append(disk.queueDepth.okValue, for: .diskQueue(disk.id), at: date)
-        }
-
-        removeExpired(now: date)
-    }
-
     /// 정한 계열만 그 시각으로 기록에 더해요. 정상이 아닌 값은 빈칸으로 남겨요.
     nonisolated mutating func record(_ metrics: [Metric], from snapshot: MonitorSnapshot, at date: Date) {
         for metric in metrics {

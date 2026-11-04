@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var panelShortcut: PanelShortcut?
     private var panelController: PanelController?
+    // periphery:ignore - 메뉴 막대 아이콘이 사라지지 않게 붙잡아 둬요.
     private var statusItemController: StatusItemController?
     private var settingsWindowController: SettingsWindowController?
     private var collectionScheduler: CollectionScheduler?

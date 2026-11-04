@@ -401,6 +401,7 @@ final class HelperController {
 #if DEBUG
 extension HelperController {
     /// 미리보기용: macOS에 묻지 않고 정해진 상태를 보여줘요.
+    // periphery:ignore - 미리보기(#Preview)에서 써요.
     static func preview(_ status: HelperStatus,
                         problem: String? = nil,
                         sample: PowerSample? = nil,

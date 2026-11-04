@@ -41,8 +41,6 @@ nonisolated struct WidgetPayload: Codable, Sendable {
     var snapshot: MonitorSnapshot
     /// 항목 색 (MonitorItem.rawValue → ItemColor.rawValue)
     var colors: [String: String]
-    /// 그래프 마지막 칸이 끝나는 시각
-    var seriesEnd: Date
     /// 계열별 값 (WidgetSeriesKey.rawValue → 오래된 칸부터 bucketCount개, 값이 없는 칸은 nil)
     var series: [String: [Double?]]
 

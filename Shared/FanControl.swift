@@ -69,12 +69,11 @@ nonisolated struct FanReturnEvent: Codable, Hashable, Sendable {
 nonisolated struct FanControlState: Codable, Hashable, Sendable {
     /// 지금 맡고 있는 고정 요청. nil이면 시스템 제어예요.
     var active: FanControlRequest?
-    /// 잠자는 동안이라 잠시 시스템 제어로 돌려 둔 상태인지 (깨어나면 다시 적용해요)
-    var suspendedForSleep: Bool
     /// 마지막으로 스스로 시스템 제어로 돌아간 일 (다음 고정 요청 때 지워져요)
     var lastReturn: FanReturnEvent?
 
-    static let idle = FanControlState(active: nil, suspendedForSleep: false, lastReturn: nil)
+    // periphery:ignore - 미리보기(#Preview)에서 써요.
+    static let idle = FanControlState(active: nil, lastReturn: nil)
 }
 
 /// 팬 제어의 기준값이에요.

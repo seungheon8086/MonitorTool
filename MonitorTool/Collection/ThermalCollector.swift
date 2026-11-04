@@ -59,8 +59,8 @@ final class ThermalCollector {
     private let ssdKeys: [String]
     /// 팬 개수 (FNum). 읽지 못했으면 nil이에요.
     private let fanCount: Int?
-    /// 팬마다 최소·최대 회전수 (바뀌지 않아서 한 번만 읽어요)
-    private let fanRanges: [(minimum: Double?, maximum: Double?)]
+    /// 팬마다 최대 회전수 (바뀌지 않아서 한 번만 읽어요. 그래프 위쪽 선에 써요)
+    private let fanMaximums: [Double?]
 
     init() {
         let smc = SMC()
@@ -81,8 +81,8 @@ final class ThermalCollector {
         ssdKeys = available(ThermalCollector.ssdKeys)
         let fanCount = smc?.number("FNum").flatMap { $0.isFinite ? Int(min(max($0, 0), 16)) : nil }
         self.fanCount = fanCount
-        fanRanges = (0..<(fanCount ?? 0)).map { (id: Int) -> (minimum: Double?, maximum: Double?) in
-            (minimum: smc?.number("F\(id)Mn"), maximum: smc?.number("F\(id)Mx"))
+        fanMaximums = (0..<(fanCount ?? 0)).map { (id: Int) -> Double? in
+            smc?.number("F\(id)Mx")
         }
     }
 
@@ -193,9 +193,8 @@ final class ThermalCollector {
             } else {
                 rpm = .failed("팬 회전수를 읽지 못했어요.")
             }
-            // fanRanges는 init에서 팬 개수만큼 만들어서 id가 늘 들어 있어요.
-            return FanReading(id: id, rpm: rpm,
-                              minimumRPM: fanRanges[id].minimum, maximumRPM: fanRanges[id].maximum,
+            // fanMaximums는 init에서 팬 개수만큼 만들어서 id가 늘 들어 있어요.
+            return FanReading(id: id, rpm: rpm, maximumRPM: fanMaximums[id],
                               mode: ThermalCollector.fanMode(smc.number("F\(id)Md")))
         }
         return .ok(fans, at: date)

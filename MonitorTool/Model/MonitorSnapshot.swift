@@ -224,7 +224,6 @@ nonisolated struct FanReading: Hashable, Sendable, Codable, Identifiable {
     var id: Int
     /// 실제 회전수 (RPM). 읽기에 성공한 0은 '정지'예요.
     var rpm: Reading<Double>
-    var minimumRPM: Double?
     var maximumRPM: Double?
     var mode: FanMode
 }

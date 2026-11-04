@@ -1,3 +1,4 @@
+// periphery:ignore:all - #Preview에서만 쓰는 예시 값이에요. (Periphery는 #Preview 안을 보지 못해요)
 #if DEBUG
 import Foundation
 
@@ -62,8 +63,8 @@ extension MonitorSnapshot {
             battery: .ok(32, at: now),
             ssd: .ok(35, at: now),
             fans: .ok([
-                FanReading(id: 0, rpm: .ok(0, at: now), minimumRPM: 1499, maximumRPM: 4296, mode: .automatic),
-                FanReading(id: 1, rpm: .ok(0, at: now), minimumRPM: 1499, maximumRPM: 4744, mode: .automatic),
+                FanReading(id: 0, rpm: .ok(0, at: now), maximumRPM: 4296, mode: .automatic),
+                FanReading(id: 1, rpm: .ok(0, at: now), maximumRPM: 4744, mode: .automatic),
             ], at: now))
 
         snapshot.battery = BatterySnapshot(

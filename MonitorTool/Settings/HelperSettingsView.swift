@@ -134,9 +134,8 @@ private struct HelperStatusRow: View {
 #Preview("동작 중") {
     HelperSettingsView()
         .environment(HelperController.preview(.enabled,
-                                              sample: PowerSample(cpuMilliwatts: 924, gpuMilliwatts: 26,
-                                                                  aneMilliwatts: 0, interval: 1,
-                                                                  measuredAt: Date())))
+                                              sample: PowerSample(cpuMilliwatts: 924, aneMilliwatts: 0,
+                                                                  interval: 1, measuredAt: Date())))
 }
 
 #Preview("연결 실패") {

@@ -25,7 +25,9 @@ final class FanController: @unchecked Sendable {
     private var pressureRegistered = false
 
     private var rootPort: io_connect_t = 0
+    // periphery:ignore - 잠자기 알림 등록을 붙잡아 둬요.
     private var powerNotifyPort: IONotificationPortRef?
+    // periphery:ignore - 잠자기 알림 등록을 붙잡아 둬요.
     private var powerNotifier: io_object_t = 0
 
     /// 팬 하나 (SMC 번호와 최소·최대 회전수)
@@ -221,7 +223,7 @@ final class FanController: @unchecked Sendable {
     }
 
     private func encodedState() -> Data? {
-        let state = FanControlState(active: active, suspendedForSleep: suspendedForSleep, lastReturn: lastReturn)
+        let state = FanControlState(active: active, lastReturn: lastReturn)
         return try? JSONEncoder().encode(state)
     }
 

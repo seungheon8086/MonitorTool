@@ -95,7 +95,7 @@ nonisolated enum ChartScale: Hashable, Sendable {
     /// 0–100 %, 가운데(50 %)에 점선
     case percent
     /// 고정된 위쪽 선 (예: 메모리 전체 용량, 온도 100 °C)
-    case fixed(Double, midline: Bool)
+    case fixed(Double)
     /// 보이는 값에 맞춰 보기 좋은 위쪽 선을 고르되, 적어도 minimum은 둬요.
     case automatic(minimum: Double)
     /// 0을 가운데 두고 위아래로 같은 폭이에요. (배터리 순전력: 위는 충전, 아래는 방전)
@@ -114,12 +114,6 @@ nonisolated enum ChartScale: Hashable, Sendable {
 nonisolated struct ChartRange: Hashable, Sendable {
     var lower: Double
     var upper: Double
-    /// 가운데 선 (없으면 nil). 대칭 그래프에서는 0 선이에요.
-    var midline: Double?
-
-    var isSymmetric: Bool {
-        lower < 0
-    }
 
     /// 0이 위·아래 선 사이에 있는지 (배터리 순전력처럼 +·−가 함께 있는 그래프)
     var crossesZero: Bool {
@@ -147,25 +141,24 @@ extension ChartScale {
     nonisolated func range(for values: [Double]) -> ChartRange {
         switch self {
         case .percent:
-            return ChartRange(lower: 0, upper: 100, midline: 50)
-        case let .fixed(upper, midline):
-            let top = upper > 0 ? upper : 1
-            return ChartRange(lower: 0, upper: top, midline: midline ? top / 2 : nil)
+            return ChartRange(lower: 0, upper: 100)
+        case let .fixed(upper):
+            return ChartRange(lower: 0, upper: upper > 0 ? upper : 1)
         case let .automatic(minimum):
             let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum))
-            return ChartRange(lower: 0, upper: top, midline: nil)
+            return ChartRange(lower: 0, upper: top)
         case let .symmetric(minimum):
             let largest = values.map { abs($0) }.max() ?? 0
             let top = ChartData.niceCeiling(max(largest, minimum))
-            return ChartRange(lower: -top, upper: top, midline: 0)
+            return ChartRange(lower: -top, upper: top)
         case let .automaticGigabytes(minimum):
             let gigabyte = 1_073_741_824.0
             let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum) / gigabyte) * gigabyte
-            return ChartRange(lower: 0, upper: top, midline: nil)
+            return ChartRange(lower: 0, upper: top)
         case let .floating(step, minimumSpan):
             let finite = values.filter(\.isFinite)
             guard step > 0, let low = finite.min(), let high = finite.max() else {
-                return ChartRange(lower: 0, upper: max(minimumSpan, 1), midline: nil)
+                return ChartRange(lower: 0, upper: max(minimumSpan, 1))
             }
             var lower = max(0, (low / step).rounded(.down) * step)
             var upper = max((high / step).rounded(.up) * step, lower + step)
@@ -179,13 +172,13 @@ extension ChartScale {
                 }
                 growUp.toggle()
             }
-            return ChartRange(lower: lower, upper: upper, midline: nil)
+            return ChartRange(lower: lower, upper: upper)
         case let .zeroAnchored(step, minimumSpan):
             let finite = values.filter(\.isFinite)
             let low = min(finite.min() ?? 0, 0)
             let high = max(finite.max() ?? 0, 0)
             guard step > 0 else {
-                return ChartRange(lower: low, upper: max(high, low + 1), midline: nil)
+                return ChartRange(lower: low, upper: max(high, low + 1))
             }
             var lower = (low / step).rounded(.down) * step
             var upper = (high / step).rounded(.up) * step
@@ -197,7 +190,7 @@ extension ChartScale {
                     upper += step
                 }
             }
-            return ChartRange(lower: lower, upper: upper, midline: nil)
+            return ChartRange(lower: lower, upper: upper)
         }
     }
 }

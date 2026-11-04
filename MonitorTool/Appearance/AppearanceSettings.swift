@@ -172,12 +172,6 @@ final class AppearanceSettings {
         onChange?()
     }
 
-    /// CPU·GPU·ANE 중 같은 색을 고른 항목이 있는지예요. 메모리 트래픽 그래프에 셋이 함께 나와서 구분이 어려워져요.
-    var processorColorsClash: Bool {
-        let picked = [color(for: .cpu), color(for: .gpu), color(for: .ane)]
-        return Set(picked).count < picked.count
-    }
-
     private static func key(for item: MonitorItem) -> String {
         "itemColor.\(item.rawValue)"
     }

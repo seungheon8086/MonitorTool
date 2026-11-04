@@ -40,13 +40,6 @@ final class MonitorStore {
         currentHistory = history
     }
 
-    /// 새로 잰 값을 넘기면 화면 값과 모든 계열의 기록을 함께 바꿔요.
-    func update(with newSnapshot: MonitorSnapshot) {
-        currentSnapshot = newSnapshot
-        currentHistory.record(newSnapshot)
-        announce()
-    }
-
     /// 화면 값을 바꾸고, 이번에 새로 잰 계열만 그 시각으로 기록에 더해요.
     /// 수집기마다 재는 때가 달라서(네트워크는 매번, 전력은 보조 프로그램의 표본이 올 때) 계열별로 따로 남겨요.
     func update(with newSnapshot: MonitorSnapshot, recording batches: [MetricBatch]) {

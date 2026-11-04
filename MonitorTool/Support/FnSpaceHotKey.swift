@@ -15,11 +15,6 @@ enum FnSpaceHotKey {
     /// fn + Space를 삼킨 뒤, 누르고 있는 동안의 반복 입력과 짝이 되는 Space 떼기도 삼키려고 기억해요.
     private static var swallowingSpace = false
 
-    /// 지금 받고 있는지
-    static var isRunning: Bool {
-        tap != nil
-    }
-
     /// 탭을 만들어 받기 시작해요. 손쉬운 사용 권한이 없어서 만들지 못하면 false예요.
     /// - Parameter action: fn + Space를 눌렀을 때 할 일 (패널 열기/닫기)
     static func start(action: @escaping () -> Void) -> Bool {

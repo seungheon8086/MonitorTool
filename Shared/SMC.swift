@@ -7,6 +7,7 @@ import IOKit
 // (Diagnostics/FanProbe: 권한 없이 쓰면 0xe00002c1이라 쓰기는 보조 프로그램만 해요)
 // 구조체 배치는 Stats(MIT)의 방식을 따랐고, Diagnostics/SensorProbe·FanProbe로 이 Mac에서 확인했어요.
 
+// periphery:ignore - C 구조체 배치를 맞추려는 칸이라 Swift에서 읽지 않는 것도 있어요.
 nonisolated struct SMCVersion {
     var major: UInt8 = 0
     var minor: UInt8 = 0
@@ -15,6 +16,7 @@ nonisolated struct SMCVersion {
     var release: UInt16 = 0
 }
 
+// periphery:ignore - C 구조체 배치를 맞추려는 칸이라 Swift에서 읽지 않는 것도 있어요.
 nonisolated struct SMCPLimitData {
     var version: UInt16 = 0
     var length: UInt16 = 0
@@ -27,6 +29,7 @@ nonisolated struct SMCPLimitData {
 nonisolated struct SMCKeyInfo {
     var dataSize: UInt32 = 0
     var dataType: UInt32 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var dataAttributes: UInt8 = 0
 }
 
@@ -38,14 +41,19 @@ typealias SMCBytes = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
 
 /// AppleSMC와 주고받는 구조체예요. C 구조체와 같은 80바이트 배치가 되도록 keyInfo 뒤에 빈칸(padding)을 넣었어요.
 nonisolated struct SMCKeyData {
+    // periphery:ignore - Swift는 쓰기만 하고 SMC가 읽어요. (키 이름)
     var key: UInt32 = 0
     var version = SMCVersion()
     var pLimitData = SMCPLimitData()
     var keyInfo = SMCKeyInfo()
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var padding: UInt16 = 0
     var result: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var status: UInt8 = 0
+    // periphery:ignore - Swift는 쓰기만 하고 SMC가 읽어요. (명령 번호)
     var data8: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var data32: UInt32 = 0
     var bytes: SMCBytes = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)

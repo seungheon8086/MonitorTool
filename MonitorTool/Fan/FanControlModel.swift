@@ -234,6 +234,7 @@ final class FanControlModel {
 #if DEBUG
 extension FanControlModel {
     /// 미리보기용: 이 Mac과 같은 팬 두 개, 프리셋 예시
+    // periphery:ignore - 미리보기(#Preview)에서 써요.
     static func preview(state: FanControlState? = .idle, helperStatus: HelperStatus = .enabled) -> FanControlModel {
         let defaults = UserDefaults(suiteName: "FanControlPreview") ?? .standard
         let model = FanControlModel(helper: .preview(helperStatus), defaults: defaults,

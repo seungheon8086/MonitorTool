@@ -72,7 +72,6 @@ final class WidgetPublisher {
                                     appState: appState,
                                     snapshot: snapshot,
                                     colors: colors,
-                                    seriesEnd: end,
                                     series: WidgetPublisher.series(from: store.history, end: end))
         do {
             try WidgetSharedFile.write(payload)

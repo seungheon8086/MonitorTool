@@ -170,7 +170,6 @@ final class PowerSampler: @unchecked Sendable {
             (processor[key] as? NSNumber)?.doubleValue
         }
         latest = PowerSample(cpuMilliwatts: milliwatts("cpu_power"),
-                             gpuMilliwatts: milliwatts("gpu_power"),
                              aneMilliwatts: milliwatts("ane_power"),
                              interval: elapsed ?? expected,
                              measuredAt: Date())

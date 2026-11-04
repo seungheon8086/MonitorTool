@@ -19,8 +19,11 @@ final class CollectionScheduler {
     /// 시스템 값을 모을 때마다 불러요. (패널이 열려 있으면 1초, 닫혀 있으면 10초) 팬 제어 상태를 다시 물어요.
     var onSystemCollect: (() -> Void)?
     private var timer: Timer?
+    // periphery:ignore - 알림 관찰을 붙잡아 둬요.
     private var sleepObserver: (any NSObjectProtocol)?
+    // periphery:ignore - 알림 관찰을 붙잡아 둬요.
     private var wakeObserver: (any NSObjectProtocol)?
+    // periphery:ignore - 알림 관찰을 붙잡아 둬요.
     private var dayObserver: (any NSObjectProtocol)?
     /// 마지막으로 그래프 기록에 더한 전력 표본의 측정 시각 (같은 표본을 두 번 더하지 않으려고)
     private var lastRecordedSampleDate: Date?

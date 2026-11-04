@@ -260,25 +260,6 @@ struct SourceNote: View {
     }
 }
 
-/// 둥근 상자 안의 안내 글이에요. (예: ANE 사용률을 보여주지 않는 이유)
-struct InfoBox: View {
-    let text: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "info.circle")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-            Text(text)
-                .font(.system(size: 12))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-}
-
 /// 색 점과 짧은 값을 붙인 표시예요. (예: ■ CPU 3.6)
 struct ColorChip: View {
     let color: Color
