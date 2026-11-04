@@ -1,5 +1,5 @@
 // DiskActiveProbe: 디스크 활성 시간(요청이 하나라도 걸려 있던 시간 비율)을 커널 추적으로 물리 디스크별로 잰다.
-// 명령: check | load [SD 경로] | live | record <분> | status | reset   (root 필요, run.sh로 실행)
+// 명령: check | load [SD 경로] | live | record <분> | hold … | state | stamp | status | reset   (root 필요, run.sh로 실행)
 import Foundation
 
 setvbuf(stdout, nil, _IOLBF, 0)
@@ -501,6 +501,7 @@ func analyze(events: [TraceEvent], marks: [PhaseMark], map: DiskMap, report: Rep
 
 func runStatus() -> Int32 {
     guard getuid() == 0 else { print("관리자 권한 필요 (sudo ./run.sh status)"); return 1 }
+    print("ktrace: \(stateLine())")
     print("추적 상태: \(traceState())")
     print("tailspin: \(firstLine(run("/usr/bin/tailspin", ["info"])))")
     print("powermetrics: \(powermetricsState())")
@@ -535,6 +536,29 @@ func runReset() -> Int32 {
     return 0
 }
 
+/// 한 줄 상태: 커널 변수(ktrace.*)를 먼저 읽고(끝난 소유자가 보이게), 그다음 버퍼 상태(KDGETBUF, root만)
+func stateLine() -> String {
+    let k = KtraceState.read()
+    var parts = [k.stateName,
+                 "소유 " + (k.owningPid > 0 ? "\(processName(k.owningPid))(\(k.owningPid))" : "없음"),
+                 "배경 도구 " + (k.backgroundPid > 0 ? "\(processName(k.backgroundPid))(\(k.backgroundPid))" : "없음"),
+                 "마지막 설정 " + (k.configuredBy.isEmpty ? "—" : k.configuredBy)]
+    if let b = k.blessedPreempt { parts.append("blessed_preempt \(b)") }
+    if getuid() == 0, let i = try? Kdebug.info() {
+        parts.append("버퍼 \(comma(Int(i.events)))개")
+        parts.append(i.recordingOff ? "기록 꺼짐" : "기록 켜짐")
+        if i.ownerPid <= 0 && i.flags & KD.flagBufInit != 0 { parts.append("소유자 없이 남은 추적") }
+    }
+    return parts.joined(separator: " · ")
+}
+
+/// 지금 시각 (시:분:초.밀리초). coexist.sh의 시간표에 쓴다
+func stamp() -> String {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm:ss.SSS"
+    return f.string(from: Date())
+}
+
 let args = CommandLine.arguments
 switch args.count > 1 ? args[1] : "" {
 case "check" where args.count > 2:
@@ -545,11 +569,22 @@ case "live" where args.count > 2:
     exit(runSession(mode: .live, directory: args[2], minutes: nil, sdPath: nil))
 case "record" where args.count > 3:
     exit(runSession(mode: .record, directory: args[2], minutes: max(Int(args[3]) ?? 10, 1), sdPath: nil))
+case "hold" where args.count > 5:
+    // hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초]
+    exit(runHold(directory: args[2], label: args[3], limit: max(Int(args[4]) ?? 10, 1), yieldOn: args[5] == "1",
+                 graceSeconds: args.count > 6 ? (Int(args[6]) ?? 10) : 10))
+case "state":
+    print(stateLine())
+    exit(0)
+case "stamp":
+    print(stamp())
+    exit(0)
 case "status":
     exit(runStatus())
 case "reset":
     exit(runReset())
 default:
-    print("사용법: diskactiveprobe check <결과 폴더> | load <결과 폴더> [SD 경로] | live <결과 폴더> | record <결과 폴더> <분> | status | reset   (sudo ./run.sh로 실행)")
+    print("사용법: diskactiveprobe check <결과 폴더> | load <결과 폴더> [SD 경로] | live <결과 폴더> | record <결과 폴더> <분>"
+        + " | hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초] | state | stamp | status | reset   (sudo ./run.sh로 실행)")
     exit(2)
 }

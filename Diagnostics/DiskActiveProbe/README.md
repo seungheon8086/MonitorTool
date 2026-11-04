@@ -8,7 +8,7 @@
 
 - IOBlockStorageDriver `Statistics`에는 쉰 시간이 없다(디스크마다 키 12개가 전부, DiskProbe). 걸린 시간 합 ÷ 구간은 평균 동시 요청이고, 활성 시간은 그보다 작거나 같다는 것만 안다(요청이 한 번에 하나일 때만 같음).
 - Windows는 디스크가 비는 순간과 새 요청이 오는 순간을 커널이 찍어 쉰 시간을 세고, Linux도 같은 카운터(io_ticks)를 둔다. macOS에는 이 카운터가 없어서 이벤트로 직접 센다.
-- 다른 길: SMART `controller_busy_minutes`는 이 SSD에서 늘 0, DTrace io는 SIP가 막음. IOReport 저장장치 채널(`ANS2 > Power > Duty cycle`, `ANS2 > Power State`, `NVMe > NVMe Power States`)은 권한 없이 읽히지만 전원 상태라 뜻이 다르다(2단계에서 같은 부하로 나란히 비교).
+- 다른 길: SMART `controller_busy_minutes`는 이 SSD에서 늘 0, DTrace io는 SIP가 막음. IOReport 저장장치 채널(ANS2·NVMe·SDXC)은 권한 없이 읽히지만 활성을 대신하지 못한다(2단계에서 부하·실사용으로 비교, 아래 결과)
 
 ## 무엇을 세나
 
@@ -19,6 +19,8 @@
 - 디스크마다 걸린 요청 수가 0→1이면 바쁨 시작, 1→0이면 바쁨 끝. 바쁜 시간을 ns로 누적하고, 활성 % = 누적 차이 ÷ 구간
 - 볼륨·파티션별로 세어 더하지 않는다. 같은 디스크의 볼륨들에 요청이 겹치면 두 번 세어져 100%를 넘을 수 있으므로, 이벤트를 먼저 물리 디스크로 모은다
 - 디스크 이미지(`Virtual Interface`)는 뺀다. 그 아래 실제 파일 I/O가 disk0 이벤트로 따로 잡힌다
+- 내장 SSD는 캐시 비우기(F_FULLFSYNC 등)도 바쁜 시간에 넣는다(2026-11-04 결정). 디스크 I/O 이벤트에는 안 보여서 SSD 드라이버 이벤트(`DBG_SSD` 0x0615, 1단계 관찰로 뜻을 정함)의 시작·끝으로 센다. 이 이벤트가 안 보이는 macOS면 디스크 I/O만으로 잰다(보고서에 표시). SD 카드·외장 디스크는 디스크 I/O만
+- TRIM 명령도 디스크 I/O 밖이라 같은 방식으로 따로 잰다. 활성에 넣을지는 4단계 긴 기록을 보고 정한다
 
 ## 엔진 (나중에 보조 프로그램으로 옮길 부분)
 
@@ -27,34 +29,44 @@
 | `Sources/Kdebug.swift` | 추적 켜기·형식 필터·읽기·해제, 이벤트 해석 |
 | `Sources/DiskMap.swift` | 장치 번호 → 물리 디스크, IOBlockStorageDriver 통계 |
 | `Sources/BusyMeter.swift` | 바쁜 시간 계산(순수 값 타입). 규칙은 `busy_meter_test.py`와 같고, python으로 경우별·무작위 검산 |
-| `Sources/Engine.swift` | 2단계: 읽는 대로 시각 순서로 처리하고, 정한 시각(1초마다)의 디스크별 누적값을 만든다. 0.1초마다 읽고 20 ms 늦춰 처리. 규칙은 `engine_test.py`로 검산 |
+| `Sources/Engine.swift` | 읽는 대로 시각 순서로 처리하고, 정한 시각(1초마다)의 디스크별 누적값을 만든다. 바쁜 시간은 디스크 I/O만 · +캐시 비우기 · +TRIM을 함께 센다. 0.1초마다 읽고 20 ms 늦춰 처리. 프로그램 실행 이벤트도 꺼내 준다(비켜주기). 규칙은 `engine_test.py`로 검산 |
+| `Sources/Ownership.swift` | 추적 자리: 상태 읽기(`ktrace.*`), 얻기(소유자 없이 남은 추적은 먼저 정리, 살아 있는 다른 도구면 손대지 않음), 내려놓기 |
 
-출력 모양(= 나중에 보조 프로그램이 앱에 줄 값): 물리 디스크별 누적 바쁜 시간(ns), 잃은 이벤트 수, 상태.
-도구에만 쓰는 것: `Sources/Load.swift`(1단계 부하), `Sources/Stage2.swift`(2단계 부하·1초 표본·보고), `Sources/IOReport.swift`(2단계 비교용), `Sources/main.swift`(명령).
+출력 모양(= 나중에 보조 프로그램이 앱에 줄 값): 물리 디스크별 누적 바쁜 시간(ns), 잃은 이벤트 수, 상태(추적 · 추정 · 다른 도구 사용 중).
+도구에만 쓰는 것: `Sources/Load.swift`(1단계 부하), `Sources/Stage2.swift`(load·live·record: 부하·1초 표본·보고), `Sources/Stage3.swift`(3단계 hold: 쥐고 있기·비켜주기·다시 잡기·추정, 1초 표본 짝 맞추기는 `hold_test.py`로 검산), `Sources/main.swift`(명령), `coexist.sh`(3단계 시나리오).
+IOReport 비교 코드(2단계)는 결론을 낸 뒤 뺐다. 그때 코드는 2단계 커밋에 남는다.
 
 ## 안전장치
 
-- 형식 필터는 디스크 I/O(`DBG_FSYSTEM / DBG_DKRW`)를 쓴다. 2단계는 디스크 명령(`DBG_FSYSTEM / DBG_IOCTL`, 이벤트가 드묾)도 늘 받고, SSD 드라이버 이벤트(`DBG_SSD`)는 fsync 단계에서만 받는다. 1단계는 관찰용으로 디스크 명령(`DBG_FSYSTEM / DBG_IOCTL`)과 드라이버 쪽 저장장치 종류(`DBG_IOKIT / DBG_IOSTORAGE`, `DBG_DRIVERS`의 저장장치·SD·NAND·SSD)도 받는다. 파일 경로·시스템 콜 이벤트는 받지 않는다
+- 형식 필터는 디스크 I/O(`DBG_FSYSTEM / DBG_DKRW`)·디스크 명령(`DBG_FSYSTEM / DBG_IOCTL`, 이벤트가 드묾)·SSD 드라이버 이벤트(`DBG_DRIVERS / DBG_SSD`, 캐시 비우기·TRIM)를 받는다. `DBG_TRACE`(프로그램 실행·잃은 이벤트 표시 등)는 커널이 늘 넣는다. 1단계는 관찰용으로 드라이버 쪽 저장장치 종류(`DBG_IOKIT / DBG_IOSTORAGE`, `DBG_DRIVERS`의 저장장치·SD·NAND)도 받았다. 파일 경로·시스템 콜 이벤트는 받지 않는다
 - 켤 때 남은 사용자 플래그(멈춤·연속 시각·특정 이벤트에서 멈춤)를 끈다. 시각은 mach_absolute_time 기준
 - 공개 카운터와 대조: 작업 수·바이트·평균 동시 요청. 허용 범위는 1단계 결과로 정하고, 앱에서는 어긋나면 값 대신 '측정 불가'
 - 끝날 때와 신호(Ctrl-C·종료)에 기록을 끄고 해제한다. 충돌 신호(SIGTRAP·SIGSEGV·SIGBUS·SIGILL·SIGABRT·SIGFPE)에서도 힙을 쓰지 않고 끄고 해제한 뒤 끝낸다(코드 70). 그래도 남은 추적은 `sudo ./run.sh reset`
-- 소유 프로세스가 끝나도 커널 기록은 계속된다(`kern_ktrace.c`). 붙일 때 보조 프로그램은 시작할 때 남은 추적부터 정리해야 한다
-- 다른 도구(fs_usage·Instruments)가 쓰는 중이면 기다리지 않고 '다른 도구가 사용 중'으로 끝낸다
+- 소유 프로세스가 끝나도 커널 기록은 계속된다(`kern_ktrace.c`). 그래서 켤 때 소유자 없이 남은 추적이 보이면 먼저 끄고 해제한 뒤 새로 켠다(`acquireTrace`, 3단계)
+- 다른 도구(fs_usage·Instruments)가 쓰는 중이면 손대지 않는다. load·live·record는 '다른 도구가 사용 중'으로 끝내고(코드 3), hold는 추정으로 버티다 2초마다 다시 잡아 본다
+- 쥐고 있는 동안 1초마다 소유자가 나인지 본다(`ktrace.owning_pid`). 바뀌었거나 읽기가 EBUSY면 밀려난 것으로 보고, 남의 설정은 건드리지 않는다
 - 이벤트 읽기 조각은 fs_usage 방식으로 갈아 끼울 수 있게 둔다(5단계 비교)
 
 ## 단계
 
 1. **check** (끝, `a62051c`): root 프로세스가 추적 자리를 얻는지, 이벤트 모양(짝 맞춤·장치 번호), 장치 → 물리 디스크 대응, 드라이버 통계와 작업 수·바이트 대조, 해제 뒤 tailspin이 돌아오는지, powermetrics와 함께 도는지, 디스크 명령(캐시 비우기·TRIM)이 이벤트로 나오는지, 드라이버 단계 이벤트(명령마다 찍히는 것)가 있는지. 부하: 쉼 5초 → 쓰기 512 MiB → 순차 읽기 1 GiB → 무작위 4 KiB 동시 1 · 3초 → 동시 8 · 2초 → 쉼 3초
    - 바이트가 드라이버보다 적으면 커널 추적에 안 보이는 I/O가 있다는 뜻(APFS가 IOKit으로 바로 보내는 I/O 등). 그만큼 활성 시간이 낮게 나올 수 있다
-2. **load · live · record** (지금): 1초마다 물리 디스크별 활성 %(추적)·평균 동시 요청(드라이버)·읽기/쓰기 MB/s·응답 시간을 남기고, IOReport 저장장치 채널(ANS2·NVMe·SDXC)을 나란히 읽는다
+2. **load · live · record** (끝, 커밋은 3단계 뒤): 1초마다 물리 디스크별 활성 %(추적)·평균 동시 요청(드라이버)·읽기/쓰기 MB/s·응답 시간을 남기고, IOReport 저장장치 채널(ANS2·NVMe·SDXC)을 나란히 읽었다
    - 사용자 결정(2026-11-04): 캐시 비우기는 fsync가 잦은 단계에서만 SSD 드라이버 이벤트를 받아 몫을 잰 뒤 정한다 · 두 번째 디스크는 SD 카드 · 실사용 기록 10분 · IOReport 비교 함
    - load 단계: 가만히 20초 → 순차 쓰기 1 MiB(1 GiB 파일을 최대 2 GiB) → 순차 읽기 → 무작위 4 KiB 동시 1·8·32(각 10초) → 짧게 몰림(1초마다 0.1초 동안 동시 32, 10번) → fsync 잦음(4 KiB 쓰기 + F_FULLFSYNC, 다음은 fsync, 각 10초, SSD 이벤트 켬) → SD 카드(쓰기·읽기·무작위 동시 1·8, 경로를 줄 때만) → 가만히 10초. 단계 사이 쉼 3~5초
    - 1초 동시 자른 평균 = 1초 평균 동시 요청을 100%에서 자른 값의 평균. 권한 없이 만들 수 있는 어림값이라, 활성 %와 얼마나 다른지가 추적의 값어치다
    - IOReport는 1초마다 상태 비율(상태 채널)·증가량(단순값)을 남기고, 활성 %와의 상관(r)이 큰 것을 보고서에 낸다
    - 1단계에서 고칠 것 반영: 디스크 명령은 한 번 찍히는 이벤트로 세기, 디스크가 아닌 장치(/dev/null 등)는 이름으로, SSD 이벤트는 fsync 단계에서만, 읽기 버퍼 4 MiB, 디스크 목록은 모르는 장치가 보이면 2초 뒤·아니면 30초마다 다시 만듦(꽂고 빼기)
-3. 공존·정리: powermetrics·Instruments·fs_usage와 함께, 강제 종료 뒤 reset, tailspin 상태
-4. 비용·오래 켜 두기: 가만히·무거운 부하의 CPU와 깨어남(버퍼 기준치 대기 `KERN_KDBUFWAIT`), 커널 버퍼 메모리, 잠자기
-5. fs_usage 방식과 비교: 같은 부하로 비용·값 차이
+   - 사용자 결정(2026-11-04, 결과를 본 뒤): 캐시 비우기는 내장 SSD에서 활성에 넣는다(SSD 드라이버 이벤트, 안 보이면 디스크 I/O만으로 돌아가고 표시) · IOReport는 뺀다 · 추적을 못 쓸 때는 드라이버 통계 어림값(1초 동시 자른 값)을 '추정'으로 보인다
+3. **coexist** (끝): 다른 추적 도구와 함께 쓸 때. `sudo ./run.sh coexist` 한 번으로 약 3분 동안 자동으로 돈다(`coexist C`처럼 글자로 시험을 고를 수 있음)
+   - B 우리가 쥔 동안 fs_usage·xctrace(Xcode가 있으면, Time Profiler 3초) → C 비켜주기 켬: fs_usage 두 번, 다시 잡는지, xctrace → D kill -9 뒤 상태, 우리 도구가 남은 추적을 정리하고 잡는지, fs_usage가 남은 추적을 가져가는지 → E fs_usage가 쓰는 중에 우리가 시작
+   - 비켜주기: 추적 중에는 추적 도구(fs_usage·xctrace·Instruments·ktrace·sysdiagnose 등)의 실행 이벤트(`TRACE_STRING_EXEC`, 커널이 늘 넣음)를 보면 바로 해제하고 추정으로. 비켜준 동안은 그 pid만 보고, 도구가 끝나고 10초 지나면 잡기 직전에 프로세스 목록을 한 번 본 뒤 다시 잡는다(첫 시험 뒤 고침: spindump 빼기, 1초마다 보던 프로세스 목록 없앰)
+   - XNU 코드로 미리 본 것: 살아 있는 전경 소유자가 있으면 다른 프로세스의 설정·읽기는 모두 EBUSY라 우리가 쥔 동안 fs_usage·Instruments는 못 돈다. 배경 소유 자리는 하나뿐이고 tailspind가 쓰므로 쓰지 않는다. `kperf.blessed_preempt`가 1이면 root가 소유자를 바꿀 수 있다(Instruments 호환용)
+   - 사용자 결정(2026-11-04): xctrace는 Xcode가 있으면 넣는다 · TRIM 시간은 4단계 긴 기록에서 같이 잰다
+   - 사용자 결정(2026-11-05, 결과를 본 뒤): 늘 켜 두되 다른 추적 도구가 보이면 비켜준다(Instruments가 켜져 있는 동안은 계속 비켜줌) · 다시 잡기 전 기다림 10초 · 2·3단계는 단계별로 세 번 커밋
+   - 다른 도구의 출력은 파일 경로가 들어 있어 남기지 않는다(줄 수·종료 코드·오류 글만). xctrace 기록은 크기만 보고 지운다
+4. **비용·오래 켜 두기** (다음): 1초마다 읽기·읽기 버퍼 줄이기·버퍼 기준치 대기(`KERN_KDBUFWAIT`), 1~2시간 기록(TRIM 시간 포함), 잠자기·깨기, 메모리(커널 버퍼 22.5 MiB 고정)
+5. fs_usage 방식과 비교: 같은 부하로 비용·값 차이 (4단계 결과를 보고 할지 정함)
 
 결과를 모아 붙일지, 어떻게 붙일지 정한다.
 
@@ -66,17 +78,20 @@
 - `sudo ./run.sh load [SD 카드 볼륨 경로]` — 약 2분 30초(SD 카드를 주면 약 3분 30초). 내장 디스크 여유 4 GB, SD 카드 여유 1 GB 필요. 시험 파일은 끝나면 지운다
 - `sudo ./run.sh live` — 1초마다 한 줄, Ctrl-C로 끝
 - `sudo ./run.sh record [분]` — 실사용 기록(기본 10분)
-  - load·live·record 결과: `report.txt`(화면과 같은 요약), `samples.tsv`(1초 × 디스크), `phases.tsv`(단계 × 디스크), `ioreport.tsv`(1초 × IOReport 채널·상태), `ioreport-channels.txt`(구독한 채널)
+  - load·live·record 결과: `report.txt`(화면과 같은 요약), `samples.tsv`(1초 × 디스크: 활성 · 디스크 I/O만 · 캐시 비우기 · TRIM · 어림값 · 드라이버 통계), `phases.tsv`(단계 × 디스크). 2단계 결과에는 IOReport 원본(`ioreport.tsv.gz`)도 있다
+- `sudo ./run.sh coexist` — 3단계 공존 시험(약 3분, Xcode가 있으면 xctrace 포함)
+  - `timeline.txt`(모든 hold와 시나리오의 사건을 시각 순으로), `hold-<이름표>.txt`(hold마다 요약), `hold-<이름표>.tsv`(1초 표본, 추적·추정), `fs_usage-*.err`·`xctrace-*.err`(다른 도구의 오류 글)
 - `sudo ./run.sh status` — 지금 커널 추적을 누가 쓰는지(읽기만)
 - `sudo ./run.sh reset` — 비정상 종료로 남은 추적 정리(살아 있는 소유자가 있으면 손대지 않음)
 - `python3 -I analyze_ssd.py results/<시각>/events.tsv` — SSD 드라이버 이벤트·디스크 명령 분석(1단계 관찰)
 - 빌드는 스크립트가 sudo를 부른 사용자 권한으로 한다(`build/diskactiveprobe`, 소스가 바뀌었을 때만)
-- 계산 규칙 시험: `python3 busy_meter_test.py`, `python3 engine_test.py`
+- 계산 규칙 시험: `python3 busy_meter_test.py`, `python3 engine_test.py`, `python3 hold_test.py`
+- IOReport·어림값 비교(2단계 결론): `python3 -I compare_estimates.py results/20261104-160555-load results/20261104-162116-record`
 
 ## 주의
 
 - 최적화 쪽 측정(ResourceProbe)과 동시에 돌리지 않는다. 추적이 켜져 있으면 시스템 상태가 달라진다
-- 돌리는 동안 fs_usage·Instruments는 쓸 수 없고 tailspin 기록이 멈춘다(해제하면 돌아옴)
+- 돌리는 동안 fs_usage·Instruments는 쓸 수 없고 tailspin 기록이 멈춘다(해제하면 돌아옴). tailspin이 켜진 Mac이면 잡는 순간 tailspin의 최근 기록이 지워진다(배경 도구에서 가져올 때 커널이 그 설정을 지움)
 - 측정 전에 게임·LM Studio·다른 모니터 앱을 닫는다
 - 원본 `.tsv`는 커밋하지 않는다(`.gitignore`), 필요하면 `.tsv.gz`만
 
@@ -89,6 +104,7 @@
 - 소유권: root면 가져올 수 있고, 배경 도구(tailspind)에서 가져오면 그 설정이 초기화된다. 소유 프로세스가 끝나도 기록은 계속되고, 해제하면 배경 도구에 알린다(`kern/kern_ktrace.c`)
 - 버퍼: 저장 단위 하나에 2,048개, CPU마다 최소 4단위 → 최소 (CPU·보조 프로세서 수 + 16) × 8,192개 × 64바이트. 대기 기준치 = 단위 수의 절반(`kern/kdebug.c`)
 - 이벤트 인자: `miscfs/specfs/spec_vnops.c`(시작, 원시 장치, 디스크 명령), `vfs/vfs_bio.c`(끝). 짝 맞춤은 `fs_usage.c`의 diskio_start·diskio_complete와 같음
+- 3단계에서 다시 본 것(GitHub apple-oss-distributions/xnu main, 2026-11-04): `_kd_sysctl_internal`은 KDGETBUF·KDREADCURTHRMAP만 읽기 확인이고 KDREADTR를 포함한 나머지는 모두 `ktrace_configure`(소유자 확인) · `ktrace_configure`는 살아 있는 다른 전경 소유자면 EBUSY · 배경 도구는 `ktrace.init_background`로 하나만 · `kperf.blessed_preempt`(`ktrace_root_set_owner_allowed`)이면 root가 `kperf.blessed_pid`로 소유자를 바꿈 · 프로그램 실행 때 `TRACE_DATA_EXEC`(pid)·`TRACE_STRING_EXEC`(이름 32바이트)가 찍힘(`kern_exec.c`) · 읽기 때마다 보조 프로세서에 이벤트를 넘기라고 요청함(`KD_CALLBACK_SYNC_FLUSH`) · fs_usage는 `ktrace_start`가 실패하면 'ktrace_start: Resource busy'로 끝남(system_cmds `fs_usage.c`)
 
 ## 결과
 
@@ -181,3 +197,31 @@
 - 캐시 비우기: 내장 SSD에서 활성에 넣는다. 실사용에서는 +0.1%p로 거의 같고, F_FULLFSYNC가 몰리면 10% → 94%로 크게 달라서. SSD 드라이버 이벤트가 안 보이면 디스크 I/O만으로 돌아가고 표시
 - IOReport: 뺀다. 추적을 못 쓸 때(보조 프로그램 없음·다른 도구가 추적 사용 중)는 드라이버 통계 어림값을 '추정'으로 보인다
 - 커밋: 3단계를 마친 뒤 다시 묻는다
+
+### 3단계 coexist 첫 시험 (2026-11-05 01:44~01:46, `results/20261105-014433-coexist`)
+
+- 새 코드가 Mac에서 처음 빌드됨(오류 없음). powermetrics(pid 12164)는 시험 내내 그대로
+- B 우리가 쥔 동안: fs_usage는 40 ms 만에 'ktrace_start: Resource busy'(코드 1). xctrace(Time Profiler)는 5초 뒤 'Failed to start the recording: Could not set the recording priority'(코드 2, 빈 기록 1.5 MB). 바쁘다는 말이 없어 원인을 알기 어렵다. 둘 다 우리 소유권을 빼앗지 않음(`blessed_preempt` 0 그대로)
+  - 실행 이벤트로 본 때: fs_usage는 시작 103 ms 뒤(이미 실패한 뒤), xctrace는 33 ms 뒤(실패는 5초 뒤) → fs_usage 첫 시도는 비켜주기로 못 살리고, xctrace는 살릴 수 있어 보임
+  - 읽기 122번에 29.4 ms → 한 번 0.24 ms(2단계에서 계산한 0.25 ms와 같음)
+- C 비켜주기: 시험이 안 됨. 비켜줄 목록에 넣은 spindump가 늘 떠 있는 시스템 데몬(pid 795)이라 처음부터 끝까지 기다리기만 함. 그동안 fs_usage 두 번·xctrace는 모두 정상(우리가 쥐지 않았으므로). 프로세스 목록(`KERN_PROC_ALL`)은 한 번에 약 2.5 ms라 1초마다 보기에는 비쌈
+  - 고침: spindump 빼기, 추적 중에는 실행 이벤트만 보기, 비켜준 동안에는 그 pid만 보기, 프로세스 목록은 잡기 직전에 한 번만 → C만 다시(`sudo ./run.sh coexist C`)
+- D 강제 종료: kill -9 뒤에도 기록은 켜진 채(전경, 소유 '끝난 프로세스', 버퍼 368,640개). 우리 도구는 226 ms 만에 남은 추적을 정리하고 잡음. fs_usage도 남은 추적을 그대로 가져가 정상으로 돌았고, 끝나자 tailspind가 배경으로 돌아옴
+- E fs_usage가 쓰는 중에 시작: '다른 도구 사용 중'으로 손대지 않고 추정으로 버팀(2초마다 다시, 5번), fs_usage가 끝나고 1.4초 뒤 잡음. 1초 표본은 추정 11초 → 추적 5초로 끊김 없이 이어짐. 참고로 fs_usage는 버퍼 10,485,760개(640 MiB)를 잡음
+
+### 3단계 coexist C 다시 (2026-11-05 01:54~01:56, `results/20261105-015453-coexist`)
+
+- 고친 비켜주기로 C만 다시. 시작 0.1초 만에 잡음
+- fs_usage: 첫 시도는 36 ms 만에 'Resource busy'로 실패. 실행 이벤트로 본 것은 104 ms 뒤, 해제는 210 ms 뒤 → 2초 뒤 둘째 시도는 정상(365줄)
+- xctrace(Time Profiler): 실행 23 ms 뒤에 보고 130 ms 뒤 해제 → **첫 시도부터 정상**(29 MB 기록). xctrace가 도는 25.6초 동안 그 pid만 보며 기다림
+- 다시 잡기: 도구가 끝나고 10.1초·10.06초 뒤. 잡기 직전 프로세스 목록 3번(한 번 1.9 ms)
+- 1초 표본 64개: 추적 16 · 추정 48. 추적 0~3초 → 추정 4~14초 → 추적 15~23초 → 추정 24~60초 → 추적 61~63초로 끊김 없이 이어짐
+- 비용: 읽기 201번 44.1 ms(한 번 0.22 ms) · 처리 9.1 ms · 도구 전체 0.19초 / 65초
+
+### 3단계 결론과 결정 (2026-11-05)
+
+- 우리가 쥔 동안 다른 추적 도구는 못 돈다: fs_usage는 'ktrace_start: Resource busy', Instruments(xctrace)는 'Could not set the recording priority'(바쁘다는 말이 없음). 어느 쪽도 우리를 밀어내지 않음(`blessed_preempt` 0)
+- 실행 이벤트로 비켜주면 0.13~0.21초 안에 해제한다. 시작하자마자 추적을 켜는 명령줄 도구(fs_usage, 36 ms)는 첫 시도가 실패하고 다음 시도부터 된다. 시작이 느린 Instruments·xctrace는 첫 시도부터 된다
+- 강제 종료로 남은 추적은 다음에 켜는 쪽(우리 도구든 다른 도구든)이 정리하고, 그 뒤 tailspind가 돌아온다. 다른 도구가 쓰는 중이면 손대지 않고 기다렸다가 잡는다
+- 프로세스 목록(`KERN_PROC_ALL`)은 한 번에 1.9~2.5 ms라 다시 잡기 직전에만 본다. 추적 중에는 실행 이벤트(추가 비용 없음), 비켜준 동안은 그 pid만(`kill(pid, 0)`)
+- 결정: 늘 켜 두되 비켜주기 · Instruments가 켜져 있는 동안은 계속 비켜줌(그동안 활성 %는 '추정') · 다시 잡기 전 10초

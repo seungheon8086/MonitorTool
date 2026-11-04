@@ -1,0 +1,71 @@
+01:44:36.523 [run] == 3단계 공존 시험 · 27.2 · MacBookPro18,1
+01:44:36.561 [run] tailspin: 
+01:44:36.609 [run] powermetrics: 12164 
+01:44:36.620 [run] xctrace: /Applications/Xcode.app/Contents/Developer/usr/bin/xctrace --no-prompt
+01:44:36.783 [run] 상태 (시작 전): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:44:36.800 [run] == B: 우리가 쥔 동안 다른 도구 (비켜주기 끔)
+01:44:36.818 [B] 시작 · 40초 · 비켜주기 끔 · pid 12504
+01:44:36.932 [B] 추적 잡음
+01:44:41.021 [run] 상태 (B 잡은 뒤): 전경 · 소유 diskactiveprobe(12504) · 배경 도구 tailspind(1183) · 마지막 설정 diskactiveprobe · blessed_preempt 0 · 버퍼 368,640개 · 기록 켜짐
+01:44:41.041 [run] fs_usage B1 시작 (-w -f diskio -t 3)
+01:44:41.081 [run] fs_usage B1 끝: 종료 코드 1 · 출력 0줄 · 오류: ktrace_start: Resource busy 
+01:44:41.144 [B] 추적 도구 실행 봄: fs_usage(12514) · 비켜주기 끔이라 그대로 쥠
+01:44:42.109 [run] xctrace B2 시작 (Time Profiler · 모든 프로세스 · 3초)
+01:44:42.142 [B] 추적 도구 실행 봄: xctrace(12526) · 비켜주기 끔이라 그대로 쥠
+01:44:47.605 [run] xctrace B2 끝: 종료 코드 2 · 기록 1568 KB (지움) · 오류: Run issues were detected (trace is still ready to be viewed): * [Error] Failed to start the recording: Could not set the recording priority.  
+01:44:48.793 [run] 상태 (B 다른 도구 뒤): 전경 · 소유 diskactiveprobe(12504) · 배경 도구 tailspind(1183) · 마지막 설정 diskactiveprobe · blessed_preempt 0 · 버퍼 368,640개 · 기록 켜짐
+01:44:48.803 [B] 멈춤 요청 받음
+01:44:48.913 [B] 추적 해제 (끝)
+01:44:48.928 [run] hold B 끝: 종료 코드 0
+01:44:52.131 [run] 상태 (B 끝난 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:44:52.155 [run] == C: 비켜주기 켬 (도구가 끝나고 10초 뒤 다시 잡음)
+01:44:52.174 [C] 시작 · 120초 · 비켜주기 켬 (도구가 끝나고 10초 뒤 다시 잡음) · pid 12607
+01:44:52.179 [C] 추적 도구가 도는 중이라 기다림: spindump(795)
+01:44:56.344 [run] 상태 (C 잡은 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:44:56.367 [run] fs_usage C1 시작 (-w -f diskio -t 3)
+01:44:59.958 [run] fs_usage C1 끝: 종료 코드 0 · 출력 31줄 · 오류: 없음
+01:45:02.148 [run] 상태 (C1 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:45:02.171 [run] fs_usage C2 시작 (-w -f diskio -t 3)
+01:45:06.267 [run] fs_usage C2 끝: 종료 코드 0 · 출력 70줄 · 오류: 없음
+01:45:21.448 [run] 상태 (C 다시 잡았는지): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:45:21.471 [run] xctrace C3 시작 (Time Profiler · 모든 프로세스 · 3초)
+01:45:31.515 [run] xctrace C3 끝: 종료 코드 0 · 기록 27548 KB (지움) · 오류: 없음
+01:45:46.706 [run] 상태 (C xctrace 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:45:46.717 [C] 멈춤 요청 받음
+01:45:46.728 [run] hold C 끝: 종료 코드 0
+01:45:49.924 [run] 상태 (C 끝난 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:45:49.944 [run] == D: 강제 종료 (kill -9)
+01:45:49.963 [D1] 시작 · 60초 · 비켜주기 끔 · pid 12771
+01:45:50.076 [D1] 추적 잡음
+01:45:53.984 [run] hold D1에 kill -9 (종료 코드 137)
+01:45:55.187 [run] 상태 (D1 죽은 뒤): 전경 · 소유 끝난 프로세스(12771) · 배경 도구 tailspind(1183) · 마지막 설정 diskactiveprobe · blessed_preempt 0 · 버퍼 368,640개 · 기록 켜짐 · 소유자 없이 남은 추적
+01:45:55.207 [run] hold D2: 남은 추적을 정리하고 잡는지 (6초)
+01:45:55.226 [D2] 시작 · 6초 · 비켜주기 끔 · pid 12781
+01:45:55.452 [D2] 추적 잡음 · 소유자 없이 남은 추적을 먼저 정리함
+01:46:01.346 [D2] 추적 해제 (끝)
+01:46:01.466 [run] hold D2 끝: 종료 코드 0
+01:46:04.663 [run] 상태 (D2 끝난 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:46:04.686 [D3] 시작 · 60초 · 비켜주기 끔 · pid 12788
+01:46:04.800 [D3] 추적 잡음
+01:46:08.702 [run] hold D3에 kill -9 (종료 코드 137)
+01:46:09.899 [run] 상태 (D3 죽은 뒤): 전경 · 소유 끝난 프로세스(12788) · 배경 도구 tailspind(1183) · 마지막 설정 diskactiveprobe · blessed_preempt 0 · 버퍼 368,640개 · 기록 켜짐 · 소유자 없이 남은 추적
+01:46:09.924 [run] fs_usage D4 시작 (-w -f diskio -t 3)
+01:46:13.528 [run] fs_usage D4 끝: 종료 코드 0 · 출력 470줄 · 오류: 없음
+01:46:16.716 [run] 상태 (D4 fs_usage 뒤 (남은 추적을 fs_usage가 가져갔는지)): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:46:16.896 [run] reset: 추적 상태: 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐 정리할 것 없음 · tailspind 사용 중 (정상) 
+01:46:17.068 [run] 상태 (D 정리 뒤): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:46:17.086 [run] == E: fs_usage가 쓰는 중에 우리가 시작
+01:46:17.105 [run] fs_usage E1 시작 (-w -f diskio -t 10)
+01:46:19.284 [run] 상태 (E fs_usage 도는 중): 전경 · 소유 fs_usage(12827) · 배경 도구 tailspind(1183) · 마지막 설정 fs_usage · blessed_preempt 0 · 버퍼 10,485,760개 · 기록 켜짐
+01:46:19.309 [E] 시작 · 16초 · 비켜주기 끔 · pid 12832
+01:46:19.384 [E] 못 잡음: 다른 도구 사용 중 · fs_usage(12827) → 추정, 2초마다 다시 (1번째)
+01:46:27.597 [E] 못 잡음: 다른 도구 사용 중 · fs_usage(12827) → 추정, 2초마다 다시 (5번째)
+01:46:28.279 [run] fs_usage E1 끝: 종료 코드 0 · 출력 278줄 · 오류: 없음
+01:46:29.644 [E] 추적 잡음
+01:46:35.431 [E] 추적 해제 (끝)
+01:46:35.551 [run] hold E 끝: 종료 코드 0
+01:46:38.748 [run] 상태 (끝): 배경 · 소유 tailspind(1183) · 배경 도구 tailspind(1183) · 마지막 설정 tailspind · blessed_preempt 0 · 버퍼 0개 · 기록 꺼짐
+01:46:38.918 [run] reset: 추적 상태: 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐 정리할 것 없음 · tailspind 사용 중 (정상) 
+01:46:38.941 [run] tailspin: 
+01:46:38.977 [run] powermetrics: 12164 
+01:46:38.986 [run] == 끝

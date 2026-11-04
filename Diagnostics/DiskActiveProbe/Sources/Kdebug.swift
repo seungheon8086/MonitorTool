@@ -37,6 +37,11 @@ enum KD {
     static let syncRequest: UInt32 = 0x0306_0000     // 동기화 요청 DKIOCSYNCHRONIZE: 인자 1 장치, 2 명령, 3 옵션 (2 = 장벽). 한 번 찍힘
     static let trimRange: UInt32 = 0x0306_0004       // TRIM 범위: 인자 1 장치, 2 위치, 3 바이트. 한 번 찍힘
     static let ssdFlush: UInt32 = 0x0615_4008        // 캐시 비우기: 시작(함수 1)·끝(함수 2), 같은 스레드
+    static let ssdTrim: UInt32 = 0x0615_400c         // TRIM 명령: 시작·끝, 같은 스레드 (1단계 관찰)
+
+    // DBG_TRACE: 형식 필터와 상관없이 늘 들어온다 (kdebug.c). 프로그램 실행 때 같은 스레드에서 둘이 이어서 찍힌다
+    static let execData: UInt32 = 0x0700_0008        // TRACE_DATA_EXEC: 인자 1 pid
+    static let execString: UInt32 = 0x0701_0008      // TRACE_STRING_EXEC: 인자 1~4에 프로세스 이름 32바이트
 
     /// 1단계에서 관찰만 하는 저장장치 쪽 종류: 드라이버 단계 이벤트가 있는지 본다
     static let observedKinds: [UInt32: String] = [
