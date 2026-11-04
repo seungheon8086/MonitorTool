@@ -56,6 +56,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window.center()
     }
 
+    /// 설정 창이 열려 있는지 (팬 제어 상태를 물을지 정할 때 써요)
+    private(set) var isOpen = false
+
     /// 설정 창을 앞으로 가져와요. 메뉴 막대 앱은 먼저 앱을 활성화해야 창이 다른 앱 뒤에 숨지 않아요.
     /// - Parameter tab: 이 탭을 골라서 보여줘요. (nil이면 마지막에 보던 탭)
     func show(tab: Tab? = nil) {
@@ -64,11 +67,13 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        isOpen = true
     }
 
     func windowWillClose(_ notification: Notification) {
         // 새 단축키를 기다리던 중에 창을 닫으면 원래 단축키로 돌아가요.
         shortcut.cancelRecording()
+        isOpen = false
     }
 
     private static func tab<Content: View>(title: String, symbol: String, content: Content) -> NSTabViewItem {

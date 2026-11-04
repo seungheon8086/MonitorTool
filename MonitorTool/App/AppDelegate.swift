@@ -21,6 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var collectionScheduler: CollectionScheduler?
     /// 위젯이 읽을 공유 파일을 써요. (docs/WIDGET_V2.md)
     private var widgetPublisher: WidgetPublisher?
+    /// 패널이 열려 있는지 (팬 제어 상태를 물을지 정할 때 써요)
+    private var panelIsShown = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 단축키(기본 fn + Space)로 어디서든 패널을 열고 닫아요.
@@ -56,11 +58,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 항목에 따라 5·10·30초마다 모아요.
         let collectionScheduler = CollectionScheduler(store: store, helper: helper)
-        panelController.onVisibilityChange = { [weak collectionScheduler] isShown in
+        panelController.onVisibilityChange = { [weak self, weak collectionScheduler] isShown in
+            // 먼저 기억해야 패널을 열자마자 모을 때 팬 제어 상태도 함께 물어요.
+            self?.panelIsShown = isShown
             collectionScheduler?.panelVisible = isShown
         }
-        // 시스템 값을 모을 때마다 팬 제어 상태도 보조 프로그램에 다시 물어요.
-        collectionScheduler.onSystemCollect = { [weak fanControl = self.fanControl] in fanControl?.refresh() }
+        // 팬 제어 상태는 볼 수 있을 때만(패널이나 설정 창이 열려 있을 때) 시스템 값을 모을 때마다 보조 프로그램에 물어요.
+        // 둘 다 닫혀 있으면 묻지 않고, 다시 열면 바로 물어요. (2026-11-04 자원 사용 측정 뒤)
+        collectionScheduler.onSystemCollect = { [weak self] in
+            guard let self, self.panelIsShown || self.settingsWindowController?.isOpen == true else { return }
+            self.fanControl.refresh()
+        }
         collectionScheduler.start()
         self.collectionScheduler = collectionScheduler
 
@@ -98,6 +106,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                                 fanControl: fanControl)
         }
         settingsWindowController?.show(tab: tab)
+        // 닫혀 있는 동안은 팬 제어 상태를 묻지 않아서, 열 때 바로 물어요.
+        fanControl.refresh()
     }
 
     /// 패널의 '보조 프로그램 허용하기' 단추: 켜고 시스템 설정의 허용 화면을 열어요.
