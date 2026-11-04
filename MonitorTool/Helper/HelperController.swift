@@ -90,7 +90,7 @@ final class HelperController {
 
     /// 상태를 너무 자주 묻지 않게 해요. macOS에 한 번 묻는 데 20 ms쯤 걸려요. (2026-10-25 이 Mac에서 잼)
     /// 패널이 열려 있으면 허용을 기다리거나 실패한 동안은 2초, 꺼져 있으면 10초마다 물어요.
-    /// 잘 동작하는 동안(60초)이나 패널이 닫혀 있을 때는 드물게 물어요. 값을 받다가 실패가 이어져
+    /// 잘 동작하는 동안(5분, 끊기면 XPC 오류로 바로 알아채요)이나 패널이 닫혀 있을 때는 드물게 물어요. 값을 받다가 실패가 이어져
     /// '연결 실패'가 되면 2초(닫혀 있으면 10초)마다 다시 물어요.
     func refreshStatusIfDue(panelVisible: Bool = true) {
         let wait: TimeInterval
@@ -104,7 +104,7 @@ final class HelperController {
         case .notRegistered:
             wait = panelVisible ? 10 : 60
         case .enabled:
-            wait = 60
+            wait = 300
         }
         if Date().timeIntervalSince(lastStatusCheck) >= wait {
             refreshStatus()

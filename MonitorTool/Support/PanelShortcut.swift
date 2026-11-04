@@ -227,12 +227,14 @@ final class PanelShortcut {
         return AXIsProcessTrustedWithOptions(options)
     }
 
-    /// fn + Space를 받는 동안에는 5초마다 허용이 꺼지지 않았는지, 허용을 기다리는 동안에는 2초마다 허용됐는지 살펴요.
+    /// fn + Space를 받는 동안에는 30초마다 허용이 꺼지지 않았는지, 허용을 기다리는 동안에는 2초마다 허용됐는지 살펴요.
+    /// 손쉬운 사용 목록이 바뀌면 알림(com.apple.accessibility.api)으로 바로 살펴서, 30초는 그 알림을 놓쳤을 때를 위한 거예요.
+    /// (2026-11-04 자원 사용 측정 뒤 5초 → 30초)
     private func updateCheckTimer() {
         let interval: TimeInterval?
         switch fnState {
         case .active:
-            interval = 5
+            interval = 30
         case .needsPermission, .failed:
             interval = (permissionWaitUntil.map { $0 > Date() } ?? false) ? 2 : nil
         case .off:
