@@ -1,0 +1,77 @@
+# 13:31:27
+  564   2.0 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+ 1724   1.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 6813   1.8 bash
+  369   1.4 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mds
+  381   1.1 /usr/libexec/opendirectoryd
+ 7119   1.1 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared
+# 13:32:27
+ 1724   2.4 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 1563   1.1 /Applications/Claude.app/Contents/MacOS/Claude
+  621   1.0 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+  412   0.6 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  436   0.4 /usr/libexec/clocksyncd
+# 13:33:27
+  680  10.4 /System/Library/PrivateFrameworks/CloudKitDaemon.framework/Support/cloudd
+  483   7.4 /usr/sbin/mDNSResponder
+  662   5.0 /System/Library/Frameworks/Accounts.framework/Versions/A/Support/accountsd
+ 1009   3.1 /usr/libexec/trustd
+  595   3.0 /usr/libexec/secd
+  621   2.1 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+# 13:34:28
+ 1724   1.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  405   0.7 /usr/sbin/bluetoothd
+ 1563   0.7 /Applications/Claude.app/Contents/MacOS/Claude
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+ 1583   0.6 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)
+  412   0.5 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+# 13:35:28
+  412   4.1 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  621   2.4 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+ 1724   1.4 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  405   1.1 /usr/sbin/bluetoothd
+ 1563   0.7 /Applications/Claude.app/Contents/MacOS/Claude
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+# 13:36:28
+  769   9.5 /System/Library/CoreServices/NotificationCenter.app/Contents/MacOS/NotificationCenter
+  719   8.0 /System/Library/PrivateFrameworks/ChronoCore.framework/Support/chronod
+  416   7.5 /usr/libexec/runningboardd
+ 7100   5.1 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+  863   4.5 /System/Library/CoreServices/Batteries.app/Contents/PlugIns/BatteriesAvocadoWidgetExtension.appex/Contents/MacOS/BatteriesAvocadoWidgetExtension
+  613   2.2 /usr/libexec/containermanagerd
+# 13:37:28
+  590   1.5 /usr/sbin/cfprefsd
+ 1724   1.1 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  627   1.0 /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  412   0.4 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  436   0.4 /usr/libexec/clocksyncd
+# 13:38:28
+  590   1.4 /usr/sbin/cfprefsd
+  627   1.0 /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+ 1724   0.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  412   0.6 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 7103   0.6 /usr/bin/powermetrics
+# 13:39:28
+ 1563   1.4 /Applications/Claude.app/Contents/MacOS/Claude
+  564   0.8 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  672   0.8 /usr/libexec/ContinuityCaptureAgent
+  652   0.7 /usr/libexec/rapportd
+  620   0.7 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+ 1724   0.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+# 13:40:28
+ 1724   0.9 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  412   0.7 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  621   0.4 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+  564   0.4 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  408   0.3 /usr/libexec/corebrightnessd
+# 13:41:28
+  535   4.6 /System/Library/PrivateFrameworks/BackgroundTaskManagement.framework/Resources/backgroundtaskmanagementd
+ 1563   0.8 /Applications/Claude.app/Contents/MacOS/Claude
+ 1724   0.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  564   0.5 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  436   0.4 /usr/libexec/clocksyncd
