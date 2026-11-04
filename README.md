@@ -90,7 +90,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 MonitorTool/        앱 코드
   App/              시작점, AppDelegate
   Model/            측정값과 값 상태, 화면이 보는 저장소, 팬 이름
-  Collection/       값을 모으는 일정(패널을 열면 1초, 닫으면 항목에 따라 5·10·30초)과 수집기
+  Collection/       값을 모으는 일정(패널을 열면 1초, 닫으면 10초·배터리 30초)과 수집기
                     (CPU·GPU 사용률·GPU 메모리, IOReport, 메모리, 온도·팬(SMC), 배터리, 디스크·SMART, 네트워크)
   Helper/           보조 프로그램 켜기·끄기와 XPC 연결
   Fan/              팬 제어 상태·프리셋과 입력 조각

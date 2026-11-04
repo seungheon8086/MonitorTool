@@ -3,9 +3,10 @@ import Darwin
 import Foundation
 
 /// 값을 언제 모을지 정해요. (설계 문서 4장)
-/// 패널이 열려 있으면 모두 1초(배터리는 5초)마다 모아요.
-/// 닫혀 있으면 네트워크는 5초, CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬·디스크와
-/// 보조 프로그램의 CPU·ANE 전력은 10초, 배터리는 30초마다 모아요. 깨어나면 바로 모두 다시 재요.
+/// 패널이 열려 있으면 모두 1초(온도·팬은 2초, 배터리는 5초)마다 모아요.
+/// 닫혀 있으면 네트워크·CPU·GPU 사용률·IOReport 값(GPU 전력, ANE 사용 중 여부, DRAM 트래픽)·메모리·온도·팬·디스크와
+/// 보조 프로그램의 CPU·ANE 전력을 10초마다 한 번에 모으고, 배터리는 30초마다 모아요. 깨어나면 바로 모두 다시 재요.
+/// (2026-11-04 자원 사용 측정 뒤 네트워크 5초 → 10초: 닫혀 있을 때 앱이 깨는 횟수를 절반으로)
 final class CollectionScheduler {
     private let store: MonitorStore
     private let helper: HelperController
@@ -45,9 +46,9 @@ final class CollectionScheduler {
         }
     }
 
-    /// 타이머 간격 (초). 닫혀 있을 때는 가장 자주 재는 네트워크에 맞춰 5초예요.
+    /// 타이머 간격 (초). 패널이 열려 있으면 1초, 닫혀 있으면 10초예요.
     private var interval: TimeInterval {
-        panelVisible ? 1 : 5
+        panelVisible ? 1 : 10
     }
 
     /// 닫혀 있을 때 시스템 값을 재는 간격이에요. 10초인데, 타이머가 조금 일찍 와도 되게 0.5초 여유를 둬요.
@@ -136,7 +137,7 @@ final class CollectionScheduler {
     /// 한 번 모아요.
     private func collect() {
         helper.refreshStatusIfDue(panelVisible: panelVisible)
-        // 닫혀 있으면 네트워크만 매번(5초) 재고, 나머지 시스템 값은 10초마다 재요.
+        // 닫혀 있으면 타이머(10초)마다 모두 재요. 타이머가 조금 일찍 와도 되게 9.5초를 기준으로 봐요.
         let clock = clock_gettime_nsec_np(CLOCK_MONOTONIC)
         let systemDue = panelVisible || lastSystemCollectAt == 0
             || clock &- lastSystemCollectAt >= CollectionScheduler.hiddenSystemInterval

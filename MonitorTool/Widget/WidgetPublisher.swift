@@ -7,8 +7,9 @@ import WidgetKit
 final class WidgetPublisher {
     private let store: MonitorStore
     private let appearance: AppearanceSettings
-    /// 값이 바뀌었을 때 다시 쓰기까지 기다리는 최소 시간 (초)
-    private static let minimumInterval: TimeInterval = 10
+    /// 값이 바뀌었을 때 다시 쓰기까지 기다리는 최소 시간 (초). 10초인데, 닫혀 있을 때의 10초 타이머가
+    /// 조금 일찍 와도 한 번을 건너뛰지 않게 0.5초 여유를 둬요.
+    private static let minimumInterval: TimeInterval = 9.5
     private var lastWrite = Date.distantPast
     private var appState: WidgetAppState = .running
     private var sleepObserver: (any NSObjectProtocol)?
