@@ -1,0 +1,8 @@
+role,pids,cpu_percent,cpu_seconds,instructions_m_per_s,cycles_m_per_s,power_mw,idle_wakeups_per_s,interrupt_wakeups_per_s,disk_write_kb_per_min,logical_write_kb_per_min,footprint_mb_end,footprint_mb_max
+app,1925,0.513,0.01,6.70,5.04,0.22,0.00,0.99,357.7,1788.7,39.7,45.9
+helper,1942,0.005,0.00,0.02,0.04,0.00,0.00,0.50,0.0,0.0,5.1,5.2
+widget,—,0.000,0.00,0.00,0.00,0.00,0.00,0.00,0.0,0.0,0.0,0.0
+powermetrics,3749,0.000,0.00,0.00,0.00,0.00,0.00,0.00,0.0,0.0,4.5,4.5
+windowServer,412,11.556,0.23,219.22,203.17,41.20,1.99,200.23,0.0,0.0,323.4,1016.8
+chronod,719,0.341,0.01,2.56,3.74,0.12,0.00,0.50,1907.9,1075.5,18.7,19.7
+family,1925;1942;3749,0.518,0.01,6.72,5.09,0.22,0.00,1.49,357.7,1788.7,49.4,—

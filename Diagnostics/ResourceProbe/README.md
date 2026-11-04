@@ -1,0 +1,57 @@
+# ResourceProbe
+
+MonitorTool이 실제로 쓰는 연산량·에너지·메모리를 재는 도구예요. (2026-11-04, 중간 정리·최적화의 기준 측정)
+
+앱 프로세스만 보면 숨은 비용을 놓쳐요. 보조 프로그램이 띄운 `powermetrics`(root)와 위젯 확장도 MonitorTool 때문에 도는 프로세스라서 함께 잽니다. 이를 **MonitorTool 가족**이라고 불러요.
+
+| 역할 | 프로세스 |
+|---|---|
+| 앱 | `/Applications/MonitorTool.app/Contents/MacOS/MonitorTool` |
+| 보조 프로그램 | `…/Contents/MacOS/MonitorToolHelper` (root, LaunchDaemon) |
+| powermetrics | 보조 프로그램이 띄운 `/usr/bin/powermetrics` (root) |
+| 위젯 확장 | `…/Contents/PlugIns/MonitorToolWidget.appex` |
+| 참고 | WindowServer(패널 유리 그리기), chronod(위젯 관리) — 다른 앱과 함께 쓰는 시스템 프로세스라 합계에서 뺌 |
+
+## 재는 값
+
+- `rusage_probe.swift`: 2초마다 위 프로세스의 누적 사용량(`proc_pid_rusage`, `RUSAGE_INFO_V6`)을 읽어 측정 구간 동안 늘어난 양을 더해요. macOS가 프로세스마다 쌓아 두는 값이라 측정 부담이 작고, 표본 사이에 생긴 일도 빠지지 않아요.
+  - 연산량: CPU 시간(한 코어 기준 %), 명령어 수, 사이클
+  - 에너지: macOS가 추정한 프로세스별 CPU 에너지(평균 mW), 유휴 상태에서 깨운 횟수·인터럽트 깨어남(초당)
+  - 디스크 쓰기(물리·논리), 메모리(끝날 때, 최대)
+  - CPU 시간은 Apple Silicon에서 mach 시간 단위라 `mach_timebase_info`로 바꿔요. 측정 앞뒤의 `ps` TIME과 대조할 수 있어요.
+- GPU는 프로세스별 값이 없어서 같은 구간에 `powermetrics --samplers cpu_power,gpu_power`(5초)로 시스템 전체를 봐요. 패널 열림과 닫힘의 차이가 패널 그리기 몫이에요.
+
+## 쓰는 법
+
+```
+bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/ResourceProbe/measure.sh <이름>
+```
+
+터미널에서 sudo 없이 실행해요(관리자 암호를 처음에 한 번 물어요). 지금 코드를 `Scripts/build-app.sh`로 Release 빌드·설치하고 새 앱 색인이 끝나도록 3분 기다린 뒤(설치 없이 재려면 `SKIP_BUILD=1`), 앱을 껐다 켜서 보조 프로그램도 새로 띄워요. 그다음 **패널 열림·고정** 10분과 **패널 닫힘**(앱을 다시 켠 뒤) 10분을 차례로 잽니다. 측정하는 동안 `caffeinate`로 화면을 켜 두니 Mac을 만지지 마세요. 결과는 `results/<날짜-시각>-<이름>/summary.txt`이고, 1분마다 CPU를 많이 쓴 다른 프로세스도 함께 남겨요(잡음 확인).
+
+측정끼리 비교할 때는 전원(배터리·어댑터), 위젯 배치, 켜 둔 프로그램을 같게 맞춰요.
+
+측정 전에 할 일: 게임·LM Studio·다른 모니터 앱·Xcode처럼 무거운 프로그램 닫기, 전원 어댑터 연결, 위젯은 평소대로.
+
+## 기준 측정 (2026-11-04, `perf-baseline` = 앱 코드 `887f08a`)
+
+조건: macOS 27.2(26B123), MacBookPro18,1, 배터리(100%), 위젯은 알림 센터에만, 상황마다 10분.
+두 번 쟀어요. 첫 번째(`results/20261104-1055-baseline`)는 재설치 때 돌던 보조 프로그램이 예전 앱과 함께 휴지통 경로로 남아서, 도구가 보조 프로그램과 powermetrics를 세지 못했어요(측정 앞뒤 `ps`로 CPU 시간만 되살림). 도구를 고쳐 설치 없이 다시 잰 것이 두 번째(`results/20261104-1203-baseline2`)예요. 표는 두 번째 값이고, 괄호는 첫 번째 값이에요.
+
+| CPU %(한 코어) · CPU 에너지 | 패널 열림·고정 | 패널 닫힘 |
+|---|---|---|
+| 앱 | 3.61% (3.71) · 4.5 mW | 0.22% (0.24) · 0.14 mW |
+| 보조 프로그램 | 0.44% (0.44) · 1.1 mW | 0.05% (0.05) · 0.11 mW |
+| powermetrics | 2.26% (2.27) · 2.0 mW | 0.25% (0.25) · 0.21 mW |
+| 위젯 확장 | 0 | 0 |
+| **가족 합계** | **6.31% · 7.6 mW** | **0.52% · 0.47 mW** |
+| 인터럽트 깨어남 (초당, 가족) | 3.4 | 0.51 |
+| WindowServer (참고) | 2.89% · 5.8 mW | 1.15% · 1.3 mW |
+| 시스템 GPU 전력 (powermetrics) | 25 mW | 1 mW |
+
+- 메모리: 앱 35 MB(열림)·32 MB(닫힘), 보조 프로그램 5 MB, powermetrics 5 MB.
+- 도구가 잰 앱 CPU 시간은 `ps` 누적 시간과 0.5% 안에서 맞아요(22.23초 대 22.34초). 프로세스별 값은 두 측정이 5% 안에서 같아요.
+- 닫혀 있을 때 가족 CPU의 57%, CPU 에너지의 68%를 보조 프로그램과 powermetrics가 써요.
+- 패널을 열면 앱 +3.4%p, powermetrics(1초 간격) +2.0%p, WindowServer +1.7%p, GPU +24 mW가 늘어요.
+- 위젯 확장은 알림 센터를 열 때만 그려서 0이에요. 앱은 10초마다 위젯 갱신을 요청하고, 그동안 chronod가 0.09% CPU와 분당 340~430 KB 디스크 쓰기를 썼어요(다른 위젯 몫도 들어 있음).
+- 잡음: 첫 번째는 설치 직후 색인(helpd·Spotlight)과 사진 분석(mediaanalysisd), 두 번째 열림 때는 보조 프로그램을 다시 띄운 뒤 몇 분 동안 launchd(최대 47%)가 있었어요. 시스템 전체 전력은 참고로만 봐요.

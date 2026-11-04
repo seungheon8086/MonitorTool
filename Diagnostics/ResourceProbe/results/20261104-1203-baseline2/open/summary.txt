@@ -1,0 +1,29 @@
+측정 600.0초, 300번 읽음 (2초 간격), mach 시간 배율 41.6667
+
+| 역할 | PID | CPU %(한 코어) | CPU 초 | 명령어 M/s | 사이클 M/s | 평균 전력 mW | 유휴 깨어남/s | 인터럽트 깨어남/s | 디스크 쓰기 KB/분 | 논리 쓰기 KB/분 | 메모리 MB(끝) | 최대 MB |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 앱 | 4892 | 3.613 | 21.68 | 40.65 | 48.64 | 4.53 | 0.05 | 2.35 | 98.0 | 252.4 | 34.7 | 35.0 |
+| 보조 프로그램 | 4897 | 0.443 | 2.66 | 8.52 | 5.16 | 1.06 | 0.00 | 0.20 | 0.0 | 0.0 | 4.9 | 4.9 |
+| 위젯 확장 | 3977 | 0.000 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.0 | 0.0 | 9.3 | 10.0 |
+| powermetrics(보조 프로그램) | 4920 | 2.257 | 13.54 | 32.79 | 30.80 | 1.99 | 0.00 | 0.88 | 0.0 | 0.0 | 4.8 | 4.8 |
+| 가족 합계 | 3977;4892;4897;4920 | 6.313 | 37.88 | 81.95 | 84.60 | 7.58 | 0.05 | 3.44 | 98.0 | 252.4 | 53.6 | — |
+| WindowServer(참고) | 412 | 2.886 | 17.32 | 35.67 | 48.25 | 5.76 | 0.90 | 26.80 | 0.0 | 0.0 | 447.9 | 1016.8 |
+| chronod(참고) | 719 | 0.086 | 0.52 | 1.86 | 1.36 | 0.33 | 0.00 | 0.14 | 429.2 | 267.3 | 19.1 | 20.9 |
+
+프로세스 (역할 · PID · 실행 파일)
+- 앱 4892: /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+- 보조 프로그램 4897: /Applications/MonitorTool.app/Contents/MacOS/MonitorToolHelper
+- powermetrics(보조 프로그램) 4920: /usr/bin/powermetrics
+- 위젯 확장 3977: /Applications/MonitorTool.app/Contents/PlugIns/MonitorToolWidget.appex/Contents/MacOS/MonitorToolWidget
+
+시스템 전체 (powermetrics 5초 표본 120개 평균, 다른 프로그램 포함)
+- CPU 전력 54 mW
+- GPU 전력 25 mW, GPU 활성 1.9%
+- ANE 전력 0 mW
+- CPU+GPU+ANE 79 mW
+
+다른 프로세스 (1분마다 본 %CPU가 10 이상)
+- launchd: 최대 47% (8번)
+- ContextStoreAgent: 최대 10% (1번)
+- MonitorTool: 최대 13% (2번)
+- talagentd: 최대 31% (1번)
