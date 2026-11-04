@@ -63,7 +63,8 @@ final class PowerSampler: @unchecked Sendable {
         // -b 1: 줄마다 바로 내보내요. (파이프로 받으면 출력이 모였다가 늦게 나올 수 있어서요)
         // -a 0: 표본 10개마다 끼워 넣는 평균 요약을 꺼요. 표본만 받아요.
         // (두 옵션 모두 이 Mac의 powermetrics 도움말에 있어요: Diagnostics/PowerProbe/results/help.txt)
-        process.arguments = ["--samplers", "cpu_power,gpu_power,ane_power",
+        // GPU 전력은 앱이 IOReport로 직접 읽어서 여기서는 재지 않아요. (2026-11-04 자원 사용 측정 뒤 뺌)
+        process.arguments = ["--samplers", "cpu_power,ane_power",
                              "-i", String(interval), "-f", "plist", "-b", "1", "-a", "0"]
         let output = Pipe()
         process.standardOutput = output
