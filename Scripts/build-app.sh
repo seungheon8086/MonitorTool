@@ -8,7 +8,7 @@
 # 하는 일
 #  1. Release 빌드 (개인 팀 자동 서명, build/App 아래)
 #  2. 서명·구성 확인 (보조 프로그램·LaunchDaemon plist·위젯 확장이 들어 있는지)
-#  3. 실행 중인 MonitorTool 종료 → 예전 /Applications/MonitorTool.app은 휴지통으로 → 새 앱 복사
+#  3. 실행 중인 MonitorTool 종료 → 보조 프로그램이 끝나기를 기다림 → 예전 /Applications/MonitorTool.app은 휴지통으로 → 새 앱 복사
 #  4. 위젯 등록 정리(lsregister), 등록 위치 출력, 새 앱 실행
 # 기록: build/App/build-app.log
 
@@ -66,6 +66,14 @@ if pgrep -x MonitorTool > /dev/null; then
   osascript -e 'tell application id "com.seungheon.MonitorTool" to quit' >> "$LOG" 2>&1
   for _ in 1 2 3 4 5 6 7 8 9 10; do pgrep -x MonitorTool > /dev/null || break; sleep 0.5; done
   pgrep -x MonitorTool > /dev/null && { killall MonitorTool 2>/dev/null; sleep 1; }
+fi
+# 앱이 끝나면 보조 프로그램도 연결이 끊긴 뒤 5초 안에 끝나요. 그 전에 앱을 바꾸면, 돌던 보조 프로그램이
+# 예전 앱과 함께 휴지통 경로로 남아 예전 파일로 계속 돌아요. (2026-11-04 자원 사용 측정에서 겪음)
+# launchd가 BundleProgram 상대 경로로 띄워서 명령줄이 'Contents/MacOS/MonitorToolHelper'예요.
+if pgrep -f "Contents/MacOS/MonitorToolHelper" > /dev/null; then
+  log "  보조 프로그램이 끝나기를 기다려요."
+  for _ in $(seq 1 30); do pgrep -f "Contents/MacOS/MonitorToolHelper" > /dev/null || break; sleep 0.5; done
+  pgrep -f "Contents/MacOS/MonitorToolHelper" > /dev/null && log "  ⚠️ 보조 프로그램이 15초 안에 끝나지 않았어요. 그대로 바꿔요."
 fi
 if [ -e "$DEST" ]; then
   TRASHED="$HOME/.Trash/MonitorTool $(date '+%Y-%m-%d %H.%M.%S').app"
