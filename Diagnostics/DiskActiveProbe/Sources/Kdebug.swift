@@ -31,6 +31,12 @@ enum KD {
     static let cscDiskIO: UInt32 = 0x0302            // DBG_FSYSTEM(3) / DBG_DKRW(2)
     static let cscIoctl: UInt32 = 0x0306             // DBG_FSYSTEM(3) / DBG_IOCTL(6)
     static let lostEvents: UInt32 = 0x0702_0008      // TRACE_LOST_EVENTS = DBG_TRACE(7) / DBG_TRACE_INFO(2) / 2
+    static let cscSSD: UInt32 = 0x0615               // DBG_DRIVERS(6) / DBG_SSD(21), Apple SSD 드라이버 (뜻은 1단계 관찰로 정함)
+
+    // eventID (함수 비트를 뺀 debugid)
+    static let syncRequest: UInt32 = 0x0306_0000     // 동기화 요청 DKIOCSYNCHRONIZE: 인자 1 장치, 2 명령, 3 옵션 (2 = 장벽). 한 번 찍힘
+    static let trimRange: UInt32 = 0x0306_0004       // TRIM 범위: 인자 1 장치, 2 위치, 3 바이트. 한 번 찍힘
+    static let ssdFlush: UInt32 = 0x0615_4008        // 캐시 비우기: 시작(함수 1)·끝(함수 2), 같은 스레드
 
     /// 1단계에서 관찰만 하는 저장장치 쪽 종류: 드라이버 단계 이벤트가 있는지 본다
     static let observedKinds: [UInt32: String] = [

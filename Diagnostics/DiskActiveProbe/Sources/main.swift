@@ -1,5 +1,5 @@
 // DiskActiveProbe: 디스크 활성 시간(요청이 하나라도 걸려 있던 시간 비율)을 커널 추적으로 물리 디스크별로 잰다.
-// 명령: check <결과 폴더> | status | reset   (root 필요, run.sh로 실행)
+// 명령: check | load [SD 경로] | live | record <분> | status | reset   (root 필요, run.sh로 실행)
 import Foundation
 
 setvbuf(stdout, nil, _IOLBF, 0)
@@ -119,21 +119,6 @@ func installSignalHandlers() {
 }
 
 // MARK: - 1단계 check
-
-struct IoctlStat {
-    var count = 0
-    var total: UInt64 = 0
-    var longest: UInt64 = 0
-}
-
-/// 디스크 명령 분류: 'd' 22 = 동기화(캐시 비우기), 'd' 31 = TRIM (sys/disk.h)
-func ioctlKind(_ cmd: UInt64) -> String {
-    let group = (cmd >> 8) & 0xff
-    let number = cmd & 0xff
-    if group == 0x64 && number == 22 { return "동기화" }
-    if group == 0x64 && number == 31 { return "TRIM" }
-    return "기타"
-}
 
 struct Snapshot {
     var busy: UInt64 = 0
@@ -288,10 +273,10 @@ func analyze(events: [TraceEvent], marks: [PhaseMark], map: DiskMap, report: Rep
     var devStarts: [Int32: UInt64] = [:]
     var devMatched: [Int32: UInt64] = [:]
     var durations: [Int: [UInt64: [UInt64]]] = [:]
-    var ioctlPending: [UInt64: (dev: Int32, cmd: UInt64, time: UInt64)] = [:]
-    var ioctlStats: [String: IoctlStat] = [:]
     var starts = 0, dones = 0, ioctls = 0
-    var ioctlCodes: [UInt32: Int] = [:]        // spec_ioctl(코드 0) 밖의 DBG_IOCTL 코드 (1 = TRIM 범위 정보)
+    var syncOptions: [UInt64: Int] = [:]       // 동기화 요청(DKIOCSYNCHRONIZE) 옵션 → 수 (2 = 장벽)
+    var trimRanges = 0
+    var trimBytes: UInt64 = 0
     var observed: [UInt32: [UInt32: Int]] = [:] // 관찰 종류 → eventID → 수
     var snapshots: [[UInt64: Snapshot]] = []
 
@@ -345,20 +330,13 @@ func analyze(events: [TraceEvent], marks: [PhaseMark], map: DiskMap, report: Rep
                 }
             }
         } else if e.csc == KD.cscIoctl {
+            // 시작·끝이 아니라 한 번 찍히는 이벤트 (1단계 관찰)
             ioctls += 1
-            if e.code != 0 {
-                ioctlCodes[e.code, default: 0] += 1
-            } else if e.function == KD.funcStart {
-                ioctlPending[e.thread] = (Int32(truncatingIfNeeded: e.arg1), e.arg2, e.time)
-            } else if e.function == KD.funcEnd, let p = ioctlPending.removeValue(forKey: e.thread), p.cmd == e.arg2 {
-                let disk = map.devices[p.dev]?.disk ?? 0
-                let key = "\(diskLabel(disk, map)) · \(ioctlKind(e.arg2))"
-                var s = ioctlStats[key] ?? IoctlStat()
-                let d = e.time > p.time ? e.time - p.time : 0
-                s.count += 1
-                s.total += d
-                s.longest = max(s.longest, d)
-                ioctlStats[key] = s
+            if e.eventID == KD.syncRequest {
+                syncOptions[e.arg3, default: 0] += 1
+            } else if e.eventID == KD.trimRange {
+                trimRanges += 1
+                trimBytes += e.arg3
             }
         } else if e.eventID == KD.lostEvents {
             meter.lose(at: e.time)
@@ -380,16 +358,12 @@ func analyze(events: [TraceEvent], marks: [PhaseMark], map: DiskMap, report: Rep
         + " · 시작 못 본 끝 \(comma(meter.unmatchedDone)) · 끝 못 본 시작 \(comma(meter.pendingCount))"
         + " · 같은 열쇠 다시 시작 \(comma(meter.replacedStart)) · 잃음 \(comma(meter.lossCount))번")
     report.line("버린 요청 \(comma(meter.dropped)) · 시각이 거꾸로 된 이벤트 \(comma(outOfOrder))")
-    let codeText = ioctlCodes.keys.sorted().map { "코드 \($0) \(comma(ioctlCodes[$0]!))" }.joined(separator: ", ")
-    report.line("디스크 명령 이벤트 \(comma(ioctls))" + (codeText.isEmpty ? "" : " (그중 \(codeText), 코드 1 = TRIM 범위 정보)")
-        + " · 그 밖의 이벤트 \(comma(otherEvents))")
+    let syncText = syncOptions.keys.sorted().map { "옵션 \($0) \(comma(syncOptions[$0]!))" }.joined(separator: " · ")
+    report.line("디스크 명령 이벤트 \(comma(ioctls)): 동기화 요청 \(comma(syncOptions.values.reduce(0, +)))개"
+        + (syncText.isEmpty ? "" : " (\(syncText))") + " · TRIM 범위 \(comma(trimRanges))개 \(mb(trimBytes)) MB · 그 밖의 이벤트 \(comma(otherEvents))")
     let kindText = kindCounts.sorted { $0.value > $1.value }.prefix(12)
         .map { String(format: "0x%04x", $0.key) + " \(comma($0.value))" }.joined(separator: " · ")
     report.line("종류별 (class<<8|subclass): \(kindText)")
-    for key in ioctlStats.keys.sorted() {
-        let s = ioctlStats[key]!
-        report.line("  \(key): \(s.count)번 · 평균 \(ms(s.total / UInt64(max(s.count, 1)))) ms · 최장 \(ms(s.longest)) ms")
-    }
 
     // 관찰 종류: 드라이버 단계 저장장치 이벤트
     report.line("")
@@ -412,9 +386,10 @@ func analyze(events: [TraceEvent], marks: [PhaseMark], map: DiskMap, report: Rep
     var unknown = 0
     for (dev, n) in devStarts.sorted(by: { $0.value > $1.value }) {
         let entry = map.devices[dev]
-        let target = entry?.disk.map { diskLabel($0, map) } ?? "물리 디스크 못 찾음"
-        if entry?.disk == nil { unknown += 1 }
-        report.line("  \(entry?.bsd ?? "알 수 없음") (\(devText(dev))) → \(target) · 시작 \(comma(n)) · 짝 \(comma(devMatched[dev] ?? 0))")
+        let nonDisk = DiskMap.nonDiskName(dev)
+        let target = entry?.disk.map { diskLabel($0, map) } ?? (nonDisk != nil ? "디스크 아님" : "물리 디스크 못 찾음")
+        if entry?.disk == nil && nonDisk == nil { unknown += 1 }
+        report.line("  \(entry?.bsd ?? nonDisk ?? "알 수 없음") (\(devText(dev))) → \(target) · 시작 \(comma(n)) · 짝 \(comma(devMatched[dev] ?? 0))")
         devLines += "\((dev >> 24) & 0xff)\t\(dev & 0xffffff)\t\(entry?.bsd ?? "")\t\(entry?.disk.flatMap { map.disks[$0]?.bsd } ?? "")\t\(n)\t\(devMatched[dev] ?? 0)\n"
     }
     writeText(directory + "/devices.tsv", devLines)
@@ -536,11 +511,17 @@ let args = CommandLine.arguments
 switch args.count > 1 ? args[1] : "" {
 case "check" where args.count > 2:
     exit(runCheck(directory: args[2]))
+case "load" where args.count > 2:
+    exit(runSession(mode: .load, directory: args[2], minutes: nil, sdPath: args.count > 3 ? args[3] : nil))
+case "live" where args.count > 2:
+    exit(runSession(mode: .live, directory: args[2], minutes: nil, sdPath: nil))
+case "record" where args.count > 3:
+    exit(runSession(mode: .record, directory: args[2], minutes: max(Int(args[3]) ?? 10, 1), sdPath: nil))
 case "status":
     exit(runStatus())
 case "reset":
     exit(runReset())
 default:
-    print("사용법: diskactiveprobe check <결과 폴더> | status | reset   (sudo ./run.sh로 실행)")
+    print("사용법: diskactiveprobe check <결과 폴더> | load <결과 폴더> [SD 경로] | live <결과 폴더> | record <결과 폴더> <분> | status | reset   (sudo ./run.sh로 실행)")
     exit(2)
 }

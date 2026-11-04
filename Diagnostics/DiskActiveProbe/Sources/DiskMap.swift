@@ -120,6 +120,28 @@ final class DiskMap {
         for d in disks.values { IOObjectRelease(d.service) }
     }
 
+    /// 내장 SSD (Apple Fabric으로 붙은 디스크). SSD 드라이버 이벤트는 이 디스크로 센다
+    var internalSSD: UInt64? {
+        disks.values.first { $0.interconnect == "Apple Fabric" }?.id
+    }
+
+    /// 물리 디스크 (디스크 이미지 빼고), BSD 이름 순 (disk2 < disk10)
+    var physical: [PhysicalDisk] {
+        disks.values.filter { !$0.isVirtual }.sorted { $0.bsd.localizedStandardCompare($1.bsd) == .orderedAscending }
+    }
+
+    /// 디스크가 아닌데 디스크 I/O 이벤트를 내는 장치: mm 장치(주번호 3)가 cdevsw에서 D_DISK로 표시돼 있다 (dev/arm64/conf.c)
+    static func nonDiskName(_ dev: Int32) -> String? {
+        guard (dev >> 24) & 0xff == 3 else { return nil }
+        switch dev & 0xffffff {
+        case 0: return "/dev/mem"
+        case 1: return "/dev/kmem"
+        case 2: return "/dev/null"
+        case 3: return "/dev/zero"
+        default: return "mm 장치 \(dev & 0xffffff)"
+        }
+    }
+
     func stats(_ id: UInt64) -> DriverStats? {
         guard let d = disks[id],
               let dict = property(d.service, "Statistics") as? [String: Any] else { return nil }
