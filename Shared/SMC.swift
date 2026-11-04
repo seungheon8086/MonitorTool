@@ -7,21 +7,29 @@ import IOKit
 // (Diagnostics/FanProbe: 권한 없이 쓰면 0xe00002c1이라 쓰기는 보조 프로그램만 해요)
 // 구조체 배치는 Stats(MIT)의 방식을 따랐고, Diagnostics/SensorProbe·FanProbe로 이 Mac에서 확인했어요.
 
-// periphery:ignore - C 구조체 배치를 맞추려는 칸이라 Swift에서 읽지 않는 것도 있어요.
 nonisolated struct SMCVersion {
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var major: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var minor: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var build: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var reserved: UInt8 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var release: UInt16 = 0
 }
 
-// periphery:ignore - C 구조체 배치를 맞추려는 칸이라 Swift에서 읽지 않는 것도 있어요.
 nonisolated struct SMCPLimitData {
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var version: UInt16 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var length: UInt16 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var cpuPLimit: UInt32 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var gpuPLimit: UInt32 = 0
+    // periphery:ignore - C 구조체 배치를 맞추려는 칸이에요.
     var memPLimit: UInt32 = 0
 }
 
