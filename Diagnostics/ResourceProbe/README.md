@@ -29,6 +29,8 @@ bash ~/Desktop/MonitorTool/MonitorTool/Diagnostics/ResourceProbe/measure.sh <이
 
 터미널에서 sudo 없이 실행해요(관리자 암호를 처음에 한 번 물어요). 지금 코드를 `Scripts/build-app.sh`로 Release 빌드·설치하고 새 앱 색인이 끝나도록 3분 기다린 뒤(설치 없이 재려면 `SKIP_BUILD=1`), 앱을 껐다 켜서 보조 프로그램도 새로 띄워요. 그다음 **패널 열림·고정** 10분과 **패널 닫힘**(앱을 다시 켠 뒤) 10분을 차례로 잽니다. 측정하는 동안 `caffeinate`로 화면을 켜 두니 Mac을 만지지 마세요. 결과는 `results/<날짜-시각>-<이름>/summary.txt`이고, 1분마다 CPU를 많이 쓴 다른 프로세스도 함께 남겨요(잡음 확인).
 
+`SCREEN_OFF_SECONDS=300`처럼 주면 마지막에 화면을 끄고(`pmset displaysleepnow`, Mac은 깨어 있음) 그만큼 더 재요. 화면이 꺼진 동안 쉬는지 확인할 때 써요. `MEASURE_SECONDS=300`이면 상황마다 5분이에요.
+
 측정끼리 비교할 때는 전원(배터리·어댑터), 위젯 배치, 켜 둔 프로그램을 같게 맞춰요.
 
 측정 전에 할 일: 게임·LM Studio·다른 모니터 앱·Xcode처럼 무거운 프로그램 닫기, 전원 어댑터 연결, 위젯은 평소대로.

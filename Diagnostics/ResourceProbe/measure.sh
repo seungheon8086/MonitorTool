@@ -12,12 +12,14 @@
 #     그다음 앱을 껐다 켜서 보조 프로그램도 새로 띄움 (재설치 뒤에는 예전 앱의 보조 프로그램이 휴지통 경로로 남아 있을 수 있어서)
 #  3. 패널 열림·고정: 패널을 열고 고정한 뒤 Enter → 1분 기다리고 10분 측정
 #  4. 패널 닫힘: 앱을 종료했다 다시 켜고(패널 닫힘) 2분 기다린 뒤 10분 측정
+#  (선택) 화면 꺼짐: SCREEN_OFF_SECONDS를 주면 화면을 끄고(pmset displaysleepnow) 30초 뒤 그만큼 측정
 #  5. 결과: results/<날짜-시각>-<이름>/summary.txt
 #     상황별 폴더(open·closed)에 summary.txt, totals.csv, samples.tsv.gz(2초마다 누적값), powermetrics.txt.gz,
 #     측정 앞뒤 ps(before.txt·after.txt: 누적 CPU 시간 대조), 1분마다 CPU를 많이 쓴 다른 프로세스(noise.txt)
 # 3·4단계 동안 caffeinate로 화면이 꺼지거나 잠들지 않게 해요. 그동안 Mac을 만지지 마세요.
 # 전원은 측정끼리 같게 (2026-11-04 기준 측정은 배터리, 100%)
-# 시간 바꾸기: MEASURE_SECONDS(기본 600), OPEN_SETTLE(60), CLOSED_SETTLE(120), POST_INSTALL_SETTLE(180)
+# 시간 바꾸기: MEASURE_SECONDS(기본 600), OPEN_SETTLE(60), CLOSED_SETTLE(120), POST_INSTALL_SETTLE(180),
+#             SCREEN_OFF_SECONDS(기본 0 = 화면 꺼짐 측정 안 함)
 
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -27,6 +29,7 @@ MEASURE_SECONDS="${MEASURE_SECONDS:-600}"
 OPEN_SETTLE="${OPEN_SETTLE:-60}"
 CLOSED_SETTLE="${CLOSED_SETTLE:-120}"
 POST_INSTALL_SETTLE="${POST_INSTALL_SETTLE:-180}"
+SCREEN_OFF_SECONDS="${SCREEN_OFF_SECONDS:-0}"
 APP="/Applications/MonitorTool.app"
 APP_ID="com.seungheon.MonitorTool"
 # launchd가 BundleProgram 상대 경로로 띄워서 명령줄이 'Contents/MacOS/MonitorToolHelper'예요.
@@ -109,16 +112,17 @@ power_summary() {
 
 measure() {
   local label="$1"
+  local seconds="${2:-$MEASURE_SECONDS}"
   local dir="$OUT/$1"
   local count gpu probe_status noise
   mkdir -p "$dir"
-  count=$(( MEASURE_SECONDS / 5 ))
+  count=$(( seconds / 5 ))
   snapshot "$dir/before.txt"
   ( while true; do { echo "# $(date '+%H:%M:%S')"; ps -Ao pid,pcpu,comm -r | sed -n '2,7p'; } >> "$dir/noise.txt"; sleep 60; done ) &
   noise=$!
   sudo -n powermetrics --samplers cpu_power,gpu_power -i 5000 -n "$count" > "$dir/powermetrics.txt" 2>&1 &
   gpu=$!
-  sudo -n "$PROBE" "$MEASURE_SECONDS" "$dir" > "$dir/probe.txt" 2>&1
+  sudo -n "$PROBE" "$seconds" "$dir" > "$dir/probe.txt" 2>&1
   probe_status=$?
   wait "$gpu"
   kill "$noise" 2> /dev/null
@@ -144,7 +148,7 @@ measure() {
   echo "커밋: $(git -C "$ROOT" log --oneline -1)"
   echo "커밋 안 한 변경(추적 파일): $(git -C "$ROOT" status --porcelain --untracked-files=no | wc -l | tr -d ' ')개"
   git -C "$ROOT" status --porcelain --untracked-files=no | sed 's/^/  /'
-  echo "측정: 상황마다 ${MEASURE_SECONDS}초 (열림은 ${OPEN_SETTLE}초, 닫힘은 ${CLOSED_SETTLE}초 기다린 뒤)"
+  echo "측정: 상황마다 ${MEASURE_SECONDS}초 (열림은 ${OPEN_SETTLE}초, 닫힘은 ${CLOSED_SETTLE}초 기다린 뒤), 화면 꺼짐 ${SCREEN_OFF_SECONDS}초"
 } > "$OUT/env.txt"
 
 echo "관리자 암호를 물으면 입력해 주세요. (측정 도구와 powermetrics를 관리자 권한으로 실행해요)"
@@ -212,6 +216,18 @@ open "$APP"
 sleep "$CLOSED_SETTLE"
 measure closed
 
+if [ "$SCREEN_OFF_SECONDS" -gt 0 ]; then
+  # 화면만 끄고 Mac은 깨어 있게 해요. (caffeinate -d를 풀고 -i로 잠들지만 않게)
+  status "화면 꺼짐: 화면을 끄고 30초 기다린 뒤 ${SCREEN_OFF_SECONDS}초 측정"
+  [ -n "$CAFFEINATE" ] && kill "$CAFFEINATE" 2> /dev/null
+  caffeinate -ims &
+  CAFFEINATE=$!
+  pmset displaysleepnow
+  sleep 30
+  measure screen-off "$SCREEN_OFF_SECONDS"
+  caffeinate -u -t 2 > /dev/null 2>&1
+fi
+
 status "5/5 정리"
 {
   cat "$OUT/env.txt"
@@ -221,6 +237,11 @@ status "5/5 정리"
   echo ""
   echo "## 패널 닫힘"
   cat "$OUT/closed/summary.txt"
+  if [ -f "$OUT/screen-off/summary.txt" ]; then
+    echo ""
+    echo "## 화면 꺼짐 (패널 닫힘)"
+    cat "$OUT/screen-off/summary.txt"
+  fi
 } > "$OUT/summary.txt"
 status "끝"
 chime
