@@ -1,0 +1,7 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-04 15:12:49.204 Df MapleStory Worlds[7399:52d78] (Backtrace-Unity-Mac-bundle) Backtrace: Backtrace native integration has been disabled.
+2026-11-04 15:13:40.746 Df kernel[0:627ef] ktrace: changing state from 2 to 1, owned by diskactiveprobe[9241]
+2026-11-04 15:13:55.744 Df kernel[0:627ef] ktrace: promoting background tool
+2026-11-04 15:13:55.746 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]
+2026-11-04 15:13:55.849 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]
+2026-11-04 15:13:55.849 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]

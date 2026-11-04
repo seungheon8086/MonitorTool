@@ -1,0 +1,72 @@
+== DiskActiveProbe 1단계 (check) · 11/4/26, 3:13:40 PM
+Version 27.2 (Build 26B123) · MacBookPro18,1
+추적 상태 (시작 전): 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+tailspin (시작 전): tailspin has been disabled (default behavior)
+powermetrics (시작 전): 실행 중 (pid 9229)
+물리 디스크
+  disk0 · APPLE SSD AP1024R · Apple Fabric · Internal
+  disk10 · Built In SDXC Reader · Secure Digital · Internal
+  disk4 · Disk Image · Virtual Interface · File · 가상
+  disk6 · Disk Image · Virtual Interface · ? · 가상
+  disk8 · Disk Image · Virtual Interface · File · 가상
+
+▶ 추적 켜기: 성공 · 버퍼 368,640개 (22.5 MiB) · 형식 필터 켜짐 · 절대 시각
+▶ 부하 (약 16초)
+  쉼 5초
+  쓰기 512 MiB
+  순차 읽기 1024 MiB
+  무작위 4 KiB 동시 1 · 35023번
+  무작위 4 KiB 동시 8 · 181917번
+  쉼 3초
+▶ 추적 해제: 성공
+  직후: 소유 없음 · 버퍼 0개 · 기록 꺼짐
+  2초 뒤: 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+powermetrics (끝난 뒤): 실행 중 (pid 9229)
+tailspin (끝난 뒤): tailspin has been disabled (default behavior)
+
+== 이벤트
+읽기 141번 · 한 번에 최대 52,735개 · 읽기 CPU 144.21 ms
+디스크 I/O 시작 221,583 · 끝 221,583 · 짝 맞음 221,583 (100.0%) · 시작 못 본 끝 0 · 끝 못 본 시작 0 · 같은 열쇠 다시 시작 0 · 잃음 0번
+버린 요청 0 · 시각이 거꾸로 된 이벤트 0
+디스크 명령 이벤트 34 (그중 코드 1 10, 코드 1 = TRIM 범위 정보) · 그 밖의 이벤트 920
+종류별 (class<<8|subclass): 0x0615 664,817 · 0x0302 443,166 · 0x0700 672 · 0x0701 248 · 0x0306 34
+
+== 저장장치 쪽 다른 이벤트 (관찰만)
+  드라이버 SSD (0x0615): 664,817개 · 0x0615002c 221,598 · 0x06150028 221,598 · 0x06154004 221,573 · 0x06154008 38 · 0x0615400c 10
+
+== 장치 → 물리 디스크 (시작 이벤트가 있던 장치)
+  disk3s1 (1,15) → disk0 APPLE SSD AP1024R · 시작 220,721 · 짝 220,721
+  disk3 (1,12) → disk0 APPLE SSD AP1024R · 시작 750 · 짝 750
+  disk3s4 (1,17) → disk0 APPLE SSD AP1024R · 시작 58 · 짝 58
+  disk3s3s1 (1,19) → disk0 APPLE SSD AP1024R · 시작 44 · 짝 44
+  알 수 없음 (3,2) → 물리 디스크 못 찾음 · 시작 10 · 짝 10
+
+== 단계별 · disk0 APPLE SSD AP1024R
+  단계 | 길이 | 활성(추적) | 동시(드라이버) | 작업 추적·드라이버 | MB 추적·드라이버 | 응답 ms 추적 중앙·90%·드라이버 평균
+  쉼 | 5.04초 | 7.6% | 0.102 | 3,139·3,139 | 181.0·181.0 | 0.17·0.32·0.16
+  쓰기 1MiB | 0.27초 | 85.3% | 0.848 | 648·648 | 537.6·537.6 | 0.17·0.20·0.35
+  순차 읽기 1MiB | 0.36초 | 96.3% | 0.959 | 1,024·1,024 | 1073.7·1073.7 | 0.34·0.36·0.34
+  무작위 4KiB 동시 1 | 3.00초 | 91.7% | 0.907 | 34,973·34,973 | 145.8·145.8 | 0.08·0.09·0.08
+  무작위 4KiB 동시 8 | 2.00초 | 100.0% | 7.079 | 181,671·181,671 | 748.2·748.2 | 0.08·0.09·0.08
+
+== 단계별 · 알 수 없는 장치
+  단계 | 길이 | 활성(추적) | 동시(드라이버) | 작업 추적·드라이버 | MB 추적·드라이버 | 응답 ms 추적 중앙·90%·드라이버 평균
+  쉼 | 5.04초 | 0.0% | 0.000 | 10·0 | 0.0·0.0 | 0.00·0.00·—
+
+== 요약
+추적 자리: 얻음 · 해제 2초 뒤 소유 tailspind(1183) · 버퍼 0개 · 기록 꺼짐
+짝 맞음: 221,583 / 시작 221,583 (100.0%) · 잃음 0번
+장치 대응: 물리 디스크를 못 찾은 장치 1개
+바이트 대조 (disk0, 모든 단계): 추적 2686.3 MB · 드라이버 2686.3 MB (100.0%)
+무작위 4KiB 동시 1 (disk0): 활성 91.7% · 동시 0.91
+무작위 4KiB 동시 8 (disk0): 활성 100.0% · 동시 7.08
+powermetrics: 실행 중 (pid 9229) → 실행 중 (pid 9229)
+읽기 CPU: 144.21 ms (이벤트 1,108,937개)
+
+== 커널 기록 (ktrace 소유권 변화, 최근 3분 6줄)
+  2026-11-04 15:12:49.204 Df MapleStory Worlds[7399:52d78] (Backtrace-Unity-Mac-bundle) Backtrace: Backtrace native integration has been disabled.
+  2026-11-04 15:13:40.746 Df kernel[0:627ef] ktrace: changing state from 2 to 1, owned by diskactiveprobe[9241]
+  2026-11-04 15:13:55.744 Df kernel[0:627ef] ktrace: promoting background tool
+  2026-11-04 15:13:55.746 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]
+  2026-11-04 15:13:55.849 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]
+  2026-11-04 15:13:55.849 Df kernel[0:627f9] ktrace: changing state from 0 to 2, owned by tailspind[1183]
