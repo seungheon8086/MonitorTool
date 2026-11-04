@@ -2,8 +2,10 @@ import Darwin
 import Foundation
 import IOKit
 
-// AppleSMC에서 온도·팬 값을 읽기만 해요. 읽기(5)와 키 정보(9) 명령만 쓰고, 값을 바꾸는 명령은 보내지 않아요.
-// 구조체 배치는 Stats(MIT)의 방식을 따랐고, Diagnostics/SensorProbe로 이 Mac에서 확인했어요.
+// AppleSMC 연결이에요. 앱(온도·팬 읽기)과 보조 프로그램(팬 쓰기)이 함께 써요.
+// 읽기(5)·키 정보(9) 명령은 관리자 권한 없이 되고, 쓰기(6) 명령은 관리자 권한이 있어야 받아들여져요.
+// (Diagnostics/FanProbe: 권한 없이 쓰면 0xe00002c1이라 쓰기는 보조 프로그램만 해요)
+// 구조체 배치는 Stats(MIT)의 방식을 따랐고, Diagnostics/SensorProbe·FanProbe로 이 Mac에서 확인했어요.
 
 nonisolated struct SMCVersion {
     var major: UInt8 = 0
@@ -47,6 +49,25 @@ nonisolated struct SMCKeyData {
     var data32: UInt32 = 0
     var bytes: SMCBytes = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+
+/// SMC 요청이 실패한 이유 (보조 프로그램이 팬 제어 문구에 써요)
+nonisolated enum SMCError: Error {
+    case notOpen
+    case missingKey(String)
+    case unsupportedType(String)
+    case call(kern_return_t)
+    case smc(UInt8)
+
+    var text: String {
+        switch self {
+        case .notOpen: "SMC 연결 실패"
+        case .missingKey(let key): "SMC 키 없음 (\(key))"
+        case .unsupportedType(let key): "SMC 형식 불일치 (\(key))"
+        case .call(let code): "SMC 호출 오류 0x\(String(UInt32(bitPattern: code), radix: 16))"
+        case .smc(let code): "SMC 오류 0x\(String(code, radix: 16))"
+        }
+    }
 }
 
 /// SMC 키 이름과 값을 바꾸는 규칙이에요.
@@ -95,10 +116,29 @@ nonisolated enum SMCCodec {
             return nil
         }
     }
+
+    /// 숫자를 형식에 맞는 바이트로 바꿔요. 팬 키가 쓰는 flt·ui8만 다뤄요.
+    static func encode(_ value: Double, type: String, size: Int) -> [UInt8]? {
+        switch type {
+        case "flt ":
+            guard size == 4, value.isFinite else {
+                return nil
+            }
+            let bits = Float(value).bitPattern
+            return [UInt8(bits & 0xFF), UInt8((bits >> 8) & 0xFF), UInt8((bits >> 16) & 0xFF), UInt8((bits >> 24) & 0xFF)]
+        case "ui8 ":
+            guard size == 1, value >= 0, value <= 255 else {
+                return nil
+            }
+            return [UInt8(value)]
+        default:
+            return nil
+        }
+    }
 }
 
-/// AppleSMC 연결이에요. 앱이 켜져 있는 동안 하나를 계속 써요.
-final class SMC {
+/// AppleSMC 연결이에요. 한 곳에서만 써요. (앱은 메인 스레드, 보조 프로그램은 FanController의 queue)
+nonisolated final class SMC {
     private var connection: io_connect_t = 0
     /// 키마다 크기와 형식은 바뀌지 않아서 한 번 물어본 것을 기억해요. (없는 키는 nil로 기억)
     private var keyInfos: [String: SMCKeyInfo?] = [:]
@@ -129,12 +169,33 @@ final class SMC {
         request.key = SMCCodec.fourCC(key)
         request.keyInfo.dataSize = info.dataSize
         request.data8 = 5 // 읽기 (kSMCReadKey)
-        guard let output = call(request) else {
+        guard case .success(let output) = call(request) else {
             return nil
         }
         let size = Int(min(info.dataSize, 32))
         let bytes = withUnsafeBytes(of: output.bytes) { Array($0.prefix(size)) }
         return SMCCodec.number(type: SMCCodec.fourCCString(info.dataType), bytes: bytes)
+    }
+
+    /// 키의 형식에 맞춰 숫자를 써요. 관리자 권한이 있어야 해요. (보조 프로그램의 팬 제어만 써요)
+    func write(_ key: String, _ value: Double) -> Result<Void, SMCError> {
+        guard let info = info(for: key) else {
+            return .failure(.missingKey(key))
+        }
+        guard let encoded = SMCCodec.encode(value, type: SMCCodec.fourCCString(info.dataType),
+                                            size: Int(info.dataSize)) else {
+            return .failure(.unsupportedType(key))
+        }
+        var request = SMCKeyData()
+        request.key = SMCCodec.fourCC(key)
+        request.keyInfo.dataSize = info.dataSize
+        request.data8 = 6 // 쓰기 (kSMCWriteKey)
+        withUnsafeMutableBytes(of: &request.bytes) { raw in
+            for (index, byte) in encoded.enumerated() where index < raw.count {
+                raw[index] = byte
+            }
+        }
+        return call(request).map { _ in () }
     }
 
     private func info(for key: String) -> SMCKeyInfo? {
@@ -144,21 +205,32 @@ final class SMC {
         var request = SMCKeyData()
         request.key = SMCCodec.fourCC(key)
         request.data8 = 9 // 키 정보 (kSMCGetKeyInfo)
-        let info = call(request)?.keyInfo
-        keyInfos[key] = .some(info)
-        return info
+        let found: SMCKeyInfo?
+        if case .success(let output) = call(request) {
+            found = output.keyInfo
+        } else {
+            found = nil
+        }
+        keyInfos[key] = .some(found)
+        return found
     }
 
-    /// SMC에 요청을 보내요. 연결 오류이거나 SMC가 오류 코드(예: 132 = 키 없음)를 돌려주면 nil이에요.
-    private func call(_ request: SMCKeyData) -> SMCKeyData? {
+    /// SMC에 요청을 보내요. 연결 오류이거나 SMC가 오류 코드(예: 132 = 키 없음)를 돌려주면 실패예요.
+    private func call(_ request: SMCKeyData) -> Result<SMCKeyData, SMCError> {
+        guard connection != 0 else {
+            return .failure(.notOpen)
+        }
         var input = request
         var output = SMCKeyData()
         var outputSize = MemoryLayout<SMCKeyData>.stride
         let result = IOConnectCallStructMethod(connection, 2, &input, MemoryLayout<SMCKeyData>.stride,
                                                &output, &outputSize)
-        guard result == KERN_SUCCESS, output.result == 0 else {
-            return nil
+        guard result == KERN_SUCCESS else {
+            return .failure(.call(result))
         }
-        return output
+        guard output.result == 0 else {
+            return .failure(.smc(output.result))
+        }
+        return .success(output)
     }
 }

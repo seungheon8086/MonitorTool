@@ -11,7 +11,7 @@ import notify
 /// 상태는 모두 queue 안에서만 읽고 바꿔요.
 final class FanController: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.seungheon.MonitorTool.helper.fan")
-    private let smc: HelperSMC?
+    private let smc: SMC?
     private let fans: [Fan]
 
     private var active: FanControlRequest?
@@ -49,7 +49,7 @@ final class FanController: @unchecked Sendable {
     private static let messageSystemHasPoweredOn: UInt32 = 0xE000_0300
 
     init() {
-        let smc = HelperSMC()
+        let smc = SMC()
         var found: [Fan] = []
         if let smc, let count = smc.number("FNum") {
             for id in 0..<max(Int(count), 0) {
@@ -173,7 +173,7 @@ final class FanController: @unchecked Sendable {
     /// 팬마다 수동(1) → 목표 순서로 써요. 실패하면 이유
     private func writeTargets(_ targets: [FanTarget]) -> String? {
         guard let smc else {
-            return HelperSMCError.notOpen.text
+            return SMCError.notOpen.text
         }
         for (fan, target) in zip(fans, targets) {
             if case .failure(let error) = smc.write(fan.modeKey, 1) {
