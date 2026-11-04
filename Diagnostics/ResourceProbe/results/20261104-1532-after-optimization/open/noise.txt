@@ -1,0 +1,42 @@
+# 15:34:54
+  381  24.2 /usr/libexec/opendirectoryd
+  652   4.4 /usr/libexec/rapportd
+ 9542   2.4 /usr/bin/powermetrics
+  412   2.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  609   2.0 /System/Library/CoreServices/WindowManager.app/Contents/MacOS/WindowManager
+ 9449   1.6 bash
+# 15:35:54
+ 9513  12.0 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+  412   3.7 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  564   1.6 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+ 1583   1.2 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)
+ 1724   0.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 1563   0.7 /Applications/Claude.app/Contents/MacOS/Claude
+# 15:36:54
+  415  18.6 /usr/sbin/cfprefsd
+  405  12.2 /usr/sbin/bluetoothd
+ 9513   6.8 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+  412   5.7 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  595   3.4 /usr/libexec/secd
+  617   2.1 /System/Library/PrivateFrameworks/BiomeStreams.framework/Support/BiomeAgent
+# 15:37:54
+  412  35.1 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 1569  35.0 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper
+ 1583  13.3 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)
+ 9513   8.5 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+  415   5.8 /usr/sbin/cfprefsd
+  471   4.6 /System/Library/PrivateFrameworks/CoreAnalytics.framework/Support/analyticsd
+# 15:38:54
+ 9513   4.0 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+ 9542   3.6 /usr/bin/powermetrics
+  412   2.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  564   2.0 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  405   1.6 /usr/sbin/bluetoothd
+ 1583   1.2 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)
+# 15:39:54
+ 9513   2.5 /Applications/MonitorTool.app/Contents/MacOS/MonitorTool
+  564   1.9 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  412   1.1 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 9565   1.0 bash
+ 1724   0.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 1563   0.7 /Applications/Claude.app/Contents/MacOS/Claude

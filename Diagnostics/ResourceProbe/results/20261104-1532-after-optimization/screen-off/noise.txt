@@ -1,0 +1,42 @@
+# 15:47:31
+ 9449   2.2 bash
+ 1724   1.1 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 1583   0.7 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)
+  381   0.6 /usr/libexec/opendirectoryd
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  942   0.5 /Library/Application Support/Adobe/Adobe Desktop Common/ADS/Adobe Desktop Service.app/Contents/MacOS/Adobe Desktop Service
+# 15:48:31
+  564   0.7 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  620   0.7 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+ 1724   0.6 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  405   0.5 /usr/sbin/bluetoothd
+ 1563   0.3 /Applications/Claude.app/Contents/MacOS/Claude
+  436   0.3 /usr/libexec/clocksyncd
+# 15:49:32
+ 1724   1.1 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  621   0.3 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+  436   0.3 /usr/libexec/clocksyncd
+    1   0.2 /sbin/launchd
+  880   0.1 /Applications/Utilities/Adobe Creative Cloud Experience/CCXProcess/CCXProcess.app/Contents/MacOS/Creative Cloud Content Manager.node
+# 15:50:32
+ 9862   1.7 bash
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+ 1724   0.4 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  339   0.4 /usr/libexec/logd
+    1   0.3 /sbin/launchd
+  621   0.3 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+# 15:51:32
+ 1724   0.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+  621   0.3 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+  436   0.3 /usr/libexec/clocksyncd
+ 1563   0.3 /Applications/Claude.app/Contents/MacOS/Claude
+  417   0.2 /System/Library/CoreServices/loginwindow.app/Contents/MacOS/loginwindow
+# 15:52:32
+ 8785   0.7 /System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal
+  564   0.7 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+  880   0.7 /Applications/Utilities/Adobe Creative Cloud Experience/CCXProcess/CCXProcess.app/Contents/MacOS/Creative Cloud Content Manager.node
+  620   0.6 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
+ 1724   0.5 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  436   0.3 /usr/libexec/clocksyncd
