@@ -15,6 +15,10 @@ final class HelperController {
     private(set) var actionMessage: String?
     /// 가장 최근에 받은 전력 표본
     private(set) var latestSample: PowerSample?
+    /// 가장 최근에 받은 디스크 활성 누적값 (docs/DISK_ACTIVE_TIME.md). 화면이 직접 보지 않아서 관찰하지 않아요.
+    @ObservationIgnored private(set) var latestDiskActivity: DiskActivitySample?
+    /// 디스크 활성 요청이 실패한 이유. 전력 쪽 상태(연결 실패)와 따로 둬요.
+    @ObservationIgnored private(set) var diskActivityProblem: String?
     /// 지금 요청하는 측정 간격 (밀리초). 패널이 열려 있으면 1초, 닫혀 있으면 10초예요.
     private(set) var intervalMilliseconds = HelperConstants.panelClosedInterval
     /// 끄는 중이에요. (단추를 잠깐 막아요)
@@ -27,6 +31,8 @@ final class HelperController {
     @ObservationIgnored private var connection: NSXPCConnection?
     /// 답을 기다리는 요청 (번호와 보낸 시각)
     @ObservationIgnored private var pending: (id: UUID, sentAt: Date)?
+    /// 답을 기다리는 디스크 활성 요청 (전력 요청과 따로)
+    @ObservationIgnored private var diskPending: (id: UUID, sentAt: Date)?
     @ObservationIgnored private var lastStatusCheck = Date.distantPast
     @ObservationIgnored private var activationObserver: (any NSObjectProtocol)?
     /// 미리보기에서는 macOS에 묻지 않아요.
@@ -263,6 +269,62 @@ final class HelperController {
         refreshStatusIfDue()
     }
 
+    // MARK: - 디스크 활성 시간 (docs/DISK_ACTIVE_TIME.md 4.1)
+
+    /// 보조 프로그램에 가장 최근 디스크 활성 누적값을 달라고 해요. 보조 프로그램은 앱이 묻는 동안만 커널 추적을 쥐어요.
+    /// 전력 요청과 같은 연결을 쓰지만 따로 기다려서, 실패하거나 늦어도 연결을 끊거나 '연결 실패'로 바꾸지 않아요.
+    /// (다시 빌드한 직후에는 새 앱의 이 요청을 옛 보조 프로그램이 몰라서 답이 오지 않아요)
+    func requestDiskActivity(intervalMilliseconds interval: Int) {
+        guard !isPreview, !isBusy, !isMissingFromApp, status == .enabled || status == .failed else { return }
+        if let diskPending {
+            guard Date().timeIntervalSince(diskPending.sentAt) > HelperController.replyTimeout else { return }
+            self.diskPending = nil
+            diskActivityProblem = "보조 프로그램이 디스크 활성 요청에 답하지 않음"
+        }
+        let id = UUID()
+        diskPending = (id, Date())
+        let connection = self.connection ?? makeConnection()
+        self.connection = connection
+        let proxy = connection.remoteObjectProxyWithErrorHandler { @Sendable [weak self] error in
+            guard let self else { return }
+            Task { @MainActor in
+                self.diskActivityFailed(id: id, error: error)
+            }
+        }
+        guard let helper = proxy as? HelperProtocol else {
+            diskPending = nil
+            return
+        }
+        helper.latestDiskActivity(intervalMilliseconds: interval) { @Sendable [weak self] data, helperProblem in
+            guard let self else { return }
+            Task { @MainActor in
+                self.receivedDiskActivity(id: id, data: data, helperProblem: helperProblem)
+            }
+        }
+    }
+
+    private func receivedDiskActivity(id: UUID, data: Data?, helperProblem: String?) {
+        guard diskPending?.id == id else { return }
+        diskPending = nil
+        // 둘 다 nil이면 보조 프로그램이 새 버전으로 다시 뜨는 중이에요. 앞 값은 그대로 둬요.
+        guard let data else {
+            diskActivityProblem = helperProblem
+            return
+        }
+        guard let sample = try? JSONDecoder().decode(DiskActivitySample.self, from: data) else {
+            diskActivityProblem = "보조 프로그램이 보낸 디스크 활성 값을 읽지 못함"
+            return
+        }
+        latestDiskActivity = sample
+        diskActivityProblem = helperProblem
+    }
+
+    private func diskActivityFailed(id: UUID, error: any Error) {
+        guard diskPending?.id == id else { return }
+        diskPending = nil
+        diskActivityProblem = "디스크 활성 요청 실패 (\(HelperController.describe(error)))"
+    }
+
     // MARK: - 팬 제어 (docs/FAN_CONTROL.md)
 
     /// 보조 프로그램에 팬 고정이나 시스템 제어를 요청해요. 답(상태, 거절·실패 이유)은 메인 스레드에서 받아요.
@@ -338,6 +400,7 @@ final class HelperController {
         guard let connection, ObjectIdentifier(connection) == connectionID else { return }
         self.connection = nil
         pending = nil
+        diskPending = nil
     }
 
     /// 연결을 끊어요. 다음 요청 때 새로 연결해요.
@@ -345,6 +408,7 @@ final class HelperController {
         connection?.invalidate()
         connection = nil
         pending = nil
+        diskPending = nil
     }
 
     /// 꺼지거나 허용이 풀리면 연결을 끊고, 받았던 값도 지워요.
@@ -353,6 +417,8 @@ final class HelperController {
         failingSince = nil
         setProblem(nil)
         setSample(nil)
+        latestDiskActivity = nil
+        diskActivityProblem = nil
     }
 
     // MARK: - 값 바꾸기 (바뀐 것이 있을 때만 화면에 알려요)

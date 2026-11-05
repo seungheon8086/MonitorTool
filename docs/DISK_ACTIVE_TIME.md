@@ -2,7 +2,7 @@
 
 작성: 2026-11-05 · 브랜치: `main` (`7f4ff5e` 다음)
 
-상태: **측정 쪽 설계 끝(붙이기 1) · 앱 설계 끝(4장, 2026-11-06).** 붙이기 2~4(5장)는 앱 대화가 이 문서에 이어서 적는다.
+상태: **측정 쪽 설계 끝(붙이기 1) · 앱 설계 끝(4장) · 보조 프로그램 끝(붙이기 2, 2026-11-06).** 붙이기 3·4(5장)는 앱 대화가 이 문서에 이어서 적는다.
 
 디스크 카드의 바쁜 정도에 Windows 작업 관리자의 '활성 시간'을 더한다. 디스크 I/O 설계(`DISK_IO.md`)는 바쁜 정도를 평균 동시 요청(A안)으로 정하고 '써 보면서 뺄지 보강할지 정한다'고 두었는데, 이 문서가 그 보강이다. 재는 방법은 `Diagnostics/DiskActiveProbe`(1~4단계, 결과는 그 README)에서 확인했다. 여기에는 그 결과로 정한 것, 보조 프로그램과 앱 사이의 약속, 지킬 규칙, 앱 설계에서 정할 것을 적는다. `DISK_IO.md`의 원칙(지어낸 값 금지, 값마다 상태와 측정 시각, 중복 합산 금지)을 그대로 따른다.
 
@@ -128,6 +128,7 @@ nonisolated struct DiskActivitySample: Codable, Hashable, Sendable {
    - kill -9만은 처리기가 돌지 않아 남는다 → 9번
 9. **시작할 때 정리**: 보조 프로그램이 뜰 때 소유자 없이 남은 추적이 보이면 끄고 해제한다(팬의 `cleanUpLeftovers`와 같은 자리). 설정이 꺼져 있어도 한다
 10. **끝낼 때**: 지금 SIGTERM 처리(`main.swift`)는 받자마자 `exit(0)`하므로, 그 전에 부른 스레드에서 기록을 끄고 해제해야 한다. 추적 스레드는 `KERN_KDBUFWAIT` 안에서 최대 약 1초 기다리는데, 기다리는 동안 커널은 ktrace 잠금을 풀어 두므로 다른 스레드의 해제가 막히지 않는다. 추적 스레드의 읽기·처리와 겹치지 않게 잠금을 둔다. 기다리는 중에 다른 스레드에서 해제해도 되는지는 붙이기 2에서 확인한다(시험: 기다리는 중에 SIGTERM → `sudo ./run.sh status`)
+    - 확인함(2026-11-06, 5.1 결과): 추적 스레드가 커널 안에서 기다리는 중에 SIGTERM을 받은 스레드가 놓았고, 커널 기록에 바로 'promoting background tool'이 남았다
 
 ### 3.4 비용 목표
 
@@ -207,6 +208,24 @@ nonisolated struct DiskActivitySample: Codable, Hashable, Sendable {
 - 빼는 것(도구에만 쓰는 일): 1초 표본 쓰기·보고서, 드라이버 통계 읽기, CPU 나눠 보기, soak의 모든 프로세스 세기, 부하(`Load.swift`·`Stage4.swift`)
 - 새로 만드는 것: 추적 서비스(추적 스레드·상태·마지막 누적값·잠금), XPC 요청(실행 파일 교체 확인 포함), Shared 값 타입(3.1), 끝날 때·충돌 때 놓기, 시작할 때 정리
 - 규칙 검산: 바쁜 시간·순서 규칙은 도구 폴더의 `layered_meter_test.py`·`engine_test.py`가 확인했다(옮기면서 바꾸지 않으면 그대로). `hold_test.py`의 '같은 엔진이 앞뒤 경계를 다 채운 1초만 추적'은 앱의 '같은 회차일 때만'(3.2)과 같은 규칙
+- **한 것 (2026-11-06)**
+  - `MonitorToolHelper/DiskActivity/`: 엔진(`Kdebug`·`Ownership`·`DiskMap`·`LayeredMeter`·`Engine`)과 `TraceProcesses`는 규칙 그대로 옮기고 도구가 보고하려고 세던 값·드라이버 통계·기기 이름만 뺐다. 프로세스 이름은 ps 대신 sysctl로 읽는다. 추적 서비스 `DiskActivityTracer`(3.3 규칙 · 4.1 쥐는 때)를 새로 만들었다
+  - XPC `latestDiskActivity`·`releaseDiskActivity`, Shared `DiskActivitySample`(3.1, 안의 타입은 `DiskActivityState`·`DiskActivityDisk`로 밖에 둠)
+  - 충돌 신호에서는 놓은 뒤 신호를 기본 동작으로 다시 보낸다(충돌 보고서가 남게). 놓을 때 소유자가 내가 아니면 손대지 않는다(배경 도구에서 자리를 뺏지 않게)
+  - 앱: `HelperController.requestDiskActivity`를 `CollectionScheduler`가 전력과 같은 때 부른다. 전력과 따로 기다려서 실패·시간 초과가 연결 상태(연결 실패)로 번지지 않는다. 받은 값을 쓰는 일은 붙이기 3
+- **결과 (2026-11-06 02:05~02:29, Debug 빌드, 확인용 DEBUG 출력과 커널 ktrace 기록)**
+  - 빌드 통과. launchd로 뜬 보조 프로그램(root, 지금 서명 그대로)이 추적 자리를 얻는다: 소유 MonitorToolHelper · 버퍼 368,640개 · 형식 필터 켜짐. powermetrics와 함께 돈다
+  - 앱이 받은 값: off → starting → tracing. 받을 때 경계는 0.4~0.5초 전, 잃음 0, 캐시 비우기·TRIM 받음. 패널이 닫혀 있어 10초마다. 내장 SSD는 가만히 0~6.8%, SD 카드는 쉬다 깨어나는 요청(작업 4개)으로 그 10초 구간 29.2%(도구 시험의 약 3초 깨어남과 같은 모습)
+  - 놓기는 커널 기록(`log show --predicate 'eventMessage CONTAINS "ktrace:"'`)의 'promoting background tool'로 확인했다. 놓지 못하고 끝나면 이 줄 없이 버퍼와 기록이 남는다(도구 3단계 kill -9)
+
+| 사건 | 놓은 때 | 다시 잡음 |
+|---|---|---|
+| SIGTERM (`launchctl kill`, 추적 스레드는 커널 대기 중) | 02:13:04.420 | 1.8초 뒤 새 보조 프로그램 (앱의 다음 요청) |
+| 앱 끄기 (Xcode 정지) | 02:13:49.047 | — |
+| 충돌 신호 (`kill -SEGV`, 추적 스레드는 커널 대기 중) | 02:29:06.576 | 3.5초 뒤 새 보조 프로그램. 충돌 보고서 EXC_CRASH (SIGSEGV) 남음 |
+
+  - 보조 프로그램의 NSLog는 `log show`에서 내용이 `<private>`로 가려진다(전력·팬 기록도 같음)
+  - 남은 확인: 비켜주기(Instruments·xctrace·fs_usage), 하루 켜 두기·잠자기, 비용은 붙이기 4
 
 ### 5.2 앱 (붙이기 3)
 

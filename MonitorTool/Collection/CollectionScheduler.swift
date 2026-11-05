@@ -190,6 +190,9 @@ final class CollectionScheduler {
                 if helper.status == .enabled || helper.status == .failed {
                     // 답이 오면 helper.onChange → publishPower()가 불려요.
                     helper.requestPower(intervalMilliseconds: helperIntervalMilliseconds)
+                    // 디스크 활성 누적값도 같은 때 따로 물어요. 화면이 꺼져 있으면 묻지 않아서 보조 프로그램이 추적을 놓아요.
+                    // (docs/DISK_ACTIVE_TIME.md 4.1)
+                    helper.requestDiskActivity(intervalMilliseconds: helperIntervalMilliseconds)
                 }
                 onSystemCollect?()
             }

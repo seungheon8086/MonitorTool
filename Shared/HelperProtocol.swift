@@ -23,6 +23,16 @@ nonisolated protocol HelperProtocol {
 
     /// 지금 팬 제어 상태(FanControlState JSON)를 돌려줘요.
     func fanControlState(reply: @escaping (Data?, String?) -> Void)
+
+    /// 가장 최근 디스크 활성 누적값을 돌려줘요. 앱이 묻는 동안 보조 프로그램은 커널 추적을 쥐어요. (docs/DISK_ACTIVE_TIME.md)
+    /// - Parameters:
+    ///   - intervalMilliseconds: 앱이 묻는 간격. 1,000(패널이 열려 있을 때)이나 10,000(닫혀 있을 때)만 받고,
+    ///     묻지 않은 지 간격의 3배(적어도 15초)가 지나면 추적을 놓아요.
+    ///   - reply: (DiskActivitySample을 JSON으로 담은 값, 문제 설명). 보조 프로그램이 새 버전으로 다시 뜨는 중이면 둘 다 nil이에요.
+    func latestDiskActivity(intervalMilliseconds: Int, reply: @escaping (Data?, String?) -> Void)
+
+    /// 디스크 추적을 바로 놓아요. (설정에서 디스크 활성 시간을 껐을 때)
+    func releaseDiskActivity()
 }
 
 /// 이름, 측정 간격, 서명 요구사항처럼 두 쪽이 똑같이 알아야 하는 값이에요.
