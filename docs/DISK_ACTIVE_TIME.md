@@ -224,7 +224,7 @@ nonisolated struct DiskActivitySample: Codable, Hashable, Sendable {
 | 앱 끄기 (Xcode 정지) | 02:13:49.047 | — |
 | 충돌 신호 (`kill -SEGV`, 추적 스레드는 커널 대기 중) | 02:29:06.576 | 3.5초 뒤 새 보조 프로그램. 충돌 보고서 EXC_CRASH (SIGSEGV) 남음 |
 
-  - 보조 프로그램의 NSLog는 `log show`에서 내용이 `<private>`로 가려진다(전력·팬 기록도 같음)
+  - 보조 프로그램의 NSLog는 `log show`에서 내용이 `<private>`로 가려진다(전력·팬 기록). 디스크 추적 기록만 `Logger`(갈래 diskActivity)로 바꿔 내용을 공개로 남긴다(사용자 결정). 보기: `log show --last 30m --style compact --predicate 'subsystem == "com.seungheon.MonitorTool.helper"'`. 확인: 02:39:01 '디스크 추적 잡음', 02:39:25 '디스크 추적 놓음 (앱 연결 없음)'
   - 남은 확인: 비켜주기(Instruments·xctrace·fs_usage), 하루 켜 두기·잠자기, 비용은 붙이기 4
 
 ### 5.2 앱 (붙이기 3)

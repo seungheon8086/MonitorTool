@@ -15,6 +15,11 @@
 // 커널 안에서 기다리는 동안(KERN_KDBUFWAIT, 최대 약 1초)은 잠금을 풀어 두어 다른 스레드가 바로 놓을 수 있다.
 import Darwin
 import Foundation
+import os
+
+/// 디스크 추적 기록. 보조 프로그램의 다른 기록(NSLog)과 달리 `log show`에서 내용이 보이게 공개로 남긴다 (2026-11-06 사용자 결정).
+/// 보기: log show --last 30m --style compact --predicate 'subsystem == "com.seungheon.MonitorTool.helper"'
+private let diskLog = Logger(subsystem: HelperConstants.label, category: "diskActivity")
 
 /// 지금 추적을 쥐고 있는지 (충돌 신호 처리기가 읽는다. 힙을 쓰지 않으려고 전역 정수)
 nonisolated(unsafe) var diskTraceHeld: Int32 = 0
@@ -115,15 +120,16 @@ final class DiskActivityTracer: @unchecked Sendable {
                 let problem = releaseTrace()
                 holding = false
                 diskTraceHeld = 0
-                NSLog("MonitorToolHelper: 디스크 추적 놓음 (%@)%@", reason, problem.map { " · 해제 문제: \($0)" } ?? "")
+                let note = problem.map { " · 해제 문제: \($0)" } ?? ""
+                diskLog.notice("디스크 추적 놓음 (\(reason, privacy: .public))\(note, privacy: .public)")
             }
             traceLock.unlock()
         } else {
             // 추적 스레드가 2초 넘게 잠금을 쥐고 있어요(멈춤). 내가 소유자일 때만 커널 추적을 놓아요.
             let problem = releaseTraceIfMine()
             diskTraceHeld = 0
-            NSLog("MonitorToolHelper: 디스크 추적 놓음 (%@, 추적 스레드 응답 없음)%@", reason,
-                  problem.map { " · 해제 문제: \($0)" } ?? "")
+            let note = problem.map { " · 해제 문제: \($0)" } ?? ""
+            diskLog.error("디스크 추적 놓음 (\(reason, privacy: .public), 추적 스레드 응답 없음)\(note, privacy: .public)")
         }
     }
 
@@ -132,7 +138,7 @@ final class DiskActivityTracer: @unchecked Sendable {
         guard let info = try? Kdebug.info(), info.ownerPid <= 0, info.flags & KD.flagBufInit != 0 else { return }
         try? Kdebug.enable(false)
         try? Kdebug.remove()
-        NSLog("MonitorToolHelper: 소유자 없이 남은 커널 추적을 정리했어요")
+        diskLog.notice("소유자 없이 남은 커널 추적을 정리함")
     }
 
     private static func uptime() -> UInt64 {
@@ -150,7 +156,7 @@ final class DiskActivityTracer: @unchecked Sendable {
                 _ = releaseTrace()
                 holding = false
                 diskTraceHeld = 0
-                NSLog("MonitorToolHelper: 디스크 추적 놓음 (앱이 묻지 않음)")
+                diskLog.notice("디스크 추적 놓음 (앱이 묻지 않음)")
             } else {
                 _ = releaseTraceIfMine()
             }
@@ -298,8 +304,9 @@ final class DiskActivityTracer: @unchecked Sendable {
         lastToolSeen = Timebase.now()
         nextTry = lastToolSeen + 1_000_000_000
         setState(.otherTool, otherTool: name)
-        NSLog("MonitorToolHelper: 디스크 추적 비켜줌 · %@(%d) · 실행부터 %.0f ms%@", name, pid,
-              Double(minus(lastToolSeen, seenAt)) / 1e6, problem.map { " · 해제 문제: \($0)" } ?? "")
+        let lag = Double(minus(lastToolSeen, seenAt)) / 1e6
+        let note = problem.map { " · 해제 문제: \($0)" } ?? ""
+        diskLog.notice("디스크 추적 비켜줌 · \(name, privacy: .public)(\(pid, privacy: .public)) · 실행부터 \(lag, format: .fixed(precision: 0), privacy: .public) ms\(note, privacy: .public)")
     }
 
     /// 밀려났거나 읽지 못함: 내가 아직 소유자면 내 설정만 놓고, 2초 뒤 다시 잡아 본다
@@ -323,8 +330,8 @@ final class DiskActivityTracer: @unchecked Sendable {
             setState(.failed, problem: "디스크 추적 \(reason)")
         }
         nextTry = Timebase.now() + 2_000_000_000
-        NSLog("MonitorToolHelper: 디스크 추적 밀려남 · %@ · 지금 %@ · 소유 %@%@", reason, s.stateName,
-              ownerName(s.owningPid, s), cleanup)
+        let owner = ownerName(s.owningPid, s)
+        diskLog.notice("디스크 추적 밀려남 · \(reason, privacy: .public) · 지금 \(s.stateName, privacy: .public) · 소유 \(owner, privacy: .public)\(cleanup, privacy: .public)")
     }
 
     private func tryAcquire(now: UInt64) {
@@ -377,18 +384,19 @@ final class DiskActivityTracer: @unchecked Sendable {
             yieldedTo = nil
             busyCount = 0
             setState(.starting)
-            NSLog("MonitorToolHelper: 디스크 추적 잡음%@%@", cleaned ? " · 소유자 없이 남은 추적을 먼저 정리함" : "", after)
+            let note = cleaned ? " · 소유자 없이 남은 추적을 먼저 정리함" : ""
+            diskLog.notice("디스크 추적 잡음\(note, privacy: .public)\(after, privacy: .public)")
         case .busy(let owner):
             busyCount += 1
             if busyCount == 1 || busyCount % 30 == 0 {
-                NSLog("MonitorToolHelper: 디스크 추적 못 잡음 · %@ 사용 중 · 2초마다 다시 (%ld번째)", owner, busyCount)
+                diskLog.notice("디스크 추적 못 잡음 · \(owner, privacy: .public) 사용 중 · 2초마다 다시 (\(self.busyCount, privacy: .public)번째)")
             }
             nextTry = now + 2_000_000_000
             setState(.otherTool, otherTool: owner)
         case .failed(let text):
             nextTry = now + 5_000_000_000
             setState(.failed, problem: "디스크 추적 \(text)")
-            NSLog("MonitorToolHelper: 디스크 추적 못 잡음 · %@ · 5초 뒤 다시", text)
+            diskLog.error("디스크 추적 못 잡음 · \(text, privacy: .public) · 5초 뒤 다시")
         }
     }
 
