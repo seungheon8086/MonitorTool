@@ -42,6 +42,66 @@ func memoryFootprint() -> UInt64 {
     return kr == KERN_SUCCESS ? UInt64(info.phys_footprint) : 0
 }
 
+/// 모든 프로세스의 시스템 콜(BSD + Mach)·페이지 폴트·문맥 전환이 늘어난 양 (proc_pidinfo PROC_PIDTASKINFO, root라 모두 읽힘).
+/// 추적이 켜져 있으면 이런 추적 지점마다 걸러 내는 일이 생기므로(비용 시험: 시스템 콜 한 번에 약 11 ns),
+/// soak에서 1분마다 재서 다른 프로그램이 받는 비용을 어림한다. 프로세스마다 32비트 누적이라 넘침을 감안해 빼고,
+/// 그 1분 사이에 끝난 프로세스의 몫은 빠진다(조금 적게 나옴)
+final class SystemCounters {
+    struct Delta {
+        var syscalls: UInt64 = 0
+        var faults: UInt64 = 0
+        var switches: UInt64 = 0
+        var processes = 0
+    }
+
+    private struct Counts {
+        var unix: UInt32
+        var mach: UInt32
+        var faults: UInt32
+        var switches: UInt32
+    }
+
+    private var last: [Int32: Counts] = [:]
+    private(set) var sampleCPU: UInt64 = 0
+    private(set) var samples = 0
+
+    /// 지난번부터 늘어난 양. 처음 부르면 기준만 잡고 0을 돌려준다
+    func sample() -> Delta {
+        let c0 = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
+        defer {
+            sampleCPU += clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) - c0
+            samples += 1
+        }
+        var out = Delta()
+        let estimate = Int(proc_listallpids(nil, 0))
+        guard estimate > 0 else { return out }
+        var pids = [Int32](repeating: 0, count: estimate + 64)
+        let found = pids.withUnsafeMutableBytes { raw -> Int32 in
+            proc_listallpids(raw.baseAddress, Int32(raw.count))
+        }
+        guard found > 0 else { return out }
+        let first = last.isEmpty
+        var now: [Int32: Counts] = [:]
+        now.reserveCapacity(Int(found))
+        let size = Int32(MemoryLayout<proc_taskinfo>.size)
+        for pid in pids.prefix(min(Int(found), pids.count)) where pid > 0 {
+            var info = proc_taskinfo()
+            guard proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info, size) == size else { continue }
+            let c = Counts(unix: UInt32(bitPattern: info.pti_syscalls_unix), mach: UInt32(bitPattern: info.pti_syscalls_mach),
+                           faults: UInt32(bitPattern: info.pti_faults), switches: UInt32(bitPattern: info.pti_csw))
+            now[pid] = c
+            if first { continue }
+            let p = last[pid] ?? Counts(unix: 0, mach: 0, faults: 0, switches: 0)
+            out.syscalls += UInt64(c.unix &- p.unix) + UInt64(c.mach &- p.mach)
+            out.faults += UInt64(c.faults &- p.faults)
+            out.switches += UInt64(c.switches &- p.switches)
+        }
+        out.processes = now.count
+        last = now
+        return out
+    }
+}
+
 /// 시스템 콜 한 번의 평균 시간. getppid()는 진짜 시스템 콜이다(libc가 값을 저장해 두지 않음).
 /// 커널 추적이 켜져 있으면(tailspin이든 우리든) 시스템 콜·인터럽트마다 추적 지점이 형식 필터를 거치므로,
 /// 평소와 우리가 쥔 동안을 번갈아 재서 시스템 쪽 비용을 본다. 효율 코어로 가지 않게 QoS를 사용자 상호작용으로 올린다

@@ -229,6 +229,11 @@ final class Holder {
     private var earlyReturns = 0
     private var waitErrors = 0
     private var minuteActive: [UInt64: (sum: Double, n: Int)] = [:]     // 이번 1분의 디스크별 활성 % 합 (화면에 1분마다)
+    private let system: SystemCounters?                                 // soak: 1분마다 모든 프로세스의 시스템 콜 등
+    private var systemTotal = SystemCounters.Delta()
+    private var systemMinutes = 0
+    private var syscallsMaxMinute: UInt64 = 0
+    private var recordingOffSeen = 0
     private var sleeps = 0
     private var sleptSeconds = 0.0
     private var footprintMax: UInt64 = 0
@@ -244,8 +249,10 @@ final class Holder {
                                  header: "second\twall\tsource\tdisk\tactive_pct\tio_pct\tclipped_pct\tflush_ms\ttrim_ms")
         minutesFile = options.soak
             ? LineWriter(path: directory + "/minutes.tsv",
-                         header: "minute\twall\ttraced_s\testimated_s\tevents\tlost\treader_ms\tprocess_ms\tcpu_s\tfootprint_mb\tyields\tsleeps")
+                         header: "minute\twall\ttraced_s\testimated_s\tevents\tlost\treader_ms\tprocess_ms\tcpu_s\tfootprint_mb\tyields\tsleeps"
+                            + "\tsyscalls\tfaults\tswitches\tprocesses")
             : nil
+        system = options.soak ? SystemCounters() : nil
         wallClock.dateFormat = "HH:mm:ss"
     }
 
@@ -263,6 +270,10 @@ final class Holder {
         let wallStart = Date()
         let modeText = "읽기 \(options.readMode.text) · 한 번에 \(comma(options.capacity))개"
         timeline.note("시작 · \(limitText) · 비켜주기 \(options.yieldOn ? "켬 (도구가 끝나고 \(grace / 1_000_000_000)초 뒤 다시 잡음)" : "끔") · \(modeText) · pid \(getpid())")
+        if let s = system {
+            _ = s.sample()      // 기준 (1분마다 늘어난 양을 센다)
+            timeline.note("모든 프로세스의 시스템 콜 세기 시작 · 한 번 \(ms(s.sampleCPU)) ms")
+        }
         tryAcquire(now: started)
         var k = 0
         var nextTick = started
@@ -361,18 +372,27 @@ final class Holder {
 
     private func tick(k: Int, at now: UInt64) {
         let wallNow = Date()
+        var slept = false
         if k > 0 {
             // 벽시계는 잠든 동안에도 가지만 mach_absolute_time은 멈춘다
             let gap = wallNow.timeIntervalSince(lastTickWall) - Double(minus(now, lastTickMono)) / 1e9
             if gap > 5 {
+                slept = true
                 sleeps += 1
                 sleptSeconds += gap
                 timeline.note("잠자기·깨기: 약 \(String(format: "%.0f", gap))초 잠듦 (\(wallClock.string(from: lastTickWall)) → \(wallClock.string(from: wallNow)))"
                     + (engine != nil ? " · 추적을 쥔 채 깸" : ""))
+                timeline.note("깬 뒤 상태: \(stateLine())")
             }
         }
         lastTickWall = wallNow
         lastTickMono = now
+        // 쥐고 있는데 커널 기록이 꺼져 있으면(잠자기 뒤 등) 내려놓고 다시 잡는다. 깬 뒤와 오래 켜 두기의 1분마다 본다
+        if slept {
+            checkRecording("깬 뒤")
+        } else if options.soak && k > 0 && k % 60 == 0 {
+            checkRecording("1분 점검")
+        }
         let g: Int? = engine != nil ? gen : nil
         book.add(HoldTick(k: k, time: now, wall: wallClock.string(from: wallNow), stats: map.allStats(), gen: g, totals: nil))
         if options.soak && k > 0 && k % 60 == 0 { writeMinute(k / 60, wall: wallNow) }
@@ -385,7 +405,21 @@ final class Holder {
         }
     }
 
+    private func checkRecording(_ when: String) {
+        guard let e = engine, let info = try? Kdebug.info(), info.recordingOff else { return }
+        recordingOffSeen += 1
+        lose(e, reason: "\(when) 커널 기록이 꺼져 있음")
+    }
+
     private func writeMinute(_ minute: Int, wall: Date) {
+        let sys = system?.sample() ?? SystemCounters.Delta()
+        if system != nil {
+            systemTotal.syscalls += sys.syscalls
+            systemTotal.faults += sys.faults
+            systemTotal.switches += sys.switches
+            systemMinutes += 1
+            syscallsMaxMinute = max(syscallsMaxMinute, sys.syscalls)
+        }
         let cpu = cpuSeconds()
         let now = (cpu: cpu, reader: totalReaderCPU, process: totalProcessCPU, events: totalEvents, losses: totalLosses,
                    traced: tracedSeconds, estimated: estimatedSeconds)
@@ -398,7 +432,8 @@ final class Holder {
         let fields: [String] = ["\(minute)", clock, "\(now.traced - base.traced)", "\(now.estimated - base.estimated)",
                                 "\(minus(now.events, base.events))", "\(now.losses - base.losses)",
                                 ms(minus(now.reader, base.reader)), ms(minus(now.process, base.process)),
-                                cpuText, memoryText, "\(yields)", "\(sleeps)"]
+                                cpuText, memoryText, "\(yields)", "\(sleeps)",
+                                "\(sys.syscalls)", "\(sys.faults)", "\(sys.switches)", "\(sys.processes)"]
         minutesFile?.write(fields.joined(separator: "\t"))
         minutesFile?.flush()
         minuteBase = now
@@ -410,6 +445,7 @@ final class Holder {
         minuteActive.removeAll()
         parts.append("CPU \(cpuText)초")
         parts.append("메모리 \(memoryText) MB")
+        if system != nil { parts.append("시스템 콜 \(comma(sys.syscalls / 60))/초") }
         if sleeps > 0 { parts.append("잠자기 \(sleeps)번") }
         print(parts.joined(separator: " · "))
     }
@@ -664,6 +700,15 @@ final class Holder {
         report.line("")
         report.line("== 오래 켜 두기 · 깨어 있던 \(String(format: "%.2f", hours))시간 (잠든 시간 빼고)")
         report.line("  시간당: CPU \(cpuText)초 · 읽기 \(readerText) ms · 처리 \(processText) ms · 이벤트 \(eventsText)개")
+        if recordingOffSeen > 0 { report.line("  쥐고 있는데 커널 기록이 꺼져 있던 때 \(recordingOffSeen)번 (내려놓고 다시 잡음)") }
+        if let s = system, systemMinutes > 0 {
+            let perSecond = Double(systemTotal.syscalls) / Double(systemMinutes * 60)
+            let faults = Double(systemTotal.faults) / Double(systemMinutes * 60)
+            let switches = Double(systemTotal.switches) / Double(systemMinutes * 60)
+            let sampleText = String(format: "%.1f", Double(s.sampleCPU) / 1e6 / Double(max(s.samples, 1)))
+            report.line("  모든 프로세스 (\(systemMinutes)분): 시스템 콜 평균 \(comma(UInt64(perSecond)))/초 · 가장 많은 1분 \(comma(syscallsMaxMinute / 60))/초"
+                + " · 페이지 폴트 \(comma(UInt64(faults)))/초 · 문맥 전환 \(comma(UInt64(switches)))/초 · 세는 데 한 번 \(sampleText) ms")
+        }
         for d in map.physical {
             guard let st = activeStats[d.id], st.count > 0 else { continue }
             func spread(_ bins: [Int], sum: Double, top: Double) -> String {
