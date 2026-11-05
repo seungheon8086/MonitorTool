@@ -5,6 +5,8 @@
 #   sudo ./run.sh live               1초마다 디스크별 활성 %·평균 동시 요청 (Ctrl-C로 끝)
 #   sudo ./run.sh record [분]         실사용 기록 (기본 10분, Ctrl-C로 일찍 끝낼 수 있음)
 #   sudo ./run.sh coexist [BCDE]     3단계: 다른 추적 도구(fs_usage·xctrace)와 함께·강제 종료 뒤·비켜주기 (약 3분, 글자로 시험을 고름)
+#   sudo ./run.sh cost               4단계: 비용 (시스템 콜·읽는 방식별 가만히·무거운 부하·읽기 버퍼·비켜주기, 약 5분)
+#   sudo ./run.sh soak [분] [읽기]     4단계: 보조 프로그램처럼 오래 켜 두기 (기본 720분, 읽기 ms|w, 기본 w, Ctrl-C로 끝)
 #   sudo ./run.sh status             지금 커널 추적을 누가 쓰는지 (읽기만)
 #   sudo ./run.sh reset              비정상 종료로 남은 추적 정리 (다른 도구가 쓰는 중이면 손대지 않음)
 set -euo pipefail
@@ -12,9 +14,9 @@ cd "$(dirname "$0")"
 
 CMD="${1:-}"
 case "$CMD" in
-  check | load | live | record | coexist | status | reset) ;;
+  check | load | live | record | coexist | cost | soak | status | reset) ;;
   *)
-    sed -n '2,9p' "$0"
+    sed -n '2,11p' "$0"
     exit 2
     ;;
 esac
@@ -48,7 +50,7 @@ if [[ "$CMD" == status || "$CMD" == reset ]]; then
 fi
 
 need_gb=2
-if [[ "$CMD" == load ]]; then need_gb=4; fi
+if [[ "$CMD" == load || "$CMD" == cost ]]; then need_gb=4; fi
 avail_kb=$(df -k . | awk 'NR==2 {print $4}')
 if (( avail_kb < need_gb * 1024 * 1024 )); then
   echo "여유 공간이 ${need_gb} GB보다 작아서 멈춥니다"
@@ -71,6 +73,19 @@ if [[ "$CMD" == coexist ]]; then
     exit 1
   fi
 fi
+if [[ "$CMD" == soak ]]; then
+  MIN="${2:-720}"
+  READ="${3:-w}"
+  if ! [[ "$MIN" =~ ^[0-9]+$ ]] || (( MIN < 1 )); then
+    echo "분은 1 이상의 정수: $MIN"
+    exit 1
+  fi
+  if ! [[ "$READ" == w || "$READ" =~ ^[0-9]+$ ]]; then
+    echo "읽기는 ms(10~5000) 또는 w: $READ"
+    exit 1
+  fi
+  EXTRA+=("$MIN" "$READ")
+fi
 if [[ "$CMD" == record ]]; then
   MIN="${2:-10}"
   if ! [[ "$MIN" =~ ^[0-9]+$ ]] || (( MIN < 1 )); then
@@ -85,6 +100,8 @@ as_user mkdir -p "$OUT"
 set +e
 if [[ "$CMD" == coexist ]]; then
   bash ./coexist.sh "$P" "$OUT" "$SEL"
+elif [[ "$CMD" == cost ]]; then
+  bash ./cost.sh "$P" "$OUT"
 else
   # macOS의 bash 3.2는 빈 배열을 set -u에서 못 펼쳐서 ${A[@]+...} 꼴로 쓴다
   "$P" "$CMD" "$OUT" ${EXTRA[@]+"${EXTRA[@]}"}

@@ -1,5 +1,5 @@
 // DiskActiveProbe: 디스크 활성 시간(요청이 하나라도 걸려 있던 시간 비율)을 커널 추적으로 물리 디스크별로 잰다.
-// 명령: check | load [SD 경로] | live | record <분> | hold … | state | stamp | status | reset   (root 필요, run.sh로 실행)
+// 명령: check | load [SD 경로] | live | record <분> | hold … | soak … | work … | state | stamp | status | reset   (root 필요, run.sh로 실행)
 import Foundation
 
 setvbuf(stdout, nil, _IOLBF, 0)
@@ -570,9 +570,24 @@ case "live" where args.count > 2:
 case "record" where args.count > 3:
     exit(runSession(mode: .record, directory: args[2], minutes: max(Int(args[3]) ?? 10, 1), sdPath: nil))
 case "hold" where args.count > 5:
-    // hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초]
-    exit(runHold(directory: args[2], label: args[3], limit: max(Int(args[4]) ?? 10, 1), yieldOn: args[5] == "1",
-                 graceSeconds: args.count > 6 ? (Int(args[6]) ?? 10) : 10))
+    // hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초] [읽기 ms|w] [한 번에 읽는 개수]
+    var options = HoldOptions(limit: max(Int(args[4]) ?? 10, 1), yieldOn: args[5] == "1",
+                              graceSeconds: args.count > 6 ? (Int(args[6]) ?? 10) : 10)
+    if args.count > 7 {
+        guard let mode = ReadMode.parse(args[7]) else { print("읽기는 10~5000(ms) 또는 w: \(args[7])"); exit(2) }
+        options.readMode = mode
+    }
+    if args.count > 8, let capacity = Int(args[8]), capacity >= 1024 { options.capacity = capacity }
+    exit(runHold(directory: args[2], label: args[3], options: options))
+case "soak" where args.count > 4:
+    // soak <결과 폴더> <분> <읽기 ms|w>: 보조 프로그램처럼 비켜주기를 켜고 오래 켜 둔다 (4단계)
+    guard let mode = ReadMode.parse(args[4]) else { print("읽기는 10~5000(ms) 또는 w: \(args[4])"); exit(2) }
+    var options = HoldOptions(limit: max(Int(args[3]) ?? 720, 1) * 60, yieldOn: true, graceSeconds: 10)
+    options.readMode = mode
+    options.soak = true
+    exit(runHold(directory: args[2], label: "soak", options: options))
+case "work" where args.count > 5:
+    exit(runWork(path: args[2], kind: args[3], amount: Int(args[4]) ?? 0, seconds: Int(args[5]) ?? 10))
 case "state":
     print(stateLine())
     exit(0)
@@ -585,6 +600,8 @@ case "reset":
     exit(runReset())
 default:
     print("사용법: diskactiveprobe check <결과 폴더> | load <결과 폴더> [SD 경로] | live <결과 폴더> | record <결과 폴더> <분>"
-        + " | hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초] | state | stamp | status | reset   (sudo ./run.sh로 실행)")
+        + " | hold <결과 폴더> <이름표> <초> <비켜주기 0|1> [다시 잡기 전 초] [읽기 ms|w] [한 번에 읽는 개수]"
+        + " | soak <결과 폴더> <분> <읽기 ms|w> | work <파일> prepare|randread <MiB|스레드> <초> | work - syscall 0 <초>"
+        + " | state | stamp | status | reset   (sudo ./run.sh로 실행)")
     exit(2)
 }

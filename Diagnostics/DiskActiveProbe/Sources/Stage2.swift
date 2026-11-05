@@ -15,7 +15,7 @@ private func waitUntil(_ t: UInt64) {
 }
 
 /// 1 MiB씩 캐시 없이 쓴다. fileMiB 크기 파일을 돌려 쓰고, 모두 capMiB를 쓰거나 until이 되면 멈춘 뒤 F_FULLFSYNC
-private func writeSequential(_ path: String, fileMiB: Int, capMiB: Int, until: UInt64) -> String {
+func writeSequential(_ path: String, fileMiB: Int, capMiB: Int, until: UInt64) -> String {
     let fd = open(path, O_CREAT | O_RDWR, 0o644)
     guard fd >= 0 else { return "열기 실패 (errno \(errno))" }
     defer { close(fd) }
@@ -107,7 +107,7 @@ private func randomOps(_ path: String, threads: Int, until: UInt64) -> Int? {
     return counter.total
 }
 
-private func readRandom(_ path: String, threads: Int, until: UInt64) -> String {
+func readRandom(_ path: String, threads: Int, until: UInt64) -> String {
     guard let ops = randomOps(path, threads: threads, until: until) else { return "파일 없음" }
     return "\(comma(ops))번"
 }

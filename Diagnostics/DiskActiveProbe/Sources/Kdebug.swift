@@ -14,6 +14,7 @@ enum KD {
     static let opRemove: Int32 = 7          // KERN_KDREMOVE: 해제 (배경 도구에 알려 자리를 돌려줌)
     static let opReadTrace: Int32 = 10      // KERN_KDREADTR: 넣을 때 바이트, 나올 때 이벤트 수
     static let opSetTypeFilter: Int32 = 22  // KERN_KDSET_TYPEFILTER: 8 KiB 비트맵 (class<<8|subclass마다 1비트)
+    static let opBufWait: Int32 = 23        // KERN_KDBUFWAIT: 길이 자리에 기다릴 ms, 나올 때 기준치를 넘었으면 1 (소유자만)
 
     static let enableTrace: Int32 = 1       // KDEBUG_ENABLE_TRACE
     static let typeFilterSize = 8192        // KDBG_TYPEFILTER_BITMAP_SIZE
@@ -158,6 +159,15 @@ enum Kdebug {
     static func clearFlags(_ flags: UInt32) throws { try simple(KD.opClearFlags, value: Int32(bitPattern: flags), step: "플래그 끄기") }
     static func enable(_ on: Bool) throws { try simple(KD.opEnable, value: on ? KD.enableTrace : 0, step: on ? "기록 켜기" : "기록 끄기") }
     static func remove() throws { try simple(KD.opRemove, value: nil, step: "해제") }
+
+    /// 버퍼가 기준치(저장 단위의 절반)만큼 차거나 timeoutMs가 지날 때까지 커널 안에서 잔다 (kdbg_wait).
+    /// 기준치를 넘어서 깼으면 참. 신호가 오면 일찍 돌아올 수 있다
+    static func waitForBuffer(timeoutMs: Int) throws -> Bool {
+        var length = max(timeoutMs, 1)
+        let code = call(KD.opBufWait, value: nil, buffer: nil, length: &length)
+        if code != 0 { throw KdebugError(step: "버퍼 기다리기", code: code) }
+        return length != 0
+    }
 
     /// 형식 필터: 주어진 종류(class<<8|subclass)만 기록한다. 커널은 DBG_TRACE를 늘 허용한다.
     static func setTypeFilter(_ kinds: [UInt32]) throws {

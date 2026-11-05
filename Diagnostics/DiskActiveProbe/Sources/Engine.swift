@@ -23,7 +23,7 @@ struct ExecEvent {
 final class Engine {
     private(set) var map: DiskMap
     private var mapBuiltAt: UInt64
-    private let reader = TraceReader(capacity: 65_536)
+    private let reader: TraceReader
     private var meter = BusyMeter()
     private var withFlush = BusyMeter()
     private var withTrim = BusyMeter()
@@ -60,8 +60,9 @@ final class Engine {
     var watchExecs = false
     private var execs: [ExecEvent] = []
 
-    /// ssdEvents: 형식 필터를 이미 건 경우 그 값 (setFilter를 부르지 않을 때)
-    init(ssdEvents: Bool = false) {
+    /// ssdEvents: 형식 필터를 이미 건 경우 그 값 (setFilter를 부르지 않을 때). capacity: 한 번에 읽는 이벤트 수 (65,536개 = 4 MiB)
+    init(ssdEvents: Bool = false, capacity: Int = 65_536) {
+        reader = TraceReader(capacity: capacity)
         map = DiskMap()
         mapBuiltAt = Timebase.now()
         self.ssdEvents = ssdEvents
