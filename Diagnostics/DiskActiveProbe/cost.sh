@@ -1,12 +1,15 @@
 #!/bin/bash
-# 4단계 비용 시험. run.sh cost가 부른다 (root). 인자: 도구 경로, 결과 폴더
+# 4단계 비용 시험. run.sh cost가 부른다 (root). 인자: 도구 경로, 결과 폴더, [읽는 방식들(쉼표), 기본 100,250,500,1000,w], [가만히 초, 기본 20]
 # 먼저 시스템 콜 한 번의 시간을 평소와 우리가 쥔 동안 번갈아 잰다(추적이 켜지면 커널의 추적 지점마다 형식 필터를 거침).
 # 읽는 방식(100·250·500·1000 ms마다, w = 버퍼 기준치 대기)마다 가만히 20초 → 무거운 부하 12초(4 KiB 무작위 읽기 동시 32, 따로 된 프로세스).
 # 그다음 읽기 버퍼를 8,192개(512 KiB)로 줄여 가만히 20초, 끝으로 w에서 비켜주기가 xctrace 첫 시도에 맞는지 본다.
+# 부하는 추적 없이도 처음과 끝에 한 번씩 돌려, 추적이 I/O 처리량에 주는 영향을 본다(4단계 가볍게 하기 뒤 추가).
 # hold마다 hold-<이름표>.txt, 모두 모은 표는 holds.tsv. macOS의 bash 3.2에서 돈다
 set -u
 P="$1"
 OUT="$2"
+MODES="$(echo "${3:-100,250,500,1000,w}" | tr ',' ' ')"
+IDLE="${4:-20}"
 TL="$OUT/timeline.txt"
 WORK="$OUT/work.bin"
 : > "$TL"
@@ -83,10 +86,15 @@ state "놓은 뒤"
 log "평소 2: $("$P" work - syscall 0 3)"
 
 log "부하 파일: $("$P" work "$WORK" prepare 1024 60)"
+log "고른 읽는 방식: $MODES · 가만히 ${IDLE}초"
+sleep 3
+log "== 부하만 1 (추적 없음): 4 KiB 무작위 읽기 동시 32를 10초"
+log "부하 (추적 없음): $("$P" work "$WORK" randread 32 10)"
+sleep 2
 
-for m in 100 250 500 1000 w; do
-  log "== 읽기 $m · 가만히 20초"
-  "$P" hold "$OUT" "idle-$m" 20 0 10 "$m" > "$OUT/hold-idle-$m.out" 2>&1
+for m in $MODES; do
+  log "== 읽기 $m · 가만히 ${IDLE}초"
+  "$P" hold "$OUT" "idle-$m" "$IDLE" 0 10 "$m" > "$OUT/hold-idle-$m.out" 2>&1
   log "== 읽기 $m · 부하 12초 (4 KiB 무작위 읽기 동시 32를 10초)"
   "$P" hold "$OUT" "load-$m" 12 0 10 "$m" > "$OUT/hold-load-$m.out" 2>&1 &
   H=$!
@@ -96,10 +104,18 @@ for m in 100 250 500 1000 w; do
   sleep 2
 done
 
-log "== 읽기 버퍼 줄이기 · 1000 ms마다 · 한 번에 8,192개(512 KiB) · 가만히 20초"
-"$P" hold "$OUT" idle-1000-small 20 0 10 1000 8192 > "$OUT/hold-idle-1000-small.out" 2>&1
+log "== 부하만 2 (추적 없음): 4 KiB 무작위 읽기 동시 32를 10초"
+log "부하 (추적 없음): $("$P" work "$WORK" randread 32 10)"
+sleep 2
 
-if [[ -n "$XCT" ]]; then
+case " $MODES " in
+  *" 1000 "*)
+    log "== 읽기 버퍼 줄이기 · 1000 ms마다 · 한 번에 8,192개(512 KiB) · 가만히 ${IDLE}초"
+    "$P" hold "$OUT" idle-1000-small "$IDLE" 0 10 1000 8192 > "$OUT/hold-idle-1000-small.out" 2>&1
+    ;;
+esac
+
+if [[ -n "$XCT" && " $MODES " == *" w "* ]]; then
   log "== 버퍼 기준치 대기(w)에서 비켜주기 · xctrace 첫 시도"
   "$P" hold "$OUT" yield-w 90 1 10 w > "$OUT/hold-yield-w.out" 2>&1 &
   H=$!
@@ -112,7 +128,7 @@ if [[ -n "$XCT" ]]; then
   wait "$H"
   log "hold yield-w 끝: 종료 코드 $?"
 else
-  log "xctrace 없음: 비켜주기 확인은 건너뜀"
+  log "xctrace가 없거나 w를 고르지 않음: 비켜주기 확인은 건너뜀"
 fi
 
 rm -f "$WORK"

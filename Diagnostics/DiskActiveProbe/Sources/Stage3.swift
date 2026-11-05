@@ -124,11 +124,11 @@ struct HoldOptions {
 struct ActiveStats {
     var count = 0
     var activeBins = [Int](repeating: 0, count: 1001)
-    var trimBins = [Int](repeating: 0, count: 1001)
+    var noTrimBins = [Int](repeating: 0, count: 1001)
     var activeSum = 0.0
-    var trimSum = 0.0
+    var noTrimSum = 0.0
     var activeMax = 0.0
-    var trimMax = 0.0
+    var noTrimMax = 0.0
     var ioNs: UInt64 = 0
     var flushNs: UInt64 = 0
     var trimNs: UInt64 = 0
@@ -137,15 +137,15 @@ struct ActiveStats {
     var gapOver20 = 0
     var gapAbsSum = 0.0
 
-    /// active: 디스크 I/O + 캐시 비우기(%), withTrim: TRIM까지(%), clipped: 어림값(%)
-    mutating func add(active: Double, withTrim: Double, clipped: Double, ioNs: UInt64, flushNs: UInt64, trimNs: UInt64) {
+    /// active: 활성(디스크 I/O + 캐시 비우기 + TRIM, %), noTrim: TRIM을 뺀 값(%), clipped: 어림값(%)
+    mutating func add(active: Double, noTrim: Double, clipped: Double, ioNs: UInt64, flushNs: UInt64, trimNs: UInt64) {
         count += 1
         activeBins[ActiveStats.bin(active)] += 1
-        trimBins[ActiveStats.bin(withTrim)] += 1
+        noTrimBins[ActiveStats.bin(noTrim)] += 1
         activeSum += active
-        trimSum += withTrim
+        noTrimSum += noTrim
         activeMax = max(activeMax, active)
-        trimMax = max(trimMax, withTrim)
+        noTrimMax = max(noTrimMax, noTrim)
         self.ioNs += ioNs
         self.flushNs += flushNs
         self.trimNs += trimNs
@@ -184,8 +184,10 @@ final class Holder {
     private let samplesFile: LineWriter
     private let minutesFile: LineWriter?
     private let wallClock = DateFormatter()
-    private var map = DiskMap()
-    private var mapBuiltAt = Timebase.now()
+    private var map: DiskMap
+    private var physical: [PhysicalDisk]           // 물리 디스크 (디스크 목록이 바뀔 때만 다시 고른다)
+    private var mapSignature: [UInt64]             // 디스크 구성 표식 (IOKit 항목 ID)
+    private var mapCheckedAt = Timebase.now()
     private var engine: Engine?
     private var gen = 0
     private var book = TickBook()
@@ -237,6 +239,22 @@ final class Holder {
     private var sleeps = 0
     private var sleptSeconds = 0.0
     private var footprintMax: UInt64 = 0
+    // CPU 나눠 보기 (이 스레드의 CPU 시간, ns). 밤새 기록에서 읽기·처리 밖이 74%였다
+    private var loopCPU: UInt64 = 0
+    private var tickCPU: UInt64 = 0                 // 1초 경계 처리 전부 (드라이버 통계 포함)
+    private var statsCPU: UInt64 = 0                // 드라이버 통계 읽기
+    private var emitCPU: UInt64 = 0                 // 1초 표본 계산·쓰기
+    private var waitCPU: UInt64 = 0                 // 기다리기 (커널 대기·usleep 부르기)
+    private var mapChecks = 0
+    private var mapCheckCPU: UInt64 = 0
+    private var mapBuilds = 0                       // 돌던 중에 구성이 바뀌어 다시 만든 횟수
+    private var mapBuildCPU: UInt64 = 0
+    private var firstMapCPU: UInt64 = 0             // 시작할 때 한 번 (돌기 전이라 이 스레드 CPU 합에는 없음)
+    // 지난 엔진들까지 더한 엔진 셈
+    private var eventsKept: UInt64 = 0
+    private var ssdSkipped: UInt64 = 0
+    private var reorders = 0
+    private var shrinks = 0
 
     init(directory: String, label: String, options: HoldOptions) {
         self.label = label
@@ -253,6 +271,12 @@ final class Holder {
                             + "\tsyscalls\tfaults\tswitches\tprocesses")
             : nil
         system = options.soak ? SystemCounters() : nil
+        let c0 = threadCPU()
+        mapSignature = DiskMap.signature()
+        let m = DiskMap()
+        map = m
+        physical = m.physical
+        firstMapCPU = threadCPU() - c0
         wallClock.dateFormat = "HH:mm:ss"
     }
 
@@ -266,6 +290,7 @@ final class Holder {
     func run() -> Int32 {
         installSignalHandlers()
         let usage0 = cpuSeconds()
+        let loop0 = threadCPU()
         started = Timebase.now()
         let wallStart = Date()
         let modeText = "읽기 \(options.readMode.text) · 한 번에 \(comma(options.capacity))개"
@@ -318,6 +343,7 @@ final class Holder {
         emitReady()
         samplesFile.close()
         minutesFile?.close()
+        loopCPU = threadCPU() - loop0
         summarize(cpu: cpuSeconds() - usage0, wall: Double(minus(Timebase.now(), started)) / 1e9)
         report.close()
         return 0
@@ -340,6 +366,8 @@ final class Holder {
     private func pause(until target: UInt64) -> Bool {
         let now = Timebase.now()
         guard target > now else { return false }
+        let c0 = threadCPU()
+        defer { waitCPU += threadCPU() - c0 }
         if engine != nil, case .wait = options.readMode {
             let left = target - now
             let t0 = Timebase.now()
@@ -371,6 +399,8 @@ final class Holder {
     // MARK: 경계 시각과 표본
 
     private func tick(k: Int, at now: UInt64) {
+        let c0 = threadCPU()
+        defer { tickCPU += threadCPU() - c0 }
         let wallNow = Date()
         var slept = false
         if k > 0 {
@@ -394,7 +424,13 @@ final class Holder {
             checkRecording("1분 점검")
         }
         let g: Int? = engine != nil ? gen : nil
-        book.add(HoldTick(k: k, time: now, wall: wallClock.string(from: wallNow), stats: map.allStats(), gen: g, totals: nil))
+        let s0 = threadCPU()
+        var stats: [UInt64: DriverStats] = [:]
+        for d in physical {
+            if let x = map.stats(d.id) { stats[d.id] = x }
+        }
+        statsCPU += threadCPU() - s0
+        book.add(HoldTick(k: k, time: now, wall: wallClock.string(from: wallNow), stats: stats, gen: g, totals: nil))
         if options.soak && k > 0 && k % 60 == 0 { writeMinute(k / 60, wall: wallNow) }
         guard let e = engine else { return }
         e.addTick(now)
@@ -439,7 +475,7 @@ final class Holder {
         minuteBase = now
         // 화면에는 1분에 한 줄 (오래 켜 두기는 1초 줄을 찍지 않는다)
         var parts: [String] = ["\(clock) [soak] \(minute)분", engine != nil ? "추적 중" : "추정 중"]
-        for d in map.physical {
+        for d in physical {
             if let m = minuteActive[d.id], m.n > 0 { parts.append("\(d.bsd) 평균 \(f1(m.sum / Double(m.n)))%") }
         }
         minuteActive.removeAll()
@@ -456,6 +492,8 @@ final class Holder {
     }
 
     private func emitReady() {
+        let c0 = threadCPU()
+        defer { emitCPU += threadCPU() - c0 }
         for pair in book.ready(live: engine != nil ? gen : nil) {
             emit(pair.a, pair.b)
         }
@@ -465,12 +503,13 @@ final class Holder {
         let length = minus(b.time, a.time)
         let traced = TickBook.traced(a, b)
         var parts: [String] = []
-        for d in map.physical {
+        for d in physical {
             guard let s0 = a.stats[d.id], let s1 = b.stats[d.id] else { continue }
             let drv = difference(s1, s0)
             let concurrency = length == 0 ? 0 : Double(drv.time) / Double(length)
             let clipped = min(concurrency, 1) * 100
-            var value = clipped
+            var value = clipped                 // 활성 % (추적: 디스크 I/O ∪ 캐시 비우기 ∪ TRIM, 2026-11-05 결정)
+            var noTrim = clipped
             var io = 0.0
             var ioNs: UInt64 = 0
             var flushNs: UInt64 = 0
@@ -483,12 +522,12 @@ final class Holder {
                 let withTrim = minus(x1.busyWithTrim, x0.busyWithTrim)
                 flushNs = minus(withFlush, ioNs)
                 trimNs = minus(withTrim, withFlush)
-                value = length == 0 ? 0 : Double(withFlush) / Double(length) * 100
+                value = length == 0 ? 0 : Double(withTrim) / Double(length) * 100
+                noTrim = length == 0 ? 0 : Double(withFlush) / Double(length) * 100
                 io = length == 0 ? 0 : Double(ioNs) / Double(length) * 100
             }
             if traced {
-                let withTrim = length == 0 ? 0 : value + Double(trimNs) / Double(length) * 100
-                activeStats[d.id, default: ActiveStats()].add(active: value, withTrim: withTrim, clipped: clipped,
+                activeStats[d.id, default: ActiveStats()].add(active: value, noTrim: noTrim, clipped: clipped,
                                                               ioNs: ioNs, flushNs: flushNs, trimNs: trimNs)
             }
             if options.soak {
@@ -530,7 +569,6 @@ final class Holder {
             timeline.note("추적 도구 실행 봄: \(x.name)(\(x.pid)) · 비켜주기 끔이라 그대로 쥠")
         }
         fill(e.process(until: minus(Timebase.now(), 20_000_000)), gen: gen)
-        e.refreshMapIfNeeded()
     }
 
     /// 남은 이벤트를 읽고 이 엔진의 경계 시각을 모두 채운다
@@ -551,6 +589,10 @@ final class Holder {
         losses += e.losses
         flushes += e.flushes
         trimSpans += e.trimSpans
+        eventsKept += e.eventsKept
+        ssdSkipped += e.ssdSkipped
+        reorders += e.reorders
+        shrinks += e.shrinks
     }
 
     private func yieldNow(_ e: Engine, to who: String, pid: Int32, seenAt: UInt64) {
@@ -619,7 +661,7 @@ final class Holder {
         attempts += 1
         switch acquireTrace(events: 262_144, filter: { try Kdebug.setTypeFilter(Engine.kinds(ssd: true)) }) {
         case .acquired(let cleaned):
-            let e = Engine(ssdEvents: true, capacity: options.capacity)
+            let e = Engine(map: map, ssdEvents: true, capacity: options.capacity)
             e.watchExecs = true
             gen += 1
             engine = e
@@ -642,11 +684,30 @@ final class Holder {
         }
     }
 
+    /// 디스크 목록: 30초마다 구성 표식(IOKit 항목 ID)만 싸게 보고, 바뀌었을 때만 다시 만들어 엔진과 같이 쓴다.
+    /// 엔진이 모르는 장치를 봤으면(꽂은 디스크) 2초 뒤에 바로 본다. 전에는 hold와 엔진이 따로 30초마다 다시 만들었다
     private func refreshMapIfNeeded(_ now: UInt64) {
-        if minus(now, mapBuiltAt) > 30_000_000_000 {
-            map = DiskMap()
-            mapBuiltAt = now
+        let unknownSeen = engine?.wantsNewMap(at: now) ?? false
+        guard unknownSeen || minus(now, mapCheckedAt) > 30_000_000_000 else { return }
+        mapCheckedAt = now
+        let c0 = threadCPU()
+        let signature = DiskMap.signature()
+        mapChecks += 1
+        mapCheckCPU += threadCPU() - c0
+        guard signature != mapSignature else {
+            engine?.acknowledgeUnknown()        // 구성이 그대로면 다시 만들어도 모르는 장치는 그대로다
+            return
         }
+        let c1 = threadCPU()
+        let m = DiskMap()
+        mapBuildCPU += threadCPU() - c1
+        mapBuilds += 1
+        map = m
+        physical = m.physical
+        mapSignature = signature
+        engine?.useMap(m)
+        timeline.note("디스크 목록 다시 만듦 (구성 바뀜" + (unknownSeen ? " · 모르는 장치 봄" : "") + ") · 물리 디스크 "
+            + physical.map { $0.bsd }.joined(separator: " "))
     }
 
     // MARK: 보고
@@ -664,10 +725,17 @@ final class Holder {
         let cpuShare = String(format: "%.3f", wall == 0 ? 0 : cpu / wall * 100)
         report.line("CPU: 읽기 \(ms(readerCPU)) ms (\(comma(reads))번, 한 번 \(perRead) ms) · 처리 \(ms(processCPU)) ms · 프로세스 목록 \(scanText)"
             + " · 도구 전체 \(String(format: "%.2f", cpu))초 / \(String(format: "%.0f", wall))초 (\(cpuShare)%)")
+        let measured = readerCPU + processCPU + tickCPU + emitCPU + waitCPU + mapCheckCPU + mapBuildCPU + scanCPU
+        let rest = minus(loopCPU, measured)
+        let checkText = "디스크 구성 확인 \(ms(mapCheckCPU)) ms(\(mapChecks)번) · 바뀌어서 다시 만들기 \(ms(mapBuildCPU)) ms(\(mapBuilds)번)"
+        report.line("CPU 나눠 보기(이 스레드 \(ms(loopCPU)) ms): 읽기 \(ms(readerCPU)) · 처리 \(ms(processCPU)) · 1초 경계 \(ms(tickCPU))"
+            + "(드라이버 통계 \(ms(statsCPU))) · 1초 표본 \(ms(emitCPU)) · 기다리기 \(ms(waitCPU)) · " + checkText
+            + " · 프로세스 목록 \(ms(scanCPU)) · 나머지 \(ms(rest)) · (시작할 때 디스크 목록 \(ms(firstMapCPU)) ms)")
         if case .wait = options.readMode {
             report.line("기준치 대기: \(comma(waits))번 · 버퍼가 차서 깸 \(comma(thresholdWakes)) (20 ms 안에 또 깸 \(rapidWakes)) · 일찍 돌아옴 \(earlyReturns) · 오류 \(waitErrors)")
         }
         report.line("이벤트 \(comma(eventsRead))개 · 잃음 \(losses)번 · 캐시 비우기 \(comma(flushes))번 · TRIM 명령 \(comma(trimSpans))번 · 메모리 최대 \(String(format: "%.1f", Double(footprintMax) / 1_048_576)) MB")
+        report.line("엔진: 처리한 이벤트 \(comma(eventsKept))개 · 읽을 때 버린 SSD 이벤트 \(comma(ssdSkipped))개 · 뒤쪽 다시 줄 세우기 \(reorders)번 · 대기열 줄이기 \(shrinks)번")
         if sleeps > 0 { report.line("잠자기 \(sleeps)번 · 모두 약 \(String(format: "%.0f", sleptSeconds))초") }
         report.line("끝난 뒤 상태: \(KtraceState.read().stateName)")
         if options.soak { soakReport(cpu: cpu, wall: wall) }
@@ -676,11 +744,15 @@ final class Holder {
         let line = [label, "\(options.limit)", options.readMode.key, "\(options.capacity)", "\(tracedSeconds)", "\(estimatedSeconds)",
                     "\(reads)", "\(eventsRead)", "\(losses)", ms(readerCPU), ms(processCPU), String(format: "%.3f", cpu),
                     String(format: "%.1f", wall), "\(waits)", "\(thresholdWakes)", "\(rapidWakes)", "\(earlyReturns)", "\(waitErrors)",
-                    String(format: "%.1f", Double(footprintMax) / 1_048_576), "\(yields)"].joined(separator: "\t") + "\n"
+                    String(format: "%.1f", Double(footprintMax) / 1_048_576), "\(yields)",
+                    "\(eventsKept)", "\(ssdSkipped)", "\(reorders)", "\(shrinks)", ms(loopCPU), ms(tickCPU), ms(statsCPU), ms(emitCPU),
+                    ms(waitCPU), "\(mapChecks)", ms(mapCheckCPU), "\(mapBuilds)", ms(mapBuildCPU), ms(rest), ms(firstMapCPU)].joined(separator: "\t") + "\n"
         let path = directory + "/holds.tsv"
         if !FileManager.default.fileExists(atPath: path) {
             writeText(path, "label\tseconds\tread\tcapacity\ttraced_s\testimated_s\treads\tevents\tlost\treader_ms\tprocess_ms\tcpu_s\twall_s"
-                + "\twaits\tthreshold_wakes\trapid_wakes\tearly_returns\twait_errors\tfootprint_mb\tyields\n")
+                + "\twaits\tthreshold_wakes\trapid_wakes\tearly_returns\twait_errors\tfootprint_mb\tyields"
+                + "\tkept\tssd_skipped\treorders\tshrinks\tloop_ms\ttick_ms\tstats_ms\temit_ms\twait_ms\tmap_checks\tmap_check_ms"
+                + "\tmap_builds\tmap_build_ms\trest_ms\tfirst_map_ms\n")
         }
         if let h = FileHandle(forWritingAtPath: path) {
             h.seekToEndOfFile()
@@ -709,7 +781,7 @@ final class Holder {
             report.line("  모든 프로세스 (\(systemMinutes)분): 시스템 콜 평균 \(comma(UInt64(perSecond)))/초 · 가장 많은 1분 \(comma(syscallsMaxMinute / 60))/초"
                 + " · 페이지 폴트 \(comma(UInt64(faults)))/초 · 문맥 전환 \(comma(UInt64(switches)))/초 · 세는 데 한 번 \(sampleText) ms")
         }
-        for d in map.physical {
+        for d in physical {
             guard let st = activeStats[d.id], st.count > 0 else { continue }
             func spread(_ bins: [Int], sum: Double, top: Double) -> String {
                 "평균 \(f1(sum / Double(st.count)))% · 중앙 \(f1(ActiveStats.percentile(bins, count: st.count, 0.5)))%"
@@ -717,8 +789,8 @@ final class Holder {
             }
             report.line("")
             report.line("  \(d.bsd) \(d.name) · 추적한 1초 \(comma(st.count))개")
-            report.line("    활성: " + spread(st.activeBins, sum: st.activeSum, top: st.activeMax))
-            report.line("    TRIM까지 넣으면: " + spread(st.trimBins, sum: st.trimSum, top: st.trimMax) + " · TRIM이 있던 1초 \(comma(st.trimSeconds))개")
+            report.line("    활성(TRIM 포함): " + spread(st.activeBins, sum: st.activeSum, top: st.activeMax))
+            report.line("    TRIM을 빼면: " + spread(st.noTrimBins, sum: st.noTrimSum, top: st.noTrimMax) + " · TRIM이 있던 1초 \(comma(st.trimSeconds))개")
             report.line("    디스크 I/O만의 바쁜 시간 \(ms(st.ioNs)) ms → 캐시 비우기 +\(ms(st.flushNs)) ms (\(percent(st.flushNs, st.ioNs)))"
                 + " · TRIM +\(ms(st.trimNs)) ms (\(percent(st.trimNs, st.ioNs)))")
             report.line("    어림값 − 활성: 5%p 넘게 다른 1초 \(comma(st.gapOver5))개 · 20%p 넘게 \(comma(st.gapOver20))개"

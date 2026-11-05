@@ -5,7 +5,8 @@
 #   sudo ./run.sh live               1초마다 디스크별 활성 %·평균 동시 요청 (Ctrl-C로 끝)
 #   sudo ./run.sh record [분]         실사용 기록 (기본 10분, Ctrl-C로 일찍 끝낼 수 있음)
 #   sudo ./run.sh coexist [BCDE]     3단계: 다른 추적 도구(fs_usage·xctrace)와 함께·강제 종료 뒤·비켜주기 (약 3분, 글자로 시험을 고름)
-#   sudo ./run.sh cost               4단계: 비용 (시스템 콜·읽는 방식별 가만히·무거운 부하·읽기 버퍼·비켜주기, 약 5분)
+#   sudo ./run.sh cost [방식] [초]     4단계: 비용 (시스템 콜·추적 없는 부하·읽는 방식별 가만히·무거운 부하·읽기 버퍼·비켜주기, 약 6분)
+#                                    방식은 쉼표로 (예 cost w 60: w만, 가만히 60초)
 #   sudo ./run.sh soak [분|시:분] [읽기] [깨어 있을 분]  4단계: 오래 켜 두기 (예 soak 09:00 w 120, 기본 720분·w·0, Ctrl-C로 끝)
 #   sudo ./run.sh status             지금 커널 추적을 누가 쓰는지 (읽기만)
 #   sudo ./run.sh reset              비정상 종료로 남은 추적 정리 (다른 도구가 쓰는 중이면 손대지 않음)
@@ -16,7 +17,7 @@ CMD="${1:-}"
 case "$CMD" in
   check | load | live | record | coexist | cost | soak | status | reset) ;;
   *)
-    sed -n '2,11p' "$0"
+    sed -n '2,12p' "$0"
     exit 2
     ;;
 esac
@@ -73,6 +74,19 @@ if [[ "$CMD" == coexist ]]; then
     exit 1
   fi
 fi
+if [[ "$CMD" == cost ]]; then
+  MODES="${2:-100,250,500,1000,w}"
+  IDLE="${3:-20}"
+  re_modes='^((w|[0-9]+),)*(w|[0-9]+)$'
+  if ! [[ "$MODES" =~ $re_modes ]]; then
+    echo "읽는 방식은 쉼표로 (ms 또는 w, 예 100,w): $MODES"
+    exit 1
+  fi
+  if ! [[ "$IDLE" =~ ^[0-9]+$ ]] || (( IDLE < 5 )); then
+    echo "가만히 초는 5 이상의 정수: $IDLE"
+    exit 1
+  fi
+fi
 AWAKE=0
 if [[ "$CMD" == soak ]]; then
   UNTIL="${2:-720}"
@@ -124,7 +138,7 @@ set +e
 if [[ "$CMD" == coexist ]]; then
   bash ./coexist.sh "$P" "$OUT" "$SEL"
 elif [[ "$CMD" == cost ]]; then
-  bash ./cost.sh "$P" "$OUT"
+  bash ./cost.sh "$P" "$OUT" "$MODES" "$IDLE"
 else
   # macOS의 bash 3.2는 빈 배열을 set -u에서 못 펼쳐서 ${A[@]+...} 꼴로 쓴다
   "$P" "$CMD" "$OUT" ${EXTRA[@]+"${EXTRA[@]}"}

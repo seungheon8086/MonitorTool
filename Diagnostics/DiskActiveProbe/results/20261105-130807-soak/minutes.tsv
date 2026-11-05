@@ -1,0 +1,4 @@
+minute	wall	traced_s	estimated_s	events	lost	reader_ms	process_ms	cpu_s	footprint_mb	yields	sleeps	syscalls	faults	switches	processes
+1	13:15:36	59	0	142216	0	58.70	57.77	0.262	9.8	0	3	2761781	207273	495620	914
+2	13:17:06	60	0	56976	0	30.90	29.64	0.190	7.6	0	4	2756074	192361	497569	910
+3	13:18:17	60	0	546547	0	136.61	156.44	0.402	14.2	0	5	3437169	381367	647919	882

@@ -1,0 +1,5 @@
+label	seconds	read	capacity	traced_s	estimated_s	reads	events	lost	reader_ms	process_ms	cpu_s	wall_s	waits	threshold_wakes	rapid_wakes	early_returns	wait_errors	footprint_mb	yields	kept	ssd_skipped	reorders	shrinks	loop_ms	tick_ms	stats_ms	emit_ms	wait_ms	map_checks	map_check_ms	map_builds	map_build_ms	rest_ms	first_map_ms
+sys-1000	10	1000	65536	10	0	13	14272	0	4.12	0.84	0.024	10.1	0	0	0	0	0	4.1	0	6068	7186	0	0	24.09	4.25	2.91	2.00	0.39	0	0.00	0	0.00	12.49	3.78
+idle-w	60	w	65536	60	0	63	19977	0	19.94	3.36	0.116	60.1	119	0	0	0	0	3.5	0	5394	7656	0	0	115.80	36.28	26.32	27.66	6.33	1	0.95	0	0.00	21.28	7.02
+load-w	12	w	65536	12	0	158	8606759	0	508.31	199.07	0.727	12.1	65	49	0	0	0	18.4	0	3442256	5163363	0	50	726.91	3.65	2.44	1.63	1.28	0	0.00	0	0.00	12.97	7.53
+yield-w	90	w	65536	7	31	16	91595	0	17.58	4.26	0.076	39.1	17	0	0	1	0	6.8	1	37387	50457	0	0	74.98	11.62	9.23	7.51	1.47	1	0.50	0	0.00	27.42	3.67

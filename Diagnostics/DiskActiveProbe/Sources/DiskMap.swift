@@ -120,6 +120,24 @@ final class DiskMap {
         for d in disks.values { IOObjectRelease(d.service) }
     }
 
+    /// 디스크 구성이 바뀌었는지 싸게 보는 값: IOBlockStorageDriver와 IOMedia의 IORegistry 항목 ID (속성은 읽지 않는다).
+    /// 디스크를 꽂거나 빼거나 디스크 이미지를 열면 바뀐다. 목록 전체를 다시 만드는 것보다 훨씬 싸다 (4단계)
+    static func signature() -> [UInt64] {
+        var ids: [UInt64] = []
+        for cls in ["IOBlockStorageDriver", "IOMedia"] {
+            var it: io_iterator_t = 0
+            guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(cls), &it) == KERN_SUCCESS else { continue }
+            while true {
+                let s = IOIteratorNext(it)
+                if s == 0 { break }
+                ids.append(registryID(s))
+                IOObjectRelease(s)
+            }
+            IOObjectRelease(it)
+        }
+        return ids.sorted()
+    }
+
     /// 내장 SSD (Apple Fabric으로 붙은 디스크). SSD 드라이버 이벤트는 이 디스크로 센다
     var internalSSD: UInt64? {
         disks.values.first { $0.interconnect == "Apple Fabric" }?.id

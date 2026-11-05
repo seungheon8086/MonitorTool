@@ -30,6 +30,11 @@ enum ReadMode {
     }
 }
 
+/// 이 스레드의 CPU 시간 (ns). hold의 CPU 나눠 보기에 쓴다
+func threadCPU() -> UInt64 {
+    clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
+}
+
 /// 이 프로세스의 메모리 (활성 상태 보기의 '메모리'와 같은 phys_footprint, 바이트)
 func memoryFootprint() -> UInt64 {
     var info = task_vm_info_data_t()
