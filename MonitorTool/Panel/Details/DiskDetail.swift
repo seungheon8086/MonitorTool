@@ -23,6 +23,7 @@ struct DiskDetail: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                activeChart(disk)
                 speedChart(disk)
                 queueChart(disk)
                 DiskValueTable(disk: disk)
@@ -51,6 +52,35 @@ struct DiskDetail: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+    }
+
+    /// 활성 시간 (0~100% 고정). 추정 구간은 연한 색 선으로, 추적 구간과 이어서 그려요. (docs/DISK_ACTIVE_TIME.md 4.3)
+    private func activeChart(_ disk: DiskReading) -> some View {
+        let color = appearance.color(for: .disk)
+        return HistoryChart(title: "활성 시간",
+                            lines: [ChartLine(metric: .diskActive(disk.id), label: "활성", color: color.color),
+                                    ChartLine(metric: .diskActiveEstimate(disk.id), label: "추정",
+                                              color: color.secondaryColor)],
+                            period: period,
+                            scale: .percent,
+                            height: 56,
+                            emptyState: disk.active.state,
+                            note: activeNote(disk),
+                            scaleText: ValueFormat.percent) {
+            ValueText(reading: disk.active, format: DiskActiveText.format(estimated: disk.activeEstimated),
+                      font: .system(size: 12))
+        }
+    }
+
+    /// 그래프 제목 아래 세부 줄: 추정이면 '추정', 내장 SSD를 디스크 I/O만으로 재면 '디스크 I/O만', 추적 중이면 없음
+    private func activeNote(_ disk: DiskReading) -> String? {
+        if disk.activeEstimated && disk.active.value != nil {
+            return "추정"
+        }
+        if disk.activeIOOnly {
+            return "디스크 I/O만"
+        }
+        return nil
     }
 
     /// 읽기·쓰기 속도 (쓰기는 연한 색)

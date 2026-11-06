@@ -18,6 +18,20 @@ struct HelperSettingsView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 4)
+
+            // 디스크 활성 시간 (docs/DISK_ACTIVE_TIME.md 4.3: 스위치만, 상태 줄 없음)
+            SettingsSectionTitle(title: "측정")
+                .padding(.top, 14)
+            SettingsBox {
+                HStack(alignment: .center, spacing: 12) {
+                    Text("디스크 활성 시간")
+                        .font(.system(size: 13))
+                    Spacer(minLength: 8)
+                    Toggle("디스크 활성 시간", isOn: diskActivity)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+            }
         }
         .padding(EdgeInsets(top: 20, leading: 24, bottom: 24, trailing: 24))
         .frame(width: SettingsLayout.width, alignment: .leading)
@@ -26,6 +40,10 @@ struct HelperSettingsView: View {
         }
     }
 
+    /// 끄면 보조 프로그램이 추적을 바로 놓고, 활성 %는 추정으로 보여요.
+    private var diskActivity: Binding<Bool> {
+        Binding(get: { helper.diskActivityEnabled }, set: { helper.setDiskActivityEnabled($0) })
+    }
 }
 
 /// 상태 한 줄: 색 점 · 상태 · 설명 · 단추 (시안의 꺼짐 / 허용 필요 / 동작 중 / 연결 실패)

@@ -39,6 +39,8 @@ struct HistoryChart<Trailing: View>: View {
     var height: CGFloat = 56
     /// 기록이 없을 때 이유를 알려 줄 상태 (예: 권한 필요)
     var emptyState: ValueState? = nil
+    /// 제목 아래 작은 세부 줄 (예: 디스크 활성 시간의 '추정'). 없으면 줄을 두지 않아요.
+    var note: String? = nil
     /// 눈금 값을 글로 바꿔요. (예: 8 → '8 W')
     let scaleText: (Double) -> String
 
@@ -61,6 +63,12 @@ struct HistoryChart<Trailing: View>: View {
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 trailing
+            }
+            if let note {
+                Text(note)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
             HStack(alignment: .top, spacing: Self.axisSpacing) {
                 ChartAxisLabels(labels: ChartAxisText.labels(for: plot.range, format: scaleText),
