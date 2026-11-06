@@ -41,6 +41,19 @@ final class CollectionScheduler {
     private var lastSystemCollectAt: UInt64 = 0
     /// 온도·팬을 마지막으로 잰 때 (같은 시계)
     private var lastThermalCollectAt: UInt64 = 0
+    /// 디스크 활성 시간: 보조 프로그램의 누적값으로 %를 내고 드라이버 통계와 대조해요. (docs/DISK_ACTIVE_TIME.md)
+    private var activeMeter = DiskActiveMeter()
+    /// 디스크별로 그래프 기록에 마지막으로 더한 활성 시간이에요. 추적과 추정이 바뀌는 곳을 이으려고 둬요.
+    private var lastActiveRecord: [UInt64: (date: Date, value: Double, traced: Bool)] = [:]
+    /// 활성 시간 계열마다 마지막으로 더한 시각 (이음점을 시각 순서가 꼬이지 않을 때만 넣으려고)
+    private var activeSeriesEnd: [Metric: Date] = [:]
+    /// 추적과 추정 사이를 이을 때 두 점 사이의 최대 간격. 그래프가 선을 끊는 간격(10초 계열은 25초)과 같아요.
+    private static let activeJoinLimit: TimeInterval = 25
+    /// 보조 프로그램이 마지막으로 알린 추적 상태 (추정의 까닭을 출력하려고)
+    private var lastDiskActivityState: DiskActivityState?
+    private var lastOtherTool: String?
+    /// 디스크별로 마지막으로 출력한 활성 시간 출처. 바뀔 때만 Xcode 출력에 알려요. (4.3: 까닭은 화면에 보이지 않음)
+    private var activeSourceNote: [UInt64: String] = [:]
 
     /// 패널이 열려 있는지예요. 바뀌면 모으는 간격도 바꿔요.
     var panelVisible = false {
@@ -89,6 +102,10 @@ final class CollectionScheduler {
         // 보조 프로그램에서 답이 오거나 상태가 바뀌면 전력 값을 새로 넣어요.
         helper.onChange = { [weak self] in
             self?.publishPower()
+        }
+        // 디스크 활성 누적값이 오면 새 추적 값을 바로 넣어요.
+        helper.onDiskActivity = { [weak self] sample in
+            self?.publishDiskActivity(sample)
         }
     }
 
@@ -221,6 +238,13 @@ final class CollectionScheduler {
             // 디스크는 열려 있으면 1초, 닫혀 있으면 다른 시스템 값과 같이 10초마다 재요.
             // 오늘 누적은 누적 카운터의 차이라서 간격이 길어도 빠지지 않아요.
             snapshot.disk = disks.collect(now: now)
+            // 디스크 활성 시간. 추적을 못 쓰는 동안(보조 프로그램이 꺼짐·설정에서 끔·화면이 꺼짐)은 추정이에요.
+            if !diskActivityUsable {
+                activeMeter.reset()
+                lastDiskActivityState = nil
+                lastOtherTool = nil
+            }
+            batches.append(contentsOf: applyActive(to: &snapshot.disk, now: now))
             let diskMetrics = (snapshot.disk.disks.okValue ?? []).flatMap { disk -> [Metric] in
                 [.diskRead(disk.id), .diskWrite(disk.id), .diskQueue(disk.id)]
             }
@@ -238,6 +262,142 @@ final class CollectionScheduler {
             batches.append(MetricBatch(metrics: CollectionScheduler.powerMetrics, date: sampleDate))
         }
         store.update(with: snapshot, recording: batches)
+    }
+
+    // MARK: - 디스크 활성 시간 (docs/DISK_ACTIVE_TIME.md 3.2 · 4장)
+
+    /// 보조 프로그램의 추적 값을 쓸 수 있는지예요. 화면이 꺼져 있으면 묻지 않아서 추적을 놓아요. (4.1)
+    private var diskActivityUsable: Bool {
+        !screensAsleep && helper.diskActivityEnabled && (helper.status == .enabled || helper.status == .failed)
+    }
+
+    /// 보조 프로그램에서 디스크 활성 누적값이 왔을 때: 새 추적 값을 바로 화면과 그래프에 넣어요. (전력의 publishPower와 같은 자리)
+    /// 대조용 드라이버 작업 수는 받은 순간에 읽어요. 그래야 보조 프로그램 값(마지막 1초 경계)과 0~1초만 어긋나요.
+    private func publishDiskActivity(_ sample: DiskActivitySample) {
+        guard diskActivityUsable else { return }
+        lastDiskActivityState = sample.state
+        lastOtherTool = sample.otherTool
+        let moment = DiskActiveMoment(date: Date(),
+                                      awake: clock_gettime_nsec_np(CLOCK_UPTIME_RAW),
+                                      monotonic: clock_gettime_nsec_np(CLOCK_MONOTONIC))
+        let mismatchedBefore = activeMeter.mismatched
+        let fresh = activeMeter.receive(sample, driverOps: disks.operationCounts(), at: moment)
+        reportMismatch(from: mismatchedBefore, to: activeMeter.mismatched, present: Set(sample.disks.map(\.id)))
+        guard !fresh.isEmpty else { return }
+        var snapshot = store.snapshot
+        guard var list = snapshot.disk.disks.okValue else { return }
+        var batches: [MetricBatch] = []
+        for index in list.indices {
+            guard let value = fresh[list[index].id] else { continue }
+            CollectionScheduler.setTraced(&list[index], value)
+            batches.append(contentsOf: recordActive(list[index].id, value.percent, traced: true, at: value.date))
+        }
+        snapshot.disk.disks.value = list
+        store.update(with: snapshot, recording: batches)
+    }
+
+    /// 디스크마다 활성 시간을 넣어요. 쓸 수 있는 추적 값이 있으면 그 값, 없으면 드라이버 통계로 낸 추정,
+    /// 그것도 없으면 드라이버 통계의 상태(준비 중 등)예요. 추정은 지금 시각으로 그래프에 더해요. (추적 값은 받을 때 더했어요)
+    private func applyActive(to disk: inout DiskSnapshot, now: Date) -> [MetricBatch] {
+        guard var list = disk.disks.okValue else { return [] }
+        let expectedInterval = Double(helperIntervalMilliseconds) / 1000
+        var batches: [MetricBatch] = []
+        for index in list.indices {
+            let id = list[index].id
+            if let value = activeMeter.tracedValue(for: id) {
+                CollectionScheduler.setTraced(&list[index], value)
+                reportActiveSource(list[index], "추적")
+                // 전력과 같은 기준: 그 값의 구간과 지금 묻는 간격 중 긴 쪽의 2.5배에 2초를 더한 시간이 지나면 '오래됨'
+                let limit = max(value.interval, expectedInterval) * 2.5 + 2
+                list[index].active = list[index].active.checkedFreshness(now: now, limit: limit)
+            } else if let queueDepth = list[index].queueDepth.okValue {
+                // 추정 = 그 구간 평균 동시 요청을 100%에서 자른 값
+                let estimate = min(max(queueDepth, 0), 1) * 100
+                list[index].active = .ok(estimate, at: now)
+                list[index].activeEstimated = true
+                list[index].activeIOOnly = false
+                reportActiveSource(list[index], "추정 (\(estimateReason(for: id)))")
+                batches.append(contentsOf: recordActive(id, estimate, traced: false, at: now))
+            } else {
+                // 드라이버 통계도 아직 없어요. (연결 직후·깨어난 직후)
+                list[index].active = Reading(value: nil, state: list[index].queueDepth.state, measuredAt: nil)
+                list[index].activeEstimated = false
+                list[index].activeIOOnly = false
+                reportActiveSource(list[index], "준비 중")
+            }
+        }
+        // 빠진 디스크의 이음 기록은 지워요.
+        let ids = Set(list.map(\.id))
+        lastActiveRecord = lastActiveRecord.filter { ids.contains($0.key) }
+        activeSourceNote = activeSourceNote.filter { ids.contains($0.key) }
+        activeSeriesEnd = activeSeriesEnd.filter { metric, _ in
+            switch metric {
+            case .diskActive(let id), .diskActiveEstimate(let id): ids.contains(id)
+            default: false
+            }
+        }
+        disk.disks.value = list
+        return batches
+    }
+
+    /// 대조가 어긋나거나 다시 맞으면 출력으로 알려요. 추정의 까닭은 화면에 보이지 않아요. (4.3)
+    /// 디스크의 활성 시간 출처(추적·추정과 까닭·준비 중)가 바뀌면 출력해요.
+    private func reportActiveSource(_ disk: DiskReading, _ note: String) {
+        guard activeSourceNote[disk.id] != note else { return }
+        activeSourceNote[disk.id] = note
+        print("디스크 활성: \(disk.name) → \(note)")
+    }
+
+    /// 추적 값을 못 쓰는 까닭 (출력용)
+    private func estimateReason(for id: UInt64) -> String {
+        if !helper.diskActivityEnabled { return "설정에서 끔" }
+        if screensAsleep { return "화면 꺼짐" }
+        guard helper.status == .enabled || helper.status == .failed else { return "보조 프로그램 꺼짐" }
+        if activeMeter.mismatched.contains(id) { return "대조 어긋남" }
+        switch lastDiskActivityState {
+        case .otherTool: return "다른 추적 도구" + (lastOtherTool.map { " \($0)" } ?? "")
+        case .starting: return "추적 잡는 중"
+        case .failed: return "추적 실패"
+        case .off, nil: return "추적 값 기다리는 중"
+        // 첫 답·회차 바뀜·잠든 구간·잃은 구간은 기준만 잡아요.
+        case .tracing: return "기준 잡는 중"
+        }
+    }
+
+    /// present는 이번 답에 있는 디스크예요. (빠진 디스크는 '맞음'으로 알리지 않아요)
+    private func reportMismatch(from before: Set<UInt64>, to after: Set<UInt64>, present: Set<UInt64>) {
+        guard before != after else { return }
+        let names = Dictionary((store.snapshot.disk.disks.okValue ?? []).map { ($0.id, $0.name) },
+                               uniquingKeysWith: { first, _ in first })
+        for id in after.subtracting(before).sorted() {
+            print("⚠️ 디스크 활성: 대조 어긋남 → 추정 (\(names[id] ?? String(id)))")
+        }
+        for id in before.subtracting(after).intersection(present).sorted() {
+            print("디스크 활성: 대조 맞음 → 추적 (\(names[id] ?? String(id)))")
+        }
+    }
+
+    private static func setTraced(_ disk: inout DiskReading, _ value: DiskActiveValue) {
+        disk.active = .ok(value.percent, at: value.date)
+        disk.activeEstimated = false
+        disk.activeIOOnly = disk.isInternal && !value.flushTrim
+    }
+
+    /// 활성 시간 기록. 추적과 추정이 바뀌는 곳은 앞 점을 새 계열에도 넣어 선을 이어요. (4.3 '추적 구간과 이어서 그린다')
+    private func recordActive(_ id: UInt64, _ value: Double, traced: Bool, at date: Date) -> [MetricBatch] {
+        let metric: Metric = traced ? .diskActive(id) : .diskActiveEstimate(id)
+        var batches: [MetricBatch] = []
+        if let last = lastActiveRecord[id], last.traced != traced, last.date < date,
+           date.timeIntervalSince(last.date) <= CollectionScheduler.activeJoinLimit,
+           activeSeriesEnd[metric].map({ $0 < last.date }) ?? true {
+            batches.append(MetricBatch(values: [metric: last.value], date: last.date))
+        }
+        if activeSeriesEnd[metric].map({ $0 < date }) ?? true {
+            batches.append(MetricBatch(values: [metric: value], date: date))
+            activeSeriesEnd[metric] = date
+        }
+        lastActiveRecord[id] = (date, value, traced)
+        return batches
     }
 
     /// 보조 프로그램에서 답이 오거나 상태가 바뀌었을 때: 전력 값만 새로 넣어요.

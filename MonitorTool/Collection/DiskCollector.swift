@@ -98,6 +98,18 @@ final class DiskCollector {
         return DiskSnapshot(disks: .ok(Self.uniquelyNamed(disks), at: now))
     }
 
+    /// 디스크별 지금까지의 작업 수 (읽기+쓰기 누적)예요. 보조 프로그램의 활성 누적값을 받은 순간 읽어서
+    /// 그 작업 수와 대조해요. 디스크 하나에 20~90 µs. (docs/DISK_ACTIVE_TIME.md 4.2)
+    func operationCounts() -> [UInt64: UInt64] {
+        var counts: [UInt64: UInt64] = [:]
+        for device in registry.devices {
+            if let counter = registry.counter(for: device.id) {
+                counts[device.id] = counter.operationsRead &+ counter.operationsWritten
+            }
+        }
+        return counts
+    }
+
     /// 지금까지의 날짜별 누적을 바로 저장해요. (잠들기 전, 앱을 끌 때)
     func save() {
         totalsStore.save(meter.days)

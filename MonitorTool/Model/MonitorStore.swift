@@ -45,7 +45,11 @@ final class MonitorStore {
     func update(with newSnapshot: MonitorSnapshot, recording batches: [MetricBatch]) {
         currentSnapshot = newSnapshot
         for batch in batches {
-            currentHistory.record(batch.metrics, from: newSnapshot, at: batch.date)
+            if batch.values.isEmpty {
+                currentHistory.record(batch.metrics, from: newSnapshot, at: batch.date)
+            } else {
+                currentHistory.record(values: batch.values, at: batch.date)
+            }
         }
         announce()
     }

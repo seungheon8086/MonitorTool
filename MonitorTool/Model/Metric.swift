@@ -40,6 +40,10 @@ nonisolated enum Metric: Hashable, Sendable {
     case diskWrite(UInt64)
     /// 디스크 평균 동시 요청 수
     case diskQueue(UInt64)
+    /// 디스크 활성 시간 (%, 커널 추적 값). 보조 프로그램의 1초 경계 시각으로 기록해요.
+    case diskActive(UInt64)
+    /// 디스크 활성 시간 (%, 추정 값). 추적을 못 쓰는 구간만 기록하고 연한 색으로 그려요.
+    case diskActiveEstimate(UInt64)
 
     /// 패널을 숨겼을 때 가장 느린 수집 간격(초)이에요. (설계 문서 4장: 배터리 30초, 나머지는 10초 이하)
     /// 기록 사이가 이보다 훨씬 길게 비면 그 구간은 재지 못한 것으로 보고 그래프에서 선을 끊어요.

@@ -325,6 +325,13 @@ nonisolated struct DiskReading: Hashable, Sendable, Codable, Identifiable {
     var write: Reading<Double> = .preparing
     /// 평균 동시 요청 수: 읽기·쓰기에 걸린 시간의 합 ÷ 구간. 활성 시간 %가 아니에요(1을 넘을 수 있어요).
     var queueDepth: Reading<Double> = .preparing
+    /// 활성 시간 (%): 요청이 하나라도 걸려 있던 시간의 비율. 보조 프로그램의 커널 추적으로 재고,
+    /// 추적을 못 쓰면 평균 동시 요청을 100%에서 자른 추정이에요. (docs/DISK_ACTIVE_TIME.md)
+    var active: Reading<Double> = .preparing
+    /// 활성 시간이 추정인지
+    var activeEstimated = false
+    /// 내장 SSD를 디스크 I/O만으로 쟀는지 (캐시 비우기·TRIM 이벤트를 받지 못함)
+    var activeIOOnly = false
     /// 작업 하나의 평균 응답 시간 (초). 그 구간 작업이 적으면 '측정 불가'예요.
     var readLatency: Reading<Double> = .preparing
     var writeLatency: Reading<Double> = .preparing

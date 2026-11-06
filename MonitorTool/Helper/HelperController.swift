@@ -15,10 +15,11 @@ final class HelperController {
     private(set) var actionMessage: String?
     /// 가장 최근에 받은 전력 표본
     private(set) var latestSample: PowerSample?
-    /// 가장 최근에 받은 디스크 활성 누적값 (docs/DISK_ACTIVE_TIME.md). 화면이 직접 보지 않아서 관찰하지 않아요.
-    @ObservationIgnored private(set) var latestDiskActivity: DiskActivitySample?
-    /// 디스크 활성 요청이 실패한 이유. 전력 쪽 상태(연결 실패)와 따로 둬요.
-    @ObservationIgnored private(set) var diskActivityProblem: String?
+    /// 디스크 활성 시간을 커널 추적으로 잴지예요. (설정 창 '보조 프로그램' 탭, 기본 켬, docs/DISK_ACTIVE_TIME.md)
+    /// 끄면 보조 프로그램이 추적을 바로 놓고, 활성 %는 드라이버 통계로 낸 추정으로 보여요.
+    private(set) var diskActivityEnabled = HelperController.savedDiskActivityEnabled()
+    /// 디스크 활성 요청이 실패한 이유. 전력 쪽 상태(연결 실패)와 따로 둬요. (바뀌면 Xcode 출력 창에 남겨요)
+    @ObservationIgnored private var diskActivityProblem: String?
     /// 지금 요청하는 측정 간격 (밀리초). 패널이 열려 있으면 1초, 닫혀 있으면 10초예요.
     private(set) var intervalMilliseconds = HelperConstants.panelClosedInterval
     /// 끄는 중이에요. (단추를 잠깐 막아요)
@@ -26,6 +27,8 @@ final class HelperController {
 
     /// 상태나 값이 바뀌면 불러요. 수집 일정(CollectionScheduler)이 패널 값을 새로 만들어요.
     @ObservationIgnored var onChange: (() -> Void)?
+    /// 보조 프로그램에서 디스크 활성 누적값이 오면 불러요. 수집 일정(CollectionScheduler)이 화면과 그래프에 바로 넣어요.
+    @ObservationIgnored var onDiskActivity: ((DiskActivitySample) -> Void)?
 
     @ObservationIgnored private let service = SMAppService.daemon(plistName: HelperConstants.plistName)
     @ObservationIgnored private var connection: NSXPCConnection?
@@ -275,11 +278,12 @@ final class HelperController {
     /// 전력 요청과 같은 연결을 쓰지만 따로 기다려서, 실패하거나 늦어도 연결을 끊거나 '연결 실패'로 바꾸지 않아요.
     /// (다시 빌드한 직후에는 새 앱의 이 요청을 옛 보조 프로그램이 몰라서 답이 오지 않아요)
     func requestDiskActivity(intervalMilliseconds interval: Int) {
-        guard !isPreview, !isBusy, !isMissingFromApp, status == .enabled || status == .failed else { return }
+        guard !isPreview, diskActivityEnabled, !isBusy, !isMissingFromApp,
+              status == .enabled || status == .failed else { return }
         if let diskPending {
             guard Date().timeIntervalSince(diskPending.sentAt) > HelperController.replyTimeout else { return }
             self.diskPending = nil
-            diskActivityProblem = "보조 프로그램이 디스크 활성 요청에 답하지 않음"
+            setDiskActivityProblem("보조 프로그램이 디스크 활성 요청에 답하지 않음")
         }
         let id = UUID()
         diskPending = (id, Date())
@@ -308,21 +312,59 @@ final class HelperController {
         diskPending = nil
         // 둘 다 nil이면 보조 프로그램이 새 버전으로 다시 뜨는 중이에요. 앞 값은 그대로 둬요.
         guard let data else {
-            diskActivityProblem = helperProblem
+            setDiskActivityProblem(helperProblem)
             return
         }
         guard let sample = try? JSONDecoder().decode(DiskActivitySample.self, from: data) else {
-            diskActivityProblem = "보조 프로그램이 보낸 디스크 활성 값을 읽지 못함"
+            setDiskActivityProblem("보조 프로그램이 보낸 디스크 활성 값을 읽지 못함")
             return
         }
-        latestDiskActivity = sample
-        diskActivityProblem = helperProblem
+        setDiskActivityProblem(helperProblem)
+        // 끄는 사이에 온 답은 버려요.
+        if diskActivityEnabled {
+            onDiskActivity?(sample)
+        }
     }
 
     private func diskActivityFailed(id: UUID, error: any Error) {
         guard diskPending?.id == id else { return }
         diskPending = nil
-        diskActivityProblem = "디스크 활성 요청 실패 (\(HelperController.describe(error)))"
+        setDiskActivityProblem("디스크 활성 요청 실패 (\(HelperController.describe(error)))")
+    }
+
+    /// 설정 스위치. 끄면 보조 프로그램에 추적을 바로 놓으라고 해요. (docs/DISK_ACTIVE_TIME.md 4.1)
+    func setDiskActivityEnabled(_ enabled: Bool) {
+        guard enabled != diskActivityEnabled else { return }
+        diskActivityEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: HelperController.diskActivityKey)
+        print("디스크 활성 시간: \(enabled ? "켬" : "끔")")
+        if !enabled {
+            releaseDiskActivity()
+        }
+        onChange?()
+    }
+
+    /// 보조 프로그램에 디스크 추적을 놓으라고 해요. 연결이 없으면 보조 프로그램이 묻지 않은 지 15~30초 뒤에 스스로 놓아요.
+    private func releaseDiskActivity() {
+        diskPending = nil
+        setDiskActivityProblem(nil)
+        guard !isPreview, let connection else { return }
+        let proxy = connection.remoteObjectProxyWithErrorHandler { @Sendable _ in }
+        (proxy as? HelperProtocol)?.releaseDiskActivity()
+    }
+
+    private func setDiskActivityProblem(_ newProblem: String?) {
+        guard diskActivityProblem != newProblem else { return }
+        diskActivityProblem = newProblem
+        if let newProblem {
+            print("⚠️ 디스크 활성: \(newProblem)")
+        }
+    }
+
+    private static let diskActivityKey = "diskActivityEnabled"
+
+    private static func savedDiskActivityEnabled() -> Bool {
+        UserDefaults.standard.object(forKey: diskActivityKey) as? Bool ?? true
     }
 
     // MARK: - 팬 제어 (docs/FAN_CONTROL.md)
@@ -417,8 +459,7 @@ final class HelperController {
         failingSince = nil
         setProblem(nil)
         setSample(nil)
-        latestDiskActivity = nil
-        diskActivityProblem = nil
+        setDiskActivityProblem(nil)
     }
 
     // MARK: - 값 바꾸기 (바뀐 것이 있을 때만 화면에 알려요)

@@ -10,6 +10,14 @@ nonisolated struct HistorySample: Hashable, Sendable {
 nonisolated struct MetricBatch: Sendable {
     var metrics: [Metric]
     var date: Date
+    /// 스냅숏 대신 이 값을 그대로 기록해요. (디스크 활성 시간처럼 기록 시각이 지금 값과 다른 계열)
+    var values: [Metric: Double] = [:]
+}
+
+extension MetricBatch {
+    nonisolated init(values: [Metric: Double], date: Date) {
+        self.init(metrics: Array(values.keys), date: date, values: values)
+    }
 }
 
 /// 그래프용 최근 기록이에요. 메모리에만 최근 30분을 남기고, 앱을 끄면 사라져요. (설계 문서 4장)
@@ -51,6 +59,14 @@ extension MetricHistory {
     nonisolated mutating func record(_ metrics: [Metric], from snapshot: MonitorSnapshot, at date: Date) {
         for metric in metrics {
             append(MetricHistory.value(of: metric, in: snapshot), for: metric, at: date)
+        }
+        removeExpired(now: date)
+    }
+
+    /// 정해 준 값을 그 시각으로 기록에 더해요.
+    nonisolated mutating func record(values: [Metric: Double], at date: Date) {
+        for (metric, value) in values {
+            append(value, for: metric, at: date)
         }
         removeExpired(now: date)
     }
@@ -109,6 +125,16 @@ extension MetricHistory {
             return snapshot.disk.disks.okValue?.first { $0.id == id }?.write.okValue
         case .diskQueue(let id):
             return snapshot.disk.disks.okValue?.first { $0.id == id }?.queueDepth.okValue
+        case .diskActive(let id):
+            guard let disk = snapshot.disk.disks.okValue?.first(where: { $0.id == id }), !disk.activeEstimated else {
+                return nil
+            }
+            return disk.active.okValue
+        case .diskActiveEstimate(let id):
+            guard let disk = snapshot.disk.disks.okValue?.first(where: { $0.id == id }), disk.activeEstimated else {
+                return nil
+            }
+            return disk.active.okValue
         }
     }
 
