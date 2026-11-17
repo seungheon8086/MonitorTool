@@ -48,11 +48,14 @@ struct DiskCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     ValueText(reading: disk.read, format: ValueFormat.rate)
                         .lineLimit(1)
+                        .fixedColumn(DiskCard.rateTemplate)
                         .gridColumnAlignment(.trailing)
                     ValueText(reading: disk.write, format: ValueFormat.rate)
                         .lineLimit(1)
+                        .fixedColumn(DiskCard.rateTemplate)
                         .gridColumnAlignment(.trailing)
                     activeText(disk)
+                        .fixedColumn(DiskCard.activeTemplate)
                         .gridColumnAlignment(.trailing)
                     DiskActiveBar(reading: disk.active,
                                   fill: disk.activeEstimated ? color.secondaryColor : color.color)
@@ -60,6 +63,10 @@ struct DiskCard: View {
             }
         }
     }
+
+    /// 열 폭을 정하는 가장 넓은 글. 값의 자릿수·단위가 바뀌어도 열 위치가 움직이지 않게 해요. (2026-11-17 사용자 요청)
+    static let rateTemplate = "888 MB/s"
+    static let activeTemplate = "≈100%"
 
     private func header(_ text: String) -> some View {
         Text(text)
@@ -124,5 +131,20 @@ struct DiskActiveBar: View {
             return (value, true)
         }
         return nil
+    }
+}
+
+private extension View {
+    /// 보이지 않는 본보기 글만큼 폭을 잡고 오른쪽에 맞춰요. 값 글은 ValueText의 기본 글꼴(15pt semibold)이에요.
+    func fixedColumn(_ template: String) -> some View {
+        ZStack(alignment: .trailing) {
+            Text(template)
+                .font(.system(size: 15, weight: .semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .hidden()
+                .accessibilityHidden(true)
+            self
+        }
     }
 }
