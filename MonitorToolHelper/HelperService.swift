@@ -87,16 +87,17 @@ final class HelperLifecycle: NSObject, NSXPCListenerDelegate, @unchecked Sendabl
         newConnection.invalidationHandler = { [weak self] in
             self?.connectionEnded()
         }
-        queue.sync {
+        let count = queue.sync { () -> Int in
             connectionCount += 1
             // 끝내려고 기다리던 중이었다면 그만둬요. (실행 파일이 바뀌어서 끝내는 중이면 그대로 끝내요)
             if !exitIsForced {
                 pendingExit?.cancel()
                 pendingExit = nil
             }
+            return connectionCount
         }
         newConnection.resume()
-        HelperLog.notice(.lifecycle, "연결 받음 (pid \(newConnection.processIdentifier))")
+        HelperLog.notice(.lifecycle, "연결 받음 (pid \(newConnection.processIdentifier), 연결 \(count)개)")
         return true
     }
 
@@ -117,6 +118,7 @@ final class HelperLifecycle: NSObject, NSXPCListenerDelegate, @unchecked Sendabl
     private func connectionEnded() {
         queue.async {
             self.connectionCount = max(self.connectionCount - 1, 0)
+            HelperLog.notice(.lifecycle, "연결 끊김 (남은 연결 \(self.connectionCount)개)")
             if self.connectionCount == 0 {
                 // 앱이 꺼졌으면 '계속 유지'라도 팬을 바로 시스템 제어로 돌려요.
                 self.fan.appDisconnected()

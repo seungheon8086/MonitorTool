@@ -440,6 +440,7 @@ final class HelperController {
     private func connectionInvalidated(_ connectionID: ObjectIdentifier) {
         // 이미 새 연결로 바꿨다면 그대로 둬요.
         guard let connection, ObjectIdentifier(connection) == connectionID else { return }
+        AppLog.notice(.helper, "보조 프로그램 연결 끊김")
         self.connection = nil
         pending = nil
         diskPending = nil
@@ -466,6 +467,7 @@ final class HelperController {
 
     private func setStatus(_ newStatus: HelperStatus) {
         guard status != newStatus else { return }
+        AppLog.notice(.helper, "보조 프로그램 상태: \(status.logText) → \(newStatus.logText)")
         status = newStatus
         // 상태가 바뀌면 앞서 실패했던 켜기·끄기 안내는 지워요.
         actionMessage = nil

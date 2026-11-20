@@ -5,7 +5,7 @@ import os
 /// 보기: log show --last 1h --style compact --predicate 'subsystem == "com.seungheon.MonitorTool.helper"'
 enum HelperLog {
     enum Category: String, CaseIterable {
-        /// 시작·끝·연결
+        /// 시작·끝·연결·자원
         case lifecycle
         /// powermetrics
         case power
