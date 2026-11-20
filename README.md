@@ -93,31 +93,32 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
 ## 폴더 구조
 
 ```
-MonitorTool/        앱 코드
-  App/              시작점, AppDelegate
-  Model/            측정값과 값 상태, 화면이 보는 저장소, 팬 이름
-  Collection/       값을 모으는 일정(패널을 열면 1초, 닫으면 10초·배터리 30초, 화면이 꺼지면 30초)과 수집기
-                    (CPU·GPU 사용률·GPU 메모리, IOReport, 메모리, 온도·팬(SMC), 배터리, 디스크·SMART, 네트워크)
-  Helper/           보조 프로그램 켜기·끄기와 XPC 연결
-  Fan/              팬 제어 상태·프리셋과 입력 조각
-  Widget/           위젯 공유 파일 쓰기
-  Appearance/       항목, 항목 색, 패널 배경·글자 색·항목 순서 설정
-  MenuBar/          메뉴 막대 아이콘
-  Panel/            사이드 패널 창과 화면
-    Cards/          기본 화면의 카드
-    Details/        눌렀을 때 펼쳐지는 상세 (팬 제어 포함)
-    Charts/         최근 기록 그래프
-    Components/     여러 화면이 함께 쓰는 조각
-  Settings/         설정 창 (일반·패널·모양·보조 프로그램·팬)
-  Support/          전역 단축키(fn + Space 이벤트 탭, 직접 정한 조합)와 단축키 설정, 숫자 표시 형식, 창 흐림
-MonitorToolHelper/  관리자 권한 보조 프로그램 (powermetrics로 CPU·ANE 전력, SMC 쓰기로 팬 제어와 안전장치)
-MonitorToolWidget/  알림 센터 위젯 확장 (요약 위젯, 그래프 위젯 6종)
-Shared/             앱과 보조 프로그램이 함께 쓰는 XPC 약속, 팬 제어 요청·상태, SMC 연결
-WidgetShared/       앱과 위젯이 함께 쓰는 공유 파일 형식
-LaunchDaemons/      보조 프로그램의 launchd 설정 (빌드할 때 앱 안으로 복사)
-Scripts/            Release 빌드·설치(build-app.sh), 안 쓰는 코드 검사(periphery.sh)
-Diagnostics/        기술 검증용 진단 앱·도구와 측정 결과
-docs/               설계 문서
+.
+├── MonitorTool/         앱 코드
+│   ├── App/             시작점, AppDelegate
+│   ├── Model/           측정값과 값 상태, 화면이 보는 저장소, 팬 이름
+│   ├── Collection/      값을 모으는 일정(패널을 열면 1초, 닫으면 10초·배터리 30초, 화면이 꺼지면 30초)과 수집기
+│   │                    (CPU·GPU 사용률·GPU 메모리, IOReport, 메모리, 온도·팬(SMC), 배터리, 디스크·SMART, 네트워크)
+│   ├── Helper/          보조 프로그램 켜기·끄기와 XPC 연결
+│   ├── Fan/             팬 제어 상태·프리셋과 입력 조각
+│   ├── Widget/          위젯 공유 파일 쓰기
+│   ├── Appearance/      항목, 항목 색, 패널 배경·글자 색·항목 순서 설정
+│   ├── MenuBar/         메뉴 막대 아이콘
+│   ├── Panel/           사이드 패널 창과 화면
+│   │   ├── Cards/       기본 화면의 카드
+│   │   ├── Details/     눌렀을 때 펼쳐지는 상세 (팬 제어 포함)
+│   │   ├── Charts/      최근 기록 그래프
+│   │   └── Components/  여러 화면이 함께 쓰는 조각
+│   ├── Settings/        설정 창 (일반·패널·모양·보조 프로그램·팬)
+│   └── Support/         전역 단축키(fn + Space 이벤트 탭, 직접 정한 조합)와 단축키 설정, 숫자 표시 형식, 창 흐림
+├── MonitorToolHelper/   관리자 권한 보조 프로그램 (powermetrics로 CPU·ANE 전력, SMC 쓰기로 팬 제어와 안전장치)
+├── MonitorToolWidget/   알림 센터 위젯 확장 (요약 위젯, 그래프 위젯 6종)
+├── Shared/              앱과 보조 프로그램이 함께 쓰는 XPC 약속, 팬 제어 요청·상태, SMC 연결
+├── WidgetShared/        앱과 위젯이 함께 쓰는 공유 파일 형식
+├── LaunchDaemons/       보조 프로그램의 launchd 설정 (빌드할 때 앱 안으로 복사)
+├── Scripts/             Release 빌드·설치(build-app.sh), 안 쓰는 코드 검사(periphery.sh)
+├── Diagnostics/         기술 검증용 진단 앱·도구와 측정 결과
+└── docs/                설계 문서
 ```
 
 ## 개발 환경
