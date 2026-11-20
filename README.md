@@ -82,7 +82,7 @@ macOS 메뉴 막대에 상주하는 개인용 시스템 모니터링 앱입니�
   - [ ] 남은 점검: 다른 추적 도구와 함께 쓰기, 추적 켬·끔 비용
 - [x] GPU 메모리: 앱들이 GPU용으로 할당한 합계(1·2 GiB 할당 시험으로 확인), GPU 카드와 상세 그래프 ([진단 도구](Diagnostics/GPUMemoryProbe))
 - [x] 패널 다듬기: 그래프 눈금 칸, 고정 단추, 패널 배경(유리·색조·흐림)·글자 색 설정, 고정 설명 문구 정리, Release 빌드·설치 스크립트(`Scripts/build-app.sh`)
-- [x] 네트워크 속도 단위: 설정 창 '일반 > 단위'에서 MB/s(바이트)·Mbps(비트, bps·Kbps·Mbps·Gbps 자동) 고르기, 패널과 위젯 모두, 기본 Mbps. 그래프 눈금은 고른 단위에서 깔끔한 값(10 Mbps 등), 누적량·디스크는 바이트 그대로 (사용자 요청, [#1](https://github.com/seungheon8086/MonitorTool/issues/1))
+- [x] 네트워크 속도 단위: 설정 창 '일반 > 단위'에서 MB/s(바이트)·Mbps(비트, bps·Kbps·Mbps·Gbps 자동) 고르기, 패널과 위젯 모두, 기본 Mbps. 그래프 눈금은 고른 단위에서 깔끔한 값(10 Mbps 등), 누적량·디스크는 바이트 그대로 (사용자 요청, [#1](https://github.com/seungheon8086/MonitorTool/issues/1)). 패널 '네트워크 자세히' 머리 줄의 `MB/s │ Mbps` 단추로도 바꿀 수 있고 설정 창과 같은 값 ([#3](https://github.com/seungheon8086/MonitorTool/issues/3))
 - [ ] 중간 정리와 최적화: 자원 사용 기준 측정([도구](Diagnostics/ResourceProbe)), 안 쓰는 코드·중복 정리, 측정을 바탕으로 한 경량화
   - [x] 기준 측정: 패널 닫힘 때 가족 합계(앱·보조 프로그램·powermetrics·위젯 확장) CPU 0.52%·0.47 mW, 열림 6.31%·7.6 mW
   - [x] 정리: 끝난 브랜치는 `archive/` 태그로, 안 쓰는 코드는 Periphery로 찾아 지우고(`Scripts/periphery.sh` 경고 0개 목표), 앱·보조 프로그램에 따로 있던 SMC 코드를 하나로

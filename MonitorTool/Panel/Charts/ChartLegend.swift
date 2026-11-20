@@ -1,6 +1,6 @@
 import SwiftUI
 
-// 그래프 제목 줄에 붙는 작은 조각들(범례, 지금 값, 기간 고르기)이에요.
+// 그래프 제목 줄에 붙는 작은 조각들(범례, 지금 값, 기간·단위 고르기)이에요.
 
 /// 범례의 색 막대예요. 점선 계열은 점선으로 보여줘요.
 struct LegendSwatch: View {
@@ -102,5 +102,28 @@ struct PeriodPicker: View {
         .labelsHidden()
         .controlSize(.small)
         .fixedSize()
+    }
+}
+
+/// 네트워크 속도 단위 고르기 (MB/s │ Mbps). 설정 창 '일반 > 단위'와 같은 값이라, 바꾸면 카드·위젯도 함께 바뀌어요. (2026-11-20 사용자 요청, #3)
+struct NetworkRateUnitPicker: View {
+    @Environment(AppearanceSettings.self) private var appearance
+
+    var body: some View {
+        Picker("네트워크 속도 단위", selection: unit) {
+            ForEach(NetworkRateUnit.allCases) { option in
+                Text(option.title)
+                    .tag(option)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.small)
+        .fixedSize()
+    }
+
+    private var unit: Binding<NetworkRateUnit> {
+        Binding(get: { appearance.networkRateUnit },
+                set: { appearance.setNetworkRateUnit($0) })
     }
 }

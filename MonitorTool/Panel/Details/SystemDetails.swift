@@ -401,7 +401,10 @@ struct NetworkDetail: View {
 
     var body: some View {
         DetailCard(title: "네트워크 자세히") {
-            PeriodPicker(period: $period)
+            HStack(spacing: 6) {
+                NetworkRateUnitPicker()
+                PeriodPicker(period: $period)
+            }
         } content: {
             speedChart
             totalsTable
@@ -412,7 +415,7 @@ struct NetworkDetail: View {
         }
     }
 
-    /// 설정 창 '일반 > 단위'에서 고른 속도 단위
+    /// 설정 창 '일반 > 단위'나 머리 줄 단추에서 고른 속도 단위
     private var unit: NetworkRateUnit { appearance.networkRateUnit }
 
     private func rate(_ bytesPerSecond: Double) -> String {
