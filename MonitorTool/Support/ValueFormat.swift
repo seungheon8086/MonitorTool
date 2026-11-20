@@ -70,24 +70,24 @@ nonisolated enum ValueFormat {
     /// 데이터 양: 96 KB, 410 MB, 3.2 GB (1 KB = 1000 바이트)
     static func byteCount(_ bytes: Double) -> String {
         guard bytes.isFinite else { return unavailable }
-        let units = ["B", "KB", "MB", "GB", "TB"]
-        var value = max(bytes, 0)
-        var index = 0
-        while value >= 1000, index < units.count - 1 {
-            value /= 1000
-            index += 1
-        }
-        // 바이트 단위이거나 10 이상이면 소수점 없이 보여줘요. (예: 96 KB, 410 MB, 1.8 MB)
-        if index == 0 || value >= 10, let number = whole(value) {
-            return "\(number) \(units[index])"
-        }
-        return "\(oneDecimal(value)) \(units[index])"
+        return decimalUnits(bytes, units: ["B", "KB", "MB", "GB", "TB"])
     }
 
-    /// 네트워크 속도: 96 KB/s, 1.8 MB/s
+    /// 속도: 96 KB/s, 1.8 MB/s (디스크 읽기·쓰기는 늘 이 꼴이에요)
     static func rate(_ bytesPerSecond: Double) -> String {
         guard bytesPerSecond.isFinite else { return unavailable }
         return "\(byteCount(bytesPerSecond))/s"
+    }
+
+    /// 네트워크 속도: 바이트면 96 KB/s, 1.8 MB/s · 비트면 768 Kbps, 14 Mbps (1 Kbps = 1000 bps)
+    static func networkRate(_ bytesPerSecond: Double, unit: NetworkRateUnit) -> String {
+        guard bytesPerSecond.isFinite else { return unavailable }
+        switch unit {
+        case .bytes:
+            return rate(bytesPerSecond)
+        case .bits:
+            return decimalUnits(bytesPerSecond * unit.factor, units: bitRateUnits)
+        }
     }
 
     /// 평균 동시 요청 수: 1.6 (소수 한 자리)
@@ -138,14 +138,46 @@ nonisolated enum ValueFormat {
     /// 그래프 눈금: 500 KB/s, 4 MB/s (1 KB = 1000 바이트)
     static func rateScale(_ bytesPerSecond: Double) -> String {
         guard bytesPerSecond.isFinite else { return unavailable }
-        let units = ["B/s", "KB/s", "MB/s", "GB/s"]
-        var value = max(bytesPerSecond, 0)
+        return compactUnits(bytesPerSecond, units: ["B/s", "KB/s", "MB/s", "GB/s"])
+    }
+
+    /// 네트워크 그래프 눈금: 바이트면 500 KB/s, 4 MB/s · 비트면 800 Kbps, 10 Mbps
+    static func networkRateScale(_ bytesPerSecond: Double, unit: NetworkRateUnit) -> String {
+        guard bytesPerSecond.isFinite else { return unavailable }
+        switch unit {
+        case .bytes:
+            return rateScale(bytesPerSecond)
+        case .bits:
+            return compactUnits(bytesPerSecond * unit.factor, units: Array(bitRateUnits.dropLast()))
+        }
+    }
+
+    private static let bitRateUnits = ["bps", "Kbps", "Mbps", "Gbps", "Tbps"]
+
+    /// 1000마다 다음 단위로 올려요. 가장 작은 단위이거나 10 이상이면 정수, 그 밖은 소수 한 자리예요.
+    /// (예: 96 KB, 410 MB, 1.8 MB / 768 Kbps, 14 Mbps, 7.6 Kbps)
+    private static func decimalUnits(_ value: Double, units: [String]) -> String {
+        let (value, unit) = stepUp(value, units: units)
+        if unit == units[0] || value >= 10, let number = whole(value) {
+            return "\(number) \(unit)"
+        }
+        return "\(oneDecimal(value)) \(unit)"
+    }
+
+    /// 그래프 눈금용: 1000마다 다음 단위로 올리고 숫자는 compact로 써요. (예: 500 KB/s, 1.5 Mbps)
+    private static func compactUnits(_ value: Double, units: [String]) -> String {
+        let (value, unit) = stepUp(value, units: units)
+        return "\(compact(value)) \(unit)"
+    }
+
+    private static func stepUp(_ value: Double, units: [String]) -> (Double, String) {
+        var value = max(value, 0)
         var index = 0
         while value >= 1000, index < units.count - 1 {
             value /= 1000
             index += 1
         }
-        return "\(compact(value)) \(units[index])"
+        return (value, units[index])
     }
 
     /// 걸리는 시간: 4시간 20분
