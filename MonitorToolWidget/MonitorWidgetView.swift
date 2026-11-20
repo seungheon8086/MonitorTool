@@ -568,7 +568,9 @@ enum WidgetGraphs {
     }
 
     /// 눈금용 짧은 속도: 바이트면 500 KB, 4 MB ('/s'를 빼요) · 비트면 500 Kb, 10 Mb ('ps'를 빼요). 단위는 범례에 있어요.
+    /// 바닥은 단위 없이 '0'이에요. ('0 b'처럼 글자 하나만 남으면 어색해서, 2026-11-20 사용자 요청)
     static func shortRate(_ bytesPerSecond: Double, unit: NetworkRateUnit) -> String {
+        if bytesPerSecond <= 0 { return "0" }
         let text = ValueFormat.networkRateScale(bytesPerSecond, unit: unit)
         let suffix = unit == .bits ? "ps" : "/s"
         return text.hasSuffix(suffix) ? String(text.dropLast(suffix.count)) : text
