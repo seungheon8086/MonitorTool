@@ -247,6 +247,9 @@ struct WidgetSparkline: View {
     var minimumMaximum: Double = 1
     /// 0을 가운데 두고 위아래를 같은 폭으로 (배터리 순전력처럼 부호가 있는 값)
     var symmetric = false
+    /// 맨 위 값을 고를 때 값에 곱하는 수예요. 곱한 단위에서 보기 좋은 수를 고르고 다시 나눠요.
+    /// (네트워크를 비트로 보면 8: 바이트에서 고른 2.5 MB는 20 Mb라, 비트에서 고르면 눈금이 깔끔해요)
+    var scaleFactor: Double = 1
     /// 왼쪽 눈금 글자. nil이면 눈금을 그리지 않아요.
     var axisFormat: ((Double) -> String)?
 
@@ -300,7 +303,8 @@ struct WidgetSparkline: View {
     private var scaleTop: Double {
         if let fixedMaximum { return fixedMaximum }
         let largest = lines.flatMap(\.values).compactMap { $0 }.filter(\.isFinite).map(abs).max() ?? 0
-        return WidgetSparkline.niceCeiling(max(largest * 1.1, minimumMaximum))
+        let factor = scaleFactor.isFinite && scaleFactor > 0 ? scaleFactor : 1
+        return WidgetSparkline.niceCeiling(max(largest * 1.1, minimumMaximum) * factor) / factor
     }
 
     /// 1·2·2.5·5 × 10ⁿ 중 x 이상인 가장 작은 수 (눈금 글자가 깔끔하게)

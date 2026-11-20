@@ -43,6 +43,13 @@ nonisolated struct WidgetPayload: Codable, Sendable {
     var colors: [String: String]
     /// 계열별 값 (WidgetSeriesKey.rawValue → 오래된 칸부터 bucketCount개, 값이 없는 칸은 nil)
     var series: [String: [Double?]]
+    /// 네트워크 속도 단위. 넣기 전에 쓴 파일에는 없어서 선택 항목이에요. (그래서 판은 그대로 1)
+    var networkRateUnit: NetworkRateUnit?
+
+    /// 네트워크 속도 단위. 파일에 없으면 기본 단위(Mbps)예요.
+    var rateUnit: NetworkRateUnit {
+        networkRateUnit ?? .standard
+    }
 
     /// 한 계열의 칸 값. 없으면 빈 칸들을 돌려줘요.
     func values(_ key: WidgetSeriesKey) -> [Double?] {

@@ -25,9 +25,9 @@ struct MonitorWidgetView: View {
     private func content(payload: WidgetPayload) -> some View {
         let colors = WidgetColors(payload: payload)
         if family == .systemLarge {
-            LargeSummary(snapshot: payload.snapshot, colors: colors)
+            LargeSummary(snapshot: payload.snapshot, colors: colors, unit: payload.rateUnit)
         } else {
-            MediumSummary(snapshot: payload.snapshot, colors: colors)
+            MediumSummary(snapshot: payload.snapshot, colors: colors, unit: payload.rateUnit)
         }
     }
 }
@@ -146,16 +146,19 @@ struct WidgetProcessorCard: View {
 struct MediumSummary: View {
     let snapshot: MonitorSnapshot
     let colors: WidgetColors
+    /// 네트워크 속도 단위 (앱 설정 '일반 > 단위')
+    let unit: NetworkRateUnit
 
     var body: some View {
+        let rate: (Double) -> String = { [unit] in ValueFormat.networkRate($0, unit: unit) }
         VStack(spacing: 6) {
             WidgetProcessorCard(snapshot: snapshot, colors: colors, compact: true)
             // 배터리 잔량은 메뉴 막대에서도 보여서 빼고, 순전력과 네트워크 ↓·↑를 보여줘요. (2026-10-30 사용자 요청)
             HStack(spacing: 6) {
                 chip("메모리", snapshot.memory.usagePercent, ValueFormat.percent)
                 chip("순전력", snapshot.battery.netPower, ValueFormat.signedWatts)
-                chip("↓", snapshot.network.download, ValueFormat.rate, labelColor: colors(.network).color)
-                chip("↑", snapshot.network.upload, ValueFormat.rate, labelColor: colors(.network).secondaryColor)
+                chip("↓", snapshot.network.download, rate, labelColor: colors(.network).color)
+                chip("↑", snapshot.network.upload, rate, labelColor: colors(.network).secondaryColor)
             }
             .frame(height: 20)
         }
@@ -181,6 +184,8 @@ struct MediumSummary: View {
 struct LargeSummary: View {
     let snapshot: MonitorSnapshot
     let colors: WidgetColors
+    /// 네트워크 속도 단위 (앱 설정 '일반 > 단위')
+    let unit: NetworkRateUnit
 
     var body: some View {
         VStack(spacing: 6) {
@@ -333,14 +338,15 @@ struct LargeSummary: View {
         }
     }
 
-    /// '↓ 168 KB/s ⋯ 17 GB'
+    /// '↓ 168 KB/s ⋯ 17 GB' · '↓ 1.3 Mbps ⋯ 17 GB' (누적은 늘 바이트)
     private func rateRow(_ arrow: String, _ rate: Reading<Double>, _ total: Reading<Double>,
                          _ color: Color) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             Text(arrow)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(color)
-            WidgetValueText(reading: rate, format: ValueFormat.rate, font: .system(size: 12, weight: .semibold))
+            WidgetValueText(reading: rate, format: { [unit] in ValueFormat.networkRate($0, unit: unit) },
+                            font: .system(size: 12, weight: .semibold))
             Spacer(minLength: 4)
             WidgetValueText(reading: total, format: ValueFormat.byteCount, font: .system(size: 10))
                 .foregroundStyle(.secondary)
@@ -401,6 +407,8 @@ struct WidgetGraphCard: View {
     var minimumMaximum: Double = 1
     /// 0을 가운데 둘지 (배터리 순전력)
     var symmetric = false
+    /// 맨 위 눈금을 고를 때 값에 곱하는 수 (네트워크를 비트로 보면 8)
+    var scaleFactor: Double = 1
     /// 왼쪽 눈금 글자
     var axisFormat: ((Double) -> String)?
 
@@ -423,7 +431,7 @@ struct WidgetGraphCard: View {
                 }
                 .minimumScaleFactor(0.8)
                 WidgetSparkline(lines: lines, fixedMaximum: fixedMaximum, minimumMaximum: minimumMaximum,
-                                symmetric: symmetric, axisFormat: axisFormat)
+                                symmetric: symmetric, scaleFactor: scaleFactor, axisFormat: axisFormat)
                     .frame(maxHeight: .infinity)
             }
         }
@@ -495,18 +503,22 @@ enum WidgetGraphs {
             axisFormat: { "\(ValueFormat.compact($0))°" })
     }
 
+    /// 네트워크 속도: 기록은 바이트 그대로이고, 글과 눈금만 앱에서 고른 단위로 바꿔요.
     static func network(_ payload: WidgetPayload, _ colors: WidgetColors) -> WidgetGraphCard {
         let s = payload.snapshot
         let network = colors(.network)
+        let unit = payload.rateUnit
+        let rate: (Double) -> String = { ValueFormat.networkRate($0, unit: unit) }
         return WidgetGraphCard(
             title: "네트워크",
-            legends: [.init(label: "↓", color: network.color, value: widgetLegendValue(s.network.download, ValueFormat.rate)),
+            legends: [.init(label: "↓", color: network.color, value: widgetLegendValue(s.network.download, rate)),
                       .init(label: "↑", color: network.secondaryColor, dashed: true,
-                            value: widgetLegendValue(s.network.upload, ValueFormat.rate))],
+                            value: widgetLegendValue(s.network.upload, rate))],
             lines: [WidgetLine(label: "↑", values: payload.values(.networkUpload), color: network.secondaryColor, dashed: true),
                     WidgetLine(label: "↓", values: payload.values(.networkDownload), color: network.color)],
             minimumMaximum: 10_000,
-            axisFormat: shortRate)
+            scaleFactor: unit.factor,
+            axisFormat: { shortRate($0, unit: unit) })
     }
 
     /// 팬 회전수: 오른쪽 진한 실선, 왼쪽 연한 점선 (docs/FAN_CONTROL.md '팬 이름')
@@ -555,9 +567,10 @@ enum WidgetGraphs {
             })
     }
 
-    /// 눈금용 짧은 속도: 500 KB, 4 MB ('/s'는 범례에 있어서 빼요)
-    static func shortRate(_ bytesPerSecond: Double) -> String {
-        let text = ValueFormat.rateScale(bytesPerSecond)
-        return text.hasSuffix("/s") ? String(text.dropLast(2)) : text
+    /// 눈금용 짧은 속도: 바이트면 500 KB, 4 MB ('/s'를 빼요) · 비트면 500 Kb, 10 Mb ('ps'를 빼요). 단위는 범례에 있어요.
+    static func shortRate(_ bytesPerSecond: Double, unit: NetworkRateUnit) -> String {
+        let text = ValueFormat.networkRateScale(bytesPerSecond, unit: unit)
+        let suffix = unit == .bits ? "ps" : "/s"
+        return text.hasSuffix(suffix) ? String(text.dropLast(suffix.count)) : text
     }
 }
