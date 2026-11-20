@@ -213,7 +213,7 @@ final class DiskCollector {
             case .success(let info):
                 smartReadings[device.id] = .ok(info, at: now)
             case .failure(let error):
-                print("⚠️ SMART(\(device.bsdName)): 읽기 실패 0x\(String(UInt32(bitPattern: error.code), radix: 16))")
+                AppLog.error(.disk, "SMART(\(device.bsdName)): 읽기 실패 0x\(String(UInt32(bitPattern: error.code), radix: 16))")
                 smartReadings[device.id] = .failed("SMART를 읽지 못함")
             }
         }

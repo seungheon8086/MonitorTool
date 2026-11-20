@@ -23,8 +23,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var widgetPublisher: WidgetPublisher?
     /// 패널이 열려 있는지 (팬 제어 상태를 물을지 정할 때 써요)
     private var panelIsShown = false
+    /// 10분마다 CPU 시간·메모리를 기록에 한 줄 남겨요. (실사용 점검)
+    private let usage = UsageReporter { AppLog.notice(.app, $0) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.logLaunch()
+        usage.start()
+
         // 단축키(기본 fn + Space)로 어디서든 패널을 열고 닫아요.
         // 설정 창 '일반'에서 켜고 끄고, 직접 정한 조합(기본 ⌃⌥M)으로 바꿀 수 있어요.
         let shortcut = PanelShortcut { [weak self] in
@@ -53,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         // fn + Space인데 손쉬운 사용 허용이 아직 없으면 macOS의 허용 창을 한 번 띄워요.
         if !shortcut.activate(promptForPermission: true) {
-            print("⚠️ \(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
+            AppLog.error(.ui, "\(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
         }
 
         // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 10초(배터리 30초), 화면이 꺼져 있으면 30초마다 모아요.
@@ -91,8 +96,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 앱을 끝낼 때(메뉴의 '종료' 등) 오늘 네트워크 누적을 저장해요.
     /// Xcode의 정지 단추로 끝내면 불리지 않아서, 마지막 저장(30초마다) 뒤의 양은 남지 않아요.
     func applicationWillTerminate(_ notification: Notification) {
+        AppLog.notice(.app, "앱 끝남")
         collectionScheduler?.stop()
         widgetPublisher?.stop()
+    }
+
+    /// 켜질 때 버전·빌드 시각·위치를 기록에 남겨요. 실사용 기록에서 어느 빌드였는지 가려 보려고 둬요.
+    private static func logLaunch() {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        #if DEBUG
+        let configuration = "Debug"
+        #else
+        let configuration = "Release"
+        #endif
+        AppLog.notice(.app, "앱 켜짐 · \(version) (\(build)) \(configuration) · 빌드 \(ExecutableStamp.text)"
+                      + " · \(ProcessInfo.processInfo.operatingSystemVersionString)"
+                      + " · pid \(ProcessInfo.processInfo.processIdentifier)"
+                      + " · \(Bundle.main.bundleURL.path(percentEncoded: false))")
     }
 
     /// 설정 창을 열어요. 처음 열 때 만들고, 그다음부터는 같은 창을 다시 보여줘요.

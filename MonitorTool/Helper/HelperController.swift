@@ -337,7 +337,7 @@ final class HelperController {
         guard enabled != diskActivityEnabled else { return }
         diskActivityEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: HelperController.diskActivityKey)
-        print("디스크 활성 시간: \(enabled ? "켬" : "끔")")
+        AppLog.notice(.disk, "디스크 활성 시간: \(enabled ? "켬" : "끔")")
         if !enabled {
             releaseDiskActivity()
         }
@@ -357,7 +357,7 @@ final class HelperController {
         guard diskActivityProblem != newProblem else { return }
         diskActivityProblem = newProblem
         if let newProblem {
-            print("⚠️ 디스크 활성: \(newProblem)")
+            AppLog.error(.disk, "디스크 활성: \(newProblem)")
         }
     }
 
@@ -440,6 +440,7 @@ final class HelperController {
     private func connectionInvalidated(_ connectionID: ObjectIdentifier) {
         // 이미 새 연결로 바꿨다면 그대로 둬요.
         guard let connection, ObjectIdentifier(connection) == connectionID else { return }
+        AppLog.notice(.helper, "보조 프로그램 연결 끊김")
         self.connection = nil
         pending = nil
         diskPending = nil
@@ -466,6 +467,7 @@ final class HelperController {
 
     private func setStatus(_ newStatus: HelperStatus) {
         guard status != newStatus else { return }
+        AppLog.notice(.helper, "보조 프로그램 상태: \(status.logText) → \(newStatus.logText)")
         status = newStatus
         // 상태가 바뀌면 앞서 실패했던 켜기·끄기 안내는 지워요.
         actionMessage = nil
@@ -474,10 +476,13 @@ final class HelperController {
 
     private func setProblem(_ newProblem: String?) {
         guard problem != newProblem else { return }
+        let hadProblem = problem != nil
         problem = newProblem
+        // 기록(Xcode 출력 창 포함)에 남겨요. 원인을 찾을 때 Scripts/collect-logs.sh로 모아 주세요.
         if let newProblem {
-            // Xcode 아래쪽 출력 창에도 남겨요. 원인을 찾을 때 복사해서 보내 주세요.
-            print("⚠️ 보조 프로그램: \(newProblem)")
+            AppLog.error(.helper, "보조 프로그램: \(newProblem)")
+        } else if hadProblem {
+            AppLog.notice(.helper, "보조 프로그램: 문제 풀림")
         }
         onChange?()
     }

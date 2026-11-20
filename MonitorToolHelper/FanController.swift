@@ -71,8 +71,8 @@ final class FanController: @unchecked Sendable {
             cleanUpLeftovers()
         }
         registerForSleep()
-        NSLog("MonitorToolHelper: 팬 %ld개 (%@)", fans.count,
-              fans.map { "F\($0.id) \(Int($0.minimum))~\(Int($0.maximum))" }.joined(separator: ", "))
+        HelperLog.notice(.fan, "팬 \(fans.count)개 ("
+                         + fans.map { "F\($0.id) \(Int($0.minimum))~\(Int($0.maximum))" }.joined(separator: ", ") + ")")
     }
 
     // MARK: - XPC에서 부르는 일
@@ -91,7 +91,7 @@ final class FanController: @unchecked Sendable {
                 suspendedForSleep = false
                 lastReturn = nil
                 stopTimer()
-                NSLog("MonitorToolHelper: 팬 시스템 제어 (앱 요청)")
+                HelperLog.notice(.fan, "팬 시스템 제어 (앱 요청)")
                 return (encodedState(), nil)
             }
             if let problem = validate(request) {
@@ -103,7 +103,7 @@ final class FanController: @unchecked Sendable {
                 suspendedForSleep = false
                 lastReturn = FanReturnEvent(reason: .writeFailed, at: Date())
                 stopTimer()
-                NSLog("MonitorToolHelper: 팬 고정 실패 (%@)", problem)
+                HelperLog.error(.fan, "팬 고정 실패 (\(problem))")
                 return (encodedState(), "\(FanReturnReason.writeFailed.text). \(problem)")
             }
             active = request
@@ -112,8 +112,8 @@ final class FanController: @unchecked Sendable {
             suspendedForSleep = false
             lastReturn = nil
             startTimer()
-            NSLog("MonitorToolHelper: 팬 고정 %@ (%@)", request.label,
-                  request.targets.map { "\(Int($0.smcValue))" }.joined(separator: ", "))
+            HelperLog.notice(.fan, "팬 고정 \(request.label) ("
+                             + request.targets.map { "\(Int($0.smcValue))" }.joined(separator: ", ") + ")")
             return (encodedState(), nil)
         }
     }
@@ -141,7 +141,7 @@ final class FanController: @unchecked Sendable {
         queue.sync {
             if active != nil || suspendedForSleep {
                 writeSystemModes()
-                NSLog("MonitorToolHelper: 끝나기 전에 팬을 시스템 제어로 돌림")
+                HelperLog.notice(.fan, "끝나기 전에 팬을 시스템 제어로 돌림")
             }
             active = nil
             suspendedForSleep = false
@@ -195,7 +195,7 @@ final class FanController: @unchecked Sendable {
         }
         for fan in fans where smc.number(fan.modeKey) == 1 {
             if case .failure(let error) = smc.write(fan.modeKey, 0) {
-                NSLog("MonitorToolHelper: 팬 %ld 시스템 제어로 돌리지 못함 (%@)", fan.id, error.text)
+                HelperLog.error(.fan, "팬 \(fan.id) 시스템 제어로 돌리지 못함 (\(error.text))")
             }
         }
     }
@@ -209,7 +209,7 @@ final class FanController: @unchecked Sendable {
         guard !leftovers.isEmpty else {
             return
         }
-        NSLog("MonitorToolHelper: 수동으로 남은 팬 %ld개를 시스템 제어로 정리", leftovers.count)
+        HelperLog.notice(.fan, "수동으로 남은 팬 \(leftovers.count)개를 시스템 제어로 정리")
         writeSystemModes()
     }
 
@@ -219,7 +219,7 @@ final class FanController: @unchecked Sendable {
         suspendedForSleep = false
         lastReturn = FanReturnEvent(reason: reason, at: Date())
         stopTimer()
-        NSLog("MonitorToolHelper: 팬 시스템 제어 복귀 (%@)", reason.text)
+        HelperLog.notice(.fan, "팬 시스템 제어 복귀 (\(reason.text))")
     }
 
     private func encodedState() -> Data? {
@@ -298,7 +298,7 @@ final class FanController: @unchecked Sendable {
         var notifier: io_object_t = 0
         let root = IORegisterForSystemPower(context, &port, FanController.powerCallback(), &notifier)
         guard root != 0, let port else {
-            NSLog("MonitorToolHelper: 잠자기 알림 등록 실패")
+            HelperLog.error(.fan, "잠자기 알림 등록 실패")
             return
         }
         IONotificationPortSetDispatchQueue(port, queue)
@@ -331,7 +331,7 @@ final class FanController: @unchecked Sendable {
                 writeSystemModes()
                 suspendedForSleep = true
                 stopTimer()
-                NSLog("MonitorToolHelper: 잠들기 전 팬 시스템 제어 (깨어나면 다시 적용)")
+                HelperLog.notice(.fan, "잠들기 전 팬 시스템 제어 (깨어나면 다시 적용)")
             }
             IOAllowPowerChange(rootPort, notificationID)
         case Self.messageSystemHasPoweredOn:
@@ -353,12 +353,12 @@ final class FanController: @unchecked Sendable {
         if let problem = writeTargets(request.targets) {
             writeSystemModes()
             finish(.writeFailed)
-            NSLog("MonitorToolHelper: 깨어난 뒤 다시 적용 실패 (%@)", problem)
+            HelperLog.error(.fan, "깨어난 뒤 다시 적용 실패 (\(problem))")
             return
         }
         appliedAt = Date()
         confirmed = false
         startTimer()
-        NSLog("MonitorToolHelper: 깨어난 뒤 팬 고정 다시 적용")
+        HelperLog.notice(.fan, "깨어난 뒤 팬 고정 다시 적용")
     }
 }

@@ -52,8 +52,13 @@ final class CollectionScheduler {
     /// 보조 프로그램이 마지막으로 알린 추적 상태 (추정의 까닭을 출력하려고)
     private var lastDiskActivityState: DiskActivityState?
     private var lastOtherTool: String?
-    /// 디스크별로 마지막으로 출력한 활성 시간 출처. 바뀔 때만 Xcode 출력에 알려요. (4.3: 까닭은 화면에 보이지 않음)
+    /// 디스크별로 마지막으로 출력한 활성 시간 출처. 바뀔 때만 기록에 남겨요. (4.3: 까닭은 화면에 보이지 않음)
     private var activeSourceNote: [UInt64: String] = [:]
+    /// 항목 값의 상태가 바뀌면 기록에 남겨요. (실사용 점검)
+    private var stateLog = ValueStateLog()
+    /// 잠든 때·화면이 꺼진 때 (깨어나면 얼마나 잤는지 기록에 남기려고)
+    private var sleptAt: Date?
+    private var screensSleptAt: Date?
 
     /// 패널이 열려 있는지예요. 바뀌면 모으는 간격도 바꿔요.
     var panelVisible = false {
@@ -146,6 +151,8 @@ final class CollectionScheduler {
         sleepObserver = workspace.addObserver(forName: NSWorkspace.willSleepNotification,
                                               object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
+                AppLog.notice(.app, "잠들기")
+                self?.sleptAt = Date()
                 self?.collect()
                 self?.network.save()
                 self?.disks.save()
@@ -155,6 +162,7 @@ final class CollectionScheduler {
         wakeObserver = workspace.addObserver(forName: NSWorkspace.didWakeNotification,
                                              object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
+                self?.noteWake()
                 self?.collect()
             }
         }
@@ -180,8 +188,22 @@ final class CollectionScheduler {
         }
     }
 
+    private func noteWake() {
+        let slept = sleptAt.map { AppLog.duration(Date().timeIntervalSince($0)) } ?? "알 수 없음"
+        sleptAt = nil
+        AppLog.notice(.app, "깨어남 (잠든 시간 \(slept))")
+    }
+
     private func setScreensAsleep(_ asleep: Bool) {
         guard asleep != screensAsleep else { return }
+        if asleep {
+            screensSleptAt = Date()
+            AppLog.notice(.app, "화면 꺼짐")
+        } else {
+            let off = screensSleptAt.map { AppLog.duration(Date().timeIntervalSince($0)) } ?? "알 수 없음"
+            screensSleptAt = nil
+            AppLog.notice(.app, "화면 켜짐 (꺼져 있던 시간 \(off))")
+        }
         screensAsleep = asleep
         startTimer()
         if !asleep {
@@ -262,6 +284,7 @@ final class CollectionScheduler {
             batches.append(MetricBatch(metrics: CollectionScheduler.powerMetrics, date: sampleDate))
         }
         store.update(with: snapshot, recording: batches)
+        logStates()
     }
 
     // MARK: - 디스크 활성 시간 (docs/DISK_ACTIVE_TIME.md 3.2 · 4장)
@@ -294,6 +317,7 @@ final class CollectionScheduler {
         }
         snapshot.disk.disks.value = list
         store.update(with: snapshot, recording: batches)
+        logStates()
     }
 
     /// 디스크마다 활성 시간을 넣어요. 쓸 수 있는 추적 값이 있으면 그 값, 없으면 드라이버 통계로 낸 추정,
@@ -345,7 +369,7 @@ final class CollectionScheduler {
     private func reportActiveSource(_ disk: DiskReading, _ note: String) {
         guard activeSourceNote[disk.id] != note else { return }
         activeSourceNote[disk.id] = note
-        print("디스크 활성: \(disk.name) → \(note)")
+        AppLog.notice(.disk, "디스크 활성: \(disk.name) → \(note)")
     }
 
     /// 추적 값을 못 쓰는 까닭 (출력용)
@@ -370,10 +394,10 @@ final class CollectionScheduler {
         let names = Dictionary((store.snapshot.disk.disks.okValue ?? []).map { ($0.id, $0.name) },
                                uniquingKeysWith: { first, _ in first })
         for id in after.subtracting(before).sorted() {
-            print("⚠️ 디스크 활성: 대조 어긋남 → 추정 (\(names[id] ?? String(id)))")
+            AppLog.error(.disk, "디스크 활성: 대조 어긋남 → 추정 (\(names[id] ?? String(id)))")
         }
         for id in before.subtracting(after).intersection(present).sorted() {
-            print("디스크 활성: 대조 맞음 → 추적 (\(names[id] ?? String(id)))")
+            AppLog.notice(.disk, "디스크 활성: 대조 맞음 → 추적 (\(names[id] ?? String(id)))")
         }
     }
 
@@ -409,6 +433,12 @@ final class CollectionScheduler {
         } else if snapshot != store.snapshot {
             store.replace(with: snapshot)
         }
+        logStates()
+    }
+
+    /// 항목 값의 상태가 바뀌었으면 기록에 남겨요. (ValueStateLog)
+    private func logStates() {
+        stateLog.check(store.snapshot, screensAsleep: screensAsleep)
     }
 
     /// 보조 프로그램 상태와 CPU·ANE 전력을 넣어요. 아직 그래프에 넣지 않은 새 표본이면 그 측정 시각을 돌려줘요.
