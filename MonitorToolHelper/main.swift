@@ -8,7 +8,7 @@
 
 import Foundation
 
-NSLog("MonitorToolHelper: 시작 (uid %d)", getuid())
+HelperLog.notice(.lifecycle, "시작 · uid \(getuid())")
 
 let sampler = PowerSampler()
 // 시작할 때 수동으로 남은 팬이 있으면 시스템 제어로 정리해요.
@@ -23,7 +23,7 @@ let lifecycle = HelperLifecycle(sampler: sampler, fan: fan, tracer: tracer)
 signal(SIGTERM, SIG_IGN)
 let terminationSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
 terminationSource.setEventHandler {
-    NSLog("MonitorToolHelper: 끝내라는 신호를 받았어요")
+    HelperLog.notice(.lifecycle, "끝내라는 신호를 받음 (SIGTERM)")
     sampler.stop()
     fan.shutdown()
     tracer.shutdown()

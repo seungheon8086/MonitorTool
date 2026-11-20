@@ -53,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         // fn + Space인데 손쉬운 사용 허용이 아직 없으면 macOS의 허용 창을 한 번 띄워요.
         if !shortcut.activate(promptForPermission: true) {
-            print("⚠️ \(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
+            AppLog.error(.ui, "\(shortcut.combo.displayText) 단축키를 등록하지 못했어요. 다른 앱이 같은 조합을 쓰고 있을 수 있어요.")
         }
 
         // 값을 모으기 시작해요. 패널이 열려 있으면 1초, 닫혀 있으면 10초(배터리 30초), 화면이 꺼져 있으면 30초마다 모아요.

@@ -52,7 +52,7 @@ final class CollectionScheduler {
     /// 보조 프로그램이 마지막으로 알린 추적 상태 (추정의 까닭을 출력하려고)
     private var lastDiskActivityState: DiskActivityState?
     private var lastOtherTool: String?
-    /// 디스크별로 마지막으로 출력한 활성 시간 출처. 바뀔 때만 Xcode 출력에 알려요. (4.3: 까닭은 화면에 보이지 않음)
+    /// 디스크별로 마지막으로 출력한 활성 시간 출처. 바뀔 때만 기록에 남겨요. (4.3: 까닭은 화면에 보이지 않음)
     private var activeSourceNote: [UInt64: String] = [:]
 
     /// 패널이 열려 있는지예요. 바뀌면 모으는 간격도 바꿔요.
@@ -345,7 +345,7 @@ final class CollectionScheduler {
     private func reportActiveSource(_ disk: DiskReading, _ note: String) {
         guard activeSourceNote[disk.id] != note else { return }
         activeSourceNote[disk.id] = note
-        print("디스크 활성: \(disk.name) → \(note)")
+        AppLog.notice(.disk, "디스크 활성: \(disk.name) → \(note)")
     }
 
     /// 추적 값을 못 쓰는 까닭 (출력용)
@@ -370,10 +370,10 @@ final class CollectionScheduler {
         let names = Dictionary((store.snapshot.disk.disks.okValue ?? []).map { ($0.id, $0.name) },
                                uniquingKeysWith: { first, _ in first })
         for id in after.subtracting(before).sorted() {
-            print("⚠️ 디스크 활성: 대조 어긋남 → 추정 (\(names[id] ?? String(id)))")
+            AppLog.error(.disk, "디스크 활성: 대조 어긋남 → 추정 (\(names[id] ?? String(id)))")
         }
         for id in before.subtracting(after).intersection(present).sorted() {
-            print("디스크 활성: 대조 맞음 → 추적 (\(names[id] ?? String(id)))")
+            AppLog.notice(.disk, "디스크 활성: 대조 맞음 → 추적 (\(names[id] ?? String(id)))")
         }
     }
 

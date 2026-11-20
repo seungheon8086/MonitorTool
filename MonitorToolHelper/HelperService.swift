@@ -96,7 +96,7 @@ final class HelperLifecycle: NSObject, NSXPCListenerDelegate, @unchecked Sendabl
             }
         }
         newConnection.resume()
-        NSLog("MonitorToolHelper: 연결 받음 (pid %d)", newConnection.processIdentifier)
+        HelperLog.notice(.lifecycle, "연결 받음 (pid \(newConnection.processIdentifier))")
         return true
     }
 
@@ -134,7 +134,7 @@ final class HelperLifecycle: NSObject, NSXPCListenerDelegate, @unchecked Sendabl
             guard let self else { return }
             // 기다리는 동안 앱이 다시 연결했으면 끝내지 않아요.
             guard self.exitIsForced || self.connectionCount == 0 else { return }
-            NSLog("MonitorToolHelper: 끝내요 (%@)", self.exitIsForced ? "실행 파일이 바뀜" : "연결 없음")
+            HelperLog.notice(.lifecycle, "끝내요 (\(self.exitIsForced ? "실행 파일이 바뀜" : "연결 없음"))")
             self.sampler.stop()
             self.fan.shutdown()
             self.tracer.shutdown()

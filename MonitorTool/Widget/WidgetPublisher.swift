@@ -104,7 +104,7 @@ final class WidgetPublisher {
         } catch {
             if !reportedFailure {
                 reportedFailure = true
-                print("⚠️ 위젯: 공유 파일을 쓰지 못함 (\(error.localizedDescription))")
+                AppLog.error(.widget, "위젯: 공유 파일을 쓰지 못함 (\(error.localizedDescription))")
             }
         }
     }

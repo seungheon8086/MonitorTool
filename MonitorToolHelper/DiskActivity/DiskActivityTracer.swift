@@ -17,7 +17,7 @@ import Darwin
 import Foundation
 import os
 
-/// 디스크 추적 기록. 보조 프로그램의 다른 기록(NSLog)과 달리 `log show`에서 내용이 보이게 공개로 남긴다 (2026-11-06 사용자 결정).
+/// 디스크 추적 기록. `log show`에서 내용이 보이게 공개로 남긴다 (2026-11-06 사용자 결정, 다른 기록은 HelperLog로 2026-11-21부터 같은 방식).
 /// 보기: log show --last 30m --style compact --predicate 'subsystem == "com.seungheon.MonitorTool.helper"'
 private let diskLog = Logger(subsystem: HelperConstants.label, category: "diskActivity")
 
