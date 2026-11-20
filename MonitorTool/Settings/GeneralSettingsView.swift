@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 설정 창 '일반' 탭: 패널 단축키와 로그인할 때 열기 (화면 시안 '설정 창 · 일반')
+/// 설정 창 '일반' 탭: 패널 단축키, 로그인할 때 열기, 네트워크 속도 단위 (화면 시안 '설정 창 · 일반')
 /// 단축키는 켜고 끌 수 있고, fn + Space와 직접 정한 조합 중에서 골라요. (2026-10-25 사용자 결정)
 struct GeneralSettingsView: View {
     @Environment(LoginItemSettings.self) private var loginItem
@@ -20,6 +20,11 @@ struct GeneralSettingsView: View {
                 LoginItemRow()
             }
 
+            SettingsSectionTitle(title: "단위")
+                .padding(.top, 12)
+            SettingsBox {
+                NetworkRateUnitRow()
+            }
         }
         .padding(EdgeInsets(top: 20, leading: 24, bottom: 24, trailing: 24))
         .frame(width: SettingsLayout.width, alignment: .leading)
@@ -252,10 +257,38 @@ struct LoginItemRow: View {
     }
 }
 
+/// 네트워크 속도 단위: MB/s │ Mbps (패널·위젯 모두, 누적량은 늘 바이트) (2026-11-20 사용자 결정)
+struct NetworkRateUnitRow: View {
+    @Environment(AppearanceSettings.self) private var appearance
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Text("네트워크 속도")
+                .font(.system(size: 13))
+            Spacer(minLength: 8)
+            Picker("네트워크 속도", selection: unit) {
+                ForEach(NetworkRateUnit.allCases) { unit in
+                    Text(unit.title)
+                        .tag(unit)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 160)
+        }
+    }
+
+    private var unit: Binding<NetworkRateUnit> {
+        Binding(get: { appearance.networkRateUnit },
+                set: { appearance.setNetworkRateUnit($0) })
+    }
+}
+
 #if DEBUG
 #Preview("일반") {
     GeneralSettingsView()
         .environment(PanelShortcut(action: {}))
         .environment(LoginItemSettings())
+        .environment(AppearanceSettings())
 }
 #endif
