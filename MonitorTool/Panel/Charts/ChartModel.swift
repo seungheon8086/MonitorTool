@@ -98,6 +98,9 @@ nonisolated enum ChartScale: Hashable, Sendable {
     case fixed(Double)
     /// 보이는 값에 맞춰 보기 좋은 위쪽 선을 고르되, 적어도 minimum은 둬요.
     case automatic(minimum: Double)
+    /// automatic과 같지만, 값에 factor를 곱한 단위에서 보기 좋은 위쪽 선을 고르고 다시 나눠요. 적어도 minimum(곱하기 전)은 둬요.
+    /// (네트워크를 비트로 보면 ×8: 바이트에서 고른 1.5 MB/s는 12 Mbps라 깔끔하지 않아서, 비트에서 10 Mbps처럼 골라요)
+    case automaticScaled(minimum: Double, factor: Double)
     /// 0을 가운데 두고 위아래로 같은 폭이에요. (배터리 순전력: 위는 충전, 아래는 방전)
     case symmetric(minimum: Double)
     /// 바이트 값을 GB(1024³) 단위로 보기 좋은 위쪽 선에 맞춰요. 적어도 minimum(바이트)은 둬요. (GPU 메모리)
@@ -146,6 +149,10 @@ extension ChartScale {
             return ChartRange(lower: 0, upper: upper > 0 ? upper : 1)
         case let .automatic(minimum):
             let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum))
+            return ChartRange(lower: 0, upper: top)
+        case let .automaticScaled(minimum, factor):
+            let factor = factor.isFinite && factor > 0 ? factor : 1
+            let top = ChartData.niceCeiling(max(values.max() ?? 0, minimum) * factor) / factor
             return ChartRange(lower: 0, upper: top)
         case let .symmetric(minimum):
             let largest = values.map { abs($0) }.max() ?? 0

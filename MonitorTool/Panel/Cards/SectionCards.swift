@@ -280,16 +280,20 @@ enum BatteryText {
 
 struct NetworkCard: View {
     @Environment(MonitorStore.self) private var store
+    @Environment(AppearanceSettings.self) private var appearance
     @Binding var expanded: Set<MonitorItem>
 
     var body: some View {
         let network = store.snapshot.network
+        let unit = appearance.networkRateUnit
         SectionCard(item: .network, expanded: $expanded) {
             EmptyView()
         } content: {
             HStack(alignment: .top, spacing: 8) {
-                LabeledValue(label: "↓ 다운로드", reading: network.download, format: ValueFormat.rate)
-                LabeledValue(label: "↑ 업로드", reading: network.upload, format: ValueFormat.rate)
+                LabeledValue(label: "↓ 다운로드", reading: network.download,
+                             format: { ValueFormat.networkRate($0, unit: unit) })
+                LabeledValue(label: "↑ 업로드", reading: network.upload,
+                             format: { ValueFormat.networkRate($0, unit: unit) })
             }
             if let downloaded = network.todayDownloaded.okValue, let uploaded = network.todayUploaded.okValue {
                 Text("오늘 누적 ↓ \(ValueFormat.byteCount(downloaded)) · ↑ \(ValueFormat.byteCount(uploaded))")

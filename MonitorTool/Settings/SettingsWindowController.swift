@@ -27,7 +27,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         tabs.addTabViewItem(SettingsWindowController.tab(title: "일반", symbol: "gearshape",
                                                          content: GeneralSettingsView()
                                                             .environment(shortcut)
-                                                            .environment(loginItem)))
+                                                            .environment(loginItem)
+                                                            .environment(appearance)))
         tabs.addTabViewItem(SettingsWindowController.tab(title: "패널", symbol: "sidebar.right",
                                                          content: PanelSettingsView()
                                                             .environment(appearance)))

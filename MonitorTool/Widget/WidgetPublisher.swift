@@ -3,7 +3,7 @@ import Foundation
 import WidgetKit
 
 /// 위젯이 읽을 값을 App Group 공유 파일에 쓰고 위젯에 다시 그려 달라고 부탁해요. (docs/WIDGET_V2.md 4장)
-/// 값이 바뀌어도 10초에 한 번까지만 써요. 색을 바꿀 때·잠들기 직전·앱이 끝날 때는 바로 써요.
+/// 값이 바뀌어도 10초에 한 번까지만 써요. 색·속도 단위를 바꿀 때·잠들기 직전·앱이 끝날 때는 바로 써요.
 /// 화면이 꺼져 있는 동안은 위젯을 볼 수 없어서 쓰지 않아요.
 final class WidgetPublisher {
     private let store: MonitorStore
@@ -94,7 +94,8 @@ final class WidgetPublisher {
                                     appState: appState,
                                     snapshot: snapshot,
                                     colors: colors,
-                                    series: WidgetPublisher.series(from: store.history, end: end))
+                                    series: WidgetPublisher.series(from: store.history, end: end),
+                                    networkRateUnit: appearance.networkRateUnit)
         do {
             try WidgetSharedFile.write(payload)
             reportedFailure = false

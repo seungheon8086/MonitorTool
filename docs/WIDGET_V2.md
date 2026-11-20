@@ -31,12 +31,13 @@
 | MonitorTool CPU·GPU 사용률 (`MonitorToolGraph.usage`) | P 진하게, E 연한 점선, GPU (0–100%) | P · E · GPU % |
 | MonitorTool 전력 (`.power`) | CPU · GPU · ANE (값에 맞춘 축, 최소 1 W) | W |
 | MonitorTool 온도 (`.temperature`) | CPU 최고 진하게, GPU 최고 연한 점선 (0–110 °C) | °C |
-| MonitorTool 네트워크 (`.network`) | ↓ 진하게, ↑ 연한 점선 (최소 10 KB/s) | 속도 |
+| MonitorTool 네트워크 (`.network`) | ↓ 진하게, ↑ 연한 점선 (최소 10 KB/s = 80 Kbps) | 속도 (앱에서 고른 단위) |
 | MonitorTool 팬 (`.fan`) | 오른쪽 진하게, 왼쪽 연한 점선 (최소 2,000 RPM) | RPM · 정지 |
 | MonitorTool 배터리 순전력 (`.battery`) | 0을 가운데 두고 + 충전 · − 방전 (최소 ±5 W) | ±W |
 
 - 한 장 구성: 제목 · '10분' · 상태 배지 / 선마다 지금 값 / 꺾은선 / 측정 시각
 - 왼쪽 눈금: 위·가운데·아래 숫자(단위 포함). 축 맨 위는 고정값이거나 값에 맞춘 1·2·2.5·5 × 10ⁿ (팬·배터리는 2026-10-30 사용자 요청으로 추가, 눈금도 같은 요청)
+- 네트워크 속도는 앱 설정 '일반 > 단위'에서 고른 MB/s·Mbps로 보여줌 (요약 칩·네트워크 줄·그래프 범례·눈금, 누적량은 늘 바이트). 눈금은 짧은 꼴(`500 KB` · `500 Kb`, 단위는 범례에 있음), 비트면 맨 위 값을 ×8 한 값에서 고름, 바닥은 단위 없이 `0` (2026-11-20 사용자 결정, #1)
 - 재는 간격이 10초보다 긴 계열(배터리 약 30초)은 가장 느린 수집 간격의 2.5배 안의 빈 칸을 앞 값으로 이음
 - 10초 칸 60개(10분). 값이 없는 칸은 비우고 0으로 잇지 않음
 - 앱은 저장 뒤 `reloadAllTimelines()`로 모든 위젯을 한 번에 갱신
@@ -55,14 +56,14 @@
 
 - 수집은 앱 한 곳. 위젯은 공유 파일만 읽음
 - App Group `47C8XKJT3X.com.seungheon.MonitorTool`(개인 팀 접두어), 파일 `Library/Application Support/widget-v2.json` 하나
-- 내용(`WidgetPayload`, 판 번호 1): 저장 시각, 앱 상태(동작·잠자기·꺼짐), `MonitorSnapshot`, 항목 색, 그래프 계열 13개(E·P·GPU 사용률, CPU·GPU·ANE 전력, CPU·GPU 온도, ↓·↑ 속도, 팬 2개, 배터리 순전력) × 60칸
-- 쓰는 때(`WidgetPublisher`): 값이 바뀌면 10초에 한 번까지, 색을 바꿀 때, 잠들기 직전, 앱이 끝날 때. 쓰고 나서 `WidgetCenter.reloadAllTimelines()`
+- 내용(`WidgetPayload`, 판 번호 1): 저장 시각, 앱 상태(동작·잠자기·꺼짐), `MonitorSnapshot`, 항목 색, 그래프 계열 13개(E·P·GPU 사용률, CPU·GPU·ANE 전력, CPU·GPU 온도, ↓·↑ 속도, 팬 2개, 배터리 순전력) × 60칸, 네트워크 속도 단위(선택 항목이라 예전 파일도 읽힘 → 판 번호는 그대로, 없으면 Mbps). 그래프 계열은 단위와 상관없이 바이트
+- 쓰는 때(`WidgetPublisher`): 값이 바뀌면 10초에 한 번까지, 색·네트워크 속도 단위를 바꿀 때, 잠들기 직전, 앱이 끝날 때. 쓰고 나서 `WidgetCenter.reloadAllTimelines()`
 - 원자적 쓰기(`.atomic`). 크기 약 10 KB
 - 위젯 타임라인: 지금 항목 + 45초 뒤 '오래됨' 항목, 정책 `.never`(새 값은 앱이 갱신 요청)
 
 ## 5. 코드 위치
 
-- `WidgetShared/`(앱·위젯 공용 동기화 폴더): `WidgetPayload.swift`(형식·파일 위치·읽기·쓰기)
+- `WidgetShared/`(앱·위젯 공용 동기화 폴더): `WidgetPayload.swift`(형식·파일 위치·읽기·쓰기), `NetworkRateUnit.swift`(네트워크 속도 단위)
 - 위젯이 함께 컴파일하는 앱 파일(참조): `Model/ValueState.swift`, `Model/MonitorSnapshot.swift`, `Model/FanName.swift`, `Appearance/MonitorItem.swift`, `Appearance/ItemColor.swift`, `Support/ValueFormat.swift`
 - 앱: `MonitorTool/Widget/WidgetPublisher.swift`, `MonitorStore.onUpdate`, `AppearanceSettings.onChange`
 - 위젯 확장 `MonitorToolWidget/`: 묶음·타임라인·화면·조각

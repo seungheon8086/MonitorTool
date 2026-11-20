@@ -412,20 +412,27 @@ struct NetworkDetail: View {
         }
     }
 
-    /// 받기·보내기 속도 그래프 (보내기는 연한 색)
+    /// 설정 창 '일반 > 단위'에서 고른 속도 단위
+    private var unit: NetworkRateUnit { appearance.networkRateUnit }
+
+    private func rate(_ bytesPerSecond: Double) -> String {
+        ValueFormat.networkRate(bytesPerSecond, unit: unit)
+    }
+
+    /// 받기·보내기 속도 그래프 (보내기는 연한 색). 기록은 바이트 그대로이고, 위쪽 선은 고른 단위에서 깔끔한 값으로 골라요.
     private var speedChart: some View {
         let color = appearance.color(for: .network)
         return HistoryChart(title: "속도",
                             lines: [ChartLine(metric: .networkDownload, label: "↓", color: color.color),
                                     ChartLine(metric: .networkUpload, label: "↑", color: color.secondaryColor)],
                             period: period,
-                            scale: .automatic(minimum: 100_000),
+                            scale: .automaticScaled(minimum: 100_000, factor: unit.factor),
                             height: 72,
                             emptyState: network.download.state,
-                            scaleText: ValueFormat.rateScale) {
+                            scaleText: { ValueFormat.networkRateScale($0, unit: unit) }) {
             HStack(spacing: 10) {
-                LegendValue(color: color.color, label: "↓", reading: network.download, format: ValueFormat.rate)
-                LegendValue(color: color.secondaryColor, label: "↑", reading: network.upload, format: ValueFormat.rate)
+                LegendValue(color: color.color, label: "↓", reading: network.download, format: rate)
+                LegendValue(color: color.secondaryColor, label: "↑", reading: network.upload, format: rate)
             }
         }
     }
@@ -479,7 +486,7 @@ struct NetworkDetail: View {
                         Text("(\(interface.id))")
                             .foregroundStyle(.secondary)
                         Spacer(minLength: 8)
-                        Text("↓ \(ValueFormat.rate(interface.download)) · ↑ \(ValueFormat.rate(interface.upload))")
+                        Text("↓ \(rate(interface.download)) · ↑ \(rate(interface.upload))")
                             .monospacedDigit()
                     }
                     .font(.system(size: 12))

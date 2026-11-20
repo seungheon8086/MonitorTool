@@ -5,7 +5,7 @@ import Observation
 @Observable
 final class AppearanceSettings {
     private(set) var colors: [MonitorItem: ItemColor] = [:]
-    /// 색을 바꿀 때마다 불러요. (위젯도 같은 색을 쓰도록 공유 파일을 다시 써요)
+    /// 색·네트워크 속도 단위를 바꿀 때마다 불러요. (위젯도 같은 값을 쓰도록 공유 파일을 다시 써요)
     @ObservationIgnored var onChange: (() -> Void)?
 
     /// 패널 유리 종류: macOS Liquid Glass의 '투명'(clear)과 '기본'(regular) (2026-11-03 사용자 요청)
@@ -23,6 +23,10 @@ final class AppearanceSettings {
     private(set) var sectionOrder: [PanelSection] = PanelSection.allCases
     /// 맨 위 카드 안의 열 순서
     private(set) var processorOrder: [MonitorItem] = PanelSection.processorItems
+
+    /// 네트워크 속도 단위 (설정 창 '일반 > 단위', 2026-11-20 사용자 결정). 패널과 위젯이 함께 써요.
+    /// 되돌리기 단추(기본 색·패널 배경·항목 순서)는 이 값을 건드리지 않아요.
+    private(set) var networkRateUnit: NetworkRateUnit = .standard
 
     var panelOrderIsDefault: Bool {
         sectionOrder == PanelSection.allCases && processorOrder == PanelSection.processorItems
@@ -62,6 +66,9 @@ final class AppearanceSettings {
         if let saved = defaults.stringArray(forKey: Self.processorOrderKey) {
             processorOrder = PanelSection.normalized(saved.compactMap(MonitorItem.init(rawValue:)),
                                                      all: PanelSection.processorItems)
+        }
+        if let saved = defaults.string(forKey: Self.networkRateUnitKey).flatMap(NetworkRateUnit.init(rawValue:)) {
+            networkRateUnit = saved
         }
         // 처음 만든 투명도 슬라이더(알파값 방식, 커밋 전에 바꿈)의 값은 지워요.
         defaults.removeObject(forKey: "panelBackground")
@@ -142,6 +149,16 @@ final class AppearanceSettings {
 
     private static let sectionOrderKey = "panelSectionOrder"
     private static let processorOrderKey = "panelProcessorOrder"
+
+    /// 단위를 바꾸면 위젯도 같은 단위를 쓰도록 공유 파일을 다시 써요. (색을 바꿀 때와 같아요)
+    func setNetworkRateUnit(_ unit: NetworkRateUnit) {
+        guard unit != networkRateUnit else { return }
+        networkRateUnit = unit
+        defaults.set(unit.rawValue, forKey: Self.networkRateUnitKey)
+        onChange?()
+    }
+
+    private static let networkRateUnitKey = "networkRateUnit"
 
     /// −1…1로 자르고, 가운데 근처는 0(색조 없음)에 붙여요. (슬라이더로 정확히 0을 맞추기 어려워서)
     private static func clampedTint(_ value: Double) -> Double {
