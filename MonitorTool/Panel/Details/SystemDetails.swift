@@ -403,6 +403,12 @@ struct NetworkDetail: View {
         DetailCard(title: "네트워크 자세히") {
             PeriodPicker(period: $period)
         } content: {
+            // 머리 줄에 두면 패널 폭 380에서 제목이 깨져서, 기간 단추 바로 아래 오른쪽 끝에 맞춰 둬요 (#3)
+            HStack {
+                Spacer()
+                NetworkRateUnitPicker()
+            }
+            .padding(.top, -4)
             speedChart
             totalsTable
             interfaceList
@@ -412,7 +418,7 @@ struct NetworkDetail: View {
         }
     }
 
-    /// 설정 창 '일반 > 단위'에서 고른 속도 단위
+    /// 설정 창 '일반 > 단위'나 기간 단추 아래 단위 단추에서 고른 속도 단위
     private var unit: NetworkRateUnit { appearance.networkRateUnit }
 
     private func rate(_ bytesPerSecond: Double) -> String {
