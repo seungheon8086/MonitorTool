@@ -40,7 +40,9 @@ struct PanelView: View {
                 }
                 .padding(16)
             }
-            .scrollIndicators(.hidden)
+            // .hidden은 마우스를 연결했거나 '스크롤 막대 보기: 항상'일 때 막대를 숨기지 못해서,
+            // 내용이 넘칠 때 막대가 생기고 그만큼 카드 폭이 줄어들어요. .never는 이때도 숨겨요. (#5)
+            .scrollIndicators(.never)
 
             PanelFooter(helper: store.snapshot.helper, openSettings: openSettings, allowHelper: allowHelper)
         }
