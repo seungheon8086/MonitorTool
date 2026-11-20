@@ -199,7 +199,7 @@ final class FanControlModel {
             }
             self.problem = newProblem
             if let newProblem {
-                AppLog.error(.fan, "팬 제어: \(newProblem)")
+                print("⚠️ 팬 제어: \(newProblem)")
             }
         }
     }

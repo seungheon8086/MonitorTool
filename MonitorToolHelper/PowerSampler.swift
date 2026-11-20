@@ -94,14 +94,13 @@ final class PowerSampler: @unchecked Sendable {
             try process.run()
         } catch {
             problem = "powermetrics를 실행하지 못했어요. (\(error.localizedDescription))"
-            HelperLog.error(.power, "powermetrics 실행 실패 (\(error.localizedDescription))")
             return
         }
         self.process = process
         intervalMilliseconds = interval
         buffer.removeAll()
         unreadableCount = 0
-        HelperLog.notice(.power, "powermetrics 시작 (\(interval) ms 간격)")
+        NSLog("MonitorToolHelper: powermetrics 시작 (%ld ms 간격)", interval)
     }
 
     private func stopProcess() {
@@ -114,7 +113,7 @@ final class PowerSampler: @unchecked Sendable {
             process.terminate()
         }
         buffer.removeAll()
-        HelperLog.notice(.power, "powermetrics 멈춤")
+        NSLog("MonitorToolHelper: powermetrics 멈춤")
     }
 
     private func ended(generation: Int, status: Int32) {
@@ -123,7 +122,7 @@ final class PowerSampler: @unchecked Sendable {
         process = nil
         buffer.removeAll()
         problem = "powermetrics가 멈췄어요. (종료 코드 \(status))"
-        HelperLog.error(.power, "powermetrics가 스스로 끝남 (종료 코드 \(status))")
+        NSLog("MonitorToolHelper: powermetrics가 스스로 끝남 (종료 코드 %d)", status)
     }
 
     // MARK: - 출력 읽기

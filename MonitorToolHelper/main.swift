@@ -8,10 +8,7 @@
 
 import Foundation
 
-HelperLog.notice(.lifecycle, "시작 · uid \(getuid()) · 실행 파일 \(ExecutableStamp.text)")
-// 10분마다 CPU 시간·메모리를 기록에 한 줄 남겨요. (실사용 점검)
-let usage = UsageReporter { HelperLog.notice(.lifecycle, $0) }
-usage.start()
+NSLog("MonitorToolHelper: 시작 (uid %d)", getuid())
 
 let sampler = PowerSampler()
 // 시작할 때 수동으로 남은 팬이 있으면 시스템 제어로 정리해요.
@@ -26,7 +23,7 @@ let lifecycle = HelperLifecycle(sampler: sampler, fan: fan, tracer: tracer)
 signal(SIGTERM, SIG_IGN)
 let terminationSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
 terminationSource.setEventHandler {
-    HelperLog.notice(.lifecycle, "끝내라는 신호를 받음 (SIGTERM)")
+    NSLog("MonitorToolHelper: 끝내라는 신호를 받았어요")
     sampler.stop()
     fan.shutdown()
     tracer.shutdown()

@@ -21,7 +21,7 @@ enum WindowBlur {
         guard let mainConnection, let setBlurRadius, window.windowNumber > 0 else { return false }
         let result = setBlurRadius(mainConnection(), Int32(clamping: window.windowNumber), Int32(clamping: max(radius, 0)))
         if result != 0 {
-            AppLog.error(.ui, "배경 흐림: CGSSetWindowBackgroundBlurRadius 실패 \(result)")
+            print("⚠️ 배경 흐림: CGSSetWindowBackgroundBlurRadius 실패 \(result)")
         }
         return result == 0
     }
@@ -32,7 +32,7 @@ enum WindowBlur {
     private static func symbol<Function>(_ name: String) -> Function? {
         // RTLD_DEFAULT: 이미 불러온 모든 라이브러리(CoreGraphics 포함)에서 찾아요.
         guard let pointer = dlsym(UnsafeMutableRawPointer(bitPattern: -2), name) else {
-            AppLog.error(.ui, "배경 흐림: \(name)을 찾지 못함")
+            print("⚠️ 배경 흐림: \(name)을 찾지 못함")
             return nil
         }
         return unsafeBitCast(pointer, to: Function.self)
